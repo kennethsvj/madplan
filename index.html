@@ -286,6 +286,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
     <div class="sec-top">
       <h2>Indkøbsliste</h2>
       <div style="display:flex;gap:6px">
+        <button class="btn-sm btn-sm-muted" onclick="printShoppingList()">🖨️</button>
         <button class="btn-sm btn-sm-green" onclick="archiveShoppingList()" title="Arkivér listen">💾 Arkivér</button>
         <button class="btn-sm btn-sm-muted" onclick="clearChecked()">Nulstil</button>
       </div>
@@ -496,7 +497,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 <!-- PICKER MODAL -->
 <div class="overlay" id="pickerOverlay">
   <div class="modal">
-    <div class="modal-title">Vælg opskrift til <span id="pickerDay">–</span></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+      <div class="modal-title">Vælg opskrift til <span id="pickerDay">–</span></div>
+      <button onclick="closeOverlay('pickerOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
     <div style="position:relative;margin-bottom:8px"><span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.45;font-size:.85rem;pointer-events:none">🔍</span><input class="form-input" id="pickerSearch" placeholder="Søg…" style="padding-left:34px" oninput="renderPickerList()"></div>
     <div class="cuis-chips" id="pickerCuisChips" style="margin-bottom:6px"></div>
     <div class="cuis-chips" id="pickerIngChips" style="margin-bottom:8px"></div>
@@ -511,7 +515,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 <!-- NEW WEEK MODAL -->
 <div class="overlay center" id="newWeekOverlay">
   <div class="modal floating">
-    <div class="modal-title">✨ Auto-generér madplan</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title">✨ Auto-generér madplan</div>
+      <button onclick="closeOverlay('newWeekOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
     <div class="modal-sub" id="nwSub">Lås dage med 🔒 — de beholdes ved blanding. Filtrér efter køkken hvis du vil.</div>
     <div class="cuis-chips" id="nwCuisChips"></div>
     <div class="nw-grid" id="nwGrid"></div>
@@ -630,7 +637,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
   <div class="modal" style="max-width:760px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
       <div>
-        <div class="modal-title">🔍 Forfin næringsindhold</div>
+        <div class="modal-title">📊 Makronæringsstoffer</div>
         <div class="modal-sub" id="nutSub" style="margin-bottom:0">Match hver ingrediens mod Open Food Facts for præcise tal</div>
       </div>
       <button onclick="closeOverlay('nutritionOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0;margin-left:8px" title="Luk">✕</button>
@@ -667,10 +674,51 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
   </div>
 </div>
 
+<!-- ADD COMMON ITEM MODAL -->
+<div class="overlay center" id="addCommonOverlay">
+  <div class="modal floating" style="max-width:420px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title">➕ Tilføj til almindelige varer</div>
+      <button onclick="closeOverlay('addCommonOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
+    <div class="modal-sub">Varer du ofte køber — lægges til chip-listen øverst på indkøbslisten</div>
+    <div class="form-row">
+      <label class="form-label">Navn</label>
+      <input class="form-input" id="addCommonName" placeholder="fx Spaghetti" onkeydown="if(event.key==='Enter')saveCommonItem()">
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="form-label">Kategori</label>
+        <select class="form-select" id="addCommonCat">
+          <option value="kød">🥩 Kød & Fisk</option>
+          <option value="grøntsager">🥦 Grøntsager</option>
+          <option value="frugt">🍎 Frugt</option>
+          <option value="mejeri">🧀 Mejeri</option>
+          <option value="kolonial" selected>🫙 Kolonial</option>
+          <option value="brød">🍞 Brød</option>
+          <option value="krydderier">🧂 Krydderier</option>
+          <option value="andet">🛒 Andet</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Ikon (emoji)</label>
+        <input class="form-input" id="addCommonIcon" placeholder="🛒" maxlength="4">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('addCommonOverlay')">Annuller</button>
+      <button class="btn btn-primary" onclick="saveCommonItem()">Tilføj ✓</button>
+    </div>
+  </div>
+</div>
+
 <!-- ARCHIVE MODAL -->
 <div class="overlay center" id="archiveOverlay">
   <div class="modal floating" style="max-width:400px">
-    <div class="modal-title">💾 Arkivér denne uge</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title">💾 Arkivér denne uge</div>
+      <button onclick="closeOverlay('archiveOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
     <div class="modal-sub">Giv ugen et navn så du kan finde den igen senere</div>
     <input class="form-input" id="archiveNameInput" placeholder="fx Uge 14 - Grillmad" onkeydown="if(event.key==='Enter')confirmSaveWeek()">
     <div class="modal-btns">
@@ -708,8 +756,8 @@ const CUISINE_LIST = [
   {k:"fransk",l:"🥐 Fransk"},{k:"spansk",l:"🥘 Spansk"},{k:"japansk",l:"🍱 Japansk"},
   {k:"thai",l:"🌶️ Thai"},{k:"marokkansk",l:"🧆 Marokkansk"},{k:"andet",l:"🌍 Andet"}
 ];
-// Common Danish staples for quick-add
-const COMMON_ITEMS = [
+// Default Danish staples seed — used if user has no customCommonItems yet
+const DEFAULT_COMMON_ITEMS = [
   {name:'Løg',cat:'grøntsager',icon:'🧅'},
   {name:'Kartofler',cat:'grøntsager',icon:'🥔'},
   {name:'Gulerødder',cat:'grøntsager',icon:'🥕'},
@@ -736,6 +784,8 @@ const COMMON_ITEMS = [
   {name:'Toiletpapir',cat:'andet',icon:'🧻'},
   {name:'Opvaskemiddel',cat:'andet',icon:'🫧'},
 ];
+// Backwards compat
+const COMMON_ITEMS = DEFAULT_COMMON_ITEMS;
 
 // ── STATE ────────────────────────────────────────────────────────
 let S = {
@@ -775,6 +825,51 @@ let bookCuisFilter = 'alle';
 let bookIngFilter = 'alle';
 let expandedBookId = null;
 let recipeScale = 1;
+let nutritionViewMode = 'portion'; // 'portion' | 'total' | 'plate'
+let plateWeight = 250; // grams, for 'plate' mode
+
+function setNutritionViewMode(mode){
+  nutritionViewMode=mode;
+  renderRecipe();
+}
+function setPlateWeight(g){
+  plateWeight=parseFloat(g)||250;
+  renderRecipe();
+}
+
+// Compute displayed nutrition based on mode
+function getDisplayNutrition(nutrition,recipeWeight){
+  if(!nutrition)return null;
+  const portions=nutrition.perPortion||4;
+  if(nutritionViewMode==='total'){
+    return{
+      kcal:Math.round(nutrition.kcal*portions),
+      protein:Math.round(nutrition.protein*portions*10)/10,
+      carbs:Math.round(nutrition.carbs*portions*10)/10,
+      fat:Math.round(nutrition.fat*portions*10)/10,
+      label:`hele retten (${portions} portioner)`
+    };
+  }
+  if(nutritionViewMode==='plate'&&recipeWeight){
+    // Per-gram values × plate grams
+    const factor=plateWeight/(recipeWeight||1);
+    return{
+      kcal:Math.round(nutrition.kcal*portions*factor),
+      protein:Math.round(nutrition.protein*portions*factor*10)/10,
+      carbs:Math.round(nutrition.carbs*portions*factor*10)/10,
+      fat:Math.round(nutrition.fat*portions*factor*10)/10,
+      label:`${plateWeight}g (af ${Math.round(recipeWeight)}g total)`
+    };
+  }
+  // Default: per portion
+  return{
+    kcal:nutrition.kcal,
+    protein:nutrition.protein,
+    carbs:nutrition.carbs,
+    fat:nutrition.fat,
+    label:'per portion'
+  };
+}
 
 // ── UTIL ─────────────────────────────────────────────────────────
 function getWeekNumber(d){
@@ -866,6 +961,7 @@ async function load(){
   if(!S.dismissed)S.dismissed=[];
   if(!S.shoppingArchive)S.shoppingArchive=[];
   if(!S.frequentItems)S.frequentItems={};
+  if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
   if(!S.offCache){
     // Migrate from localStorage if it exists
     try{
@@ -1150,18 +1246,57 @@ function renderQuickAdd(){
     .slice(0,8)
     .map(([name,count])=>({name,cat:guessCat(name),icon:'⭐',count}));
   const freqNames=new Set(freq.map(f=>f.name.toLowerCase()));
-  const staples=COMMON_ITEMS.filter(i=>!freqNames.has(i.name.toLowerCase()));
+  const customItems=S.customCommonItems||DEFAULT_COMMON_ITEMS;
+  const staples=customItems.filter(i=>!freqNames.has(i.name.toLowerCase()));
 
-  const renderChip=(item,isFav)=>`<button onclick="quickAdd('${item.name.replace(/'/g,"\\'")}','${item.cat}')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;margin:3px;border-radius:20px;border:1.5px solid ${isFav?'#a8cbb0':'var(--border)'};background:${isFav?'var(--green-light)':'var(--cream)'};color:${isFav?'var(--green-mid)':'var(--text)'};font-size:.78rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s">${item.icon} ${item.name}</button>`;
+  const renderChip=(item,isFav,canDelete,isFromCommon)=>{
+    const safeName=item.name.replace(/'/g,"\\'");
+    return `<span style="display:inline-flex;align-items:center;gap:3px;margin:3px;border-radius:20px;border:1.5px solid ${isFav?'#a8cbb0':'var(--border)'};background:${isFav?'var(--green-light)':'var(--cream)'};overflow:hidden">
+      <button onclick="quickAdd('${safeName}','${item.cat}')" style="background:none;border:none;padding:6px 4px 6px 12px;color:${isFav?'var(--green-mid)':'var(--text)'};font-size:.78rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">${item.icon} ${item.name}</button>
+      ${canDelete?`<button onclick="deleteCommonItem('${safeName}')" style="background:none;border:none;padding:6px 9px 6px 4px;color:var(--hint);cursor:pointer;font-size:.72rem" title="Slet fra listen">✕</button>`:''}
+    </span>`;
+  };
 
   let html='';
   if(freq.length){
     html+='<div style="font-size:.66rem;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">⭐ Dine favoritter</div>';
-    html+='<div>'+freq.map(f=>renderChip(f,true)).join('')+'</div>';
+    html+='<div>'+freq.map(f=>renderChip(f,true,false,false)).join('')+'</div>';
   }
-  html+='<div style="font-size:.66rem;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 4px">🛒 Almindelige varer</div>';
-  html+='<div>'+staples.map(s=>renderChip(s,false)).join('')+'</div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 4px"><div style="font-size:.66rem;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.5px">🛒 Almindelige varer</div><button onclick="openAddCommonItem()" style="background:var(--green-light);border:1px solid #a8cbb0;color:var(--green-mid);padding:3px 10px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif">➕ Tilføj</button></div>';
+  html+='<div>'+staples.map(s=>renderChip(s,false,true,true)).join('')+'</div>';
   el.innerHTML=html;
+}
+
+function deleteCommonItem(name){
+  uiConfirm(`Slet "${name}" fra listen?`,'Du kan altid tilføje den igen senere.',()=>{
+    S.customCommonItems=(S.customCommonItems||DEFAULT_COMMON_ITEMS).filter(i=>i.name!==name);
+    save();renderQuickAdd();
+    toast(`"${name}" fjernet`);
+  },'🗑️ Slet');
+}
+
+function openAddCommonItem(){
+  document.getElementById('addCommonName').value='';
+  document.getElementById('addCommonCat').value='kolonial';
+  document.getElementById('addCommonIcon').value='🛒';
+  document.getElementById('addCommonOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('addCommonName').focus(),100);
+}
+
+function saveCommonItem(){
+  const name=document.getElementById('addCommonName').value.trim();
+  if(!name){toast('Navn er påkrævet');return;}
+  const cat=document.getElementById('addCommonCat').value;
+  const icon=document.getElementById('addCommonIcon').value.trim()||'🛒';
+  if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
+  // Check if already exists
+  if(S.customCommonItems.some(i=>i.name.toLowerCase()===name.toLowerCase())){
+    toast('Den vare findes allerede');return;
+  }
+  S.customCommonItems.push({name,cat,icon});
+  save();renderQuickAdd();
+  closeOverlay('addCommonOverlay');
+  toast(`"${name}" tilføjet`);
 }
 
 function quickAdd(name,cat){
@@ -1178,8 +1313,13 @@ function renderShopList(){
     ?`<div class="shop-agg-bar"><span class="agg-spin"></span><span>Sammenlægger…</span></div>`
     :`<div class="shop-agg-bar">✓ Ingredienser lagt sammen<button class="btn-reagg" onclick="invalidateAndAggregate()">↻ Opdatér</button></div>`;
 
+  const overrides=S.amountOverrides||{};
   const byCat={};CATS.forEach(c=>{byCat[c.k]=[]});
-  const items=(S.aggregated||getRawItems()).filter(it=>!S.dismissed.includes(it.key));
+  const items=(S.aggregated||getRawItems()).filter(it=>!S.dismissed.includes(it.key)).map(it=>{
+    // Apply override if present
+    if(overrides[it.key]!=null)return{...it,amount:overrides[it.key]};
+    return it;
+  });
   items.forEach(item=>{const cat=item.category||'andet';if(!byCat[cat])byCat[cat]=[];byCat[cat].push(item);});
   S.manual.forEach(item=>{const cat=item.category||'andet';if(!byCat[cat])byCat[cat]=[];byCat[cat].push({key:`man-${item.id}`,name:item.name,amount:item.amount,isManual:true,manualId:item.id});});
 
@@ -1188,10 +1328,13 @@ function renderShopList(){
     const delBtn=item.isManual
       ? `<button class="del-btn" onclick="removeManual('${item.manualId}')" title="Slet">✕</button>`
       : `<button class="del-btn" onclick="dismissItem('${item.key}')" title="Fjern fra listen">✕</button>`;
+    // Editable amount input — works for both manual and aggregated items
+    const amtVal=item.amount||'';
+    const editBtn=`<input type="text" value="${amtVal.replace(/"/g,'&quot;')}" placeholder="mængde" onclick="event.stopPropagation()" oninput="setItemAmount('${item.key}',this.value,${item.isManual?true:false},${item.isManual?`'${item.manualId}'`:'null'})" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:.74rem;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);text-align:right;outline:none">`;
     return`<div class="shop-row ${checked?'checked':''}">
       <input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${item.key}',this.checked)">
       <span class="iname"><span class="iname-main">${item.name}</span>${note}</span>
-      <span class="${item.meals?.length>1?'iamt-merged':'iamt'}">${item.amount||''}</span>
+      ${editBtn}
       ${delBtn}
     </div>`;
   };
@@ -1327,16 +1470,25 @@ function renderRecipeContent(el, m, dayLabel){
       ${m.cookTime?`<span>⏱ ${m.cookTime}</span>`:''}
       <span>👥 ${4*scale} portioner</span>
     </div>
-    ${m.nutrition?`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem;font-weight:600">🔥 ${m.nutrition.kcal} kcal</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥩 ${m.nutrition.protein}g protein</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🌾 ${m.nutrition.carbs}g kulhydrat</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥑 ${m.nutrition.fat}g fedt</span>
-      <span style="font-size:.65rem;opacity:.6">~per portion · ${m.nutrition.source==='off'?'Open Food Facts':'AI-estimat'}</span>
-      <button onclick="openNutritionRefinement('${m.id||''}')" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:4px 11px;border-radius:20px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">🔍 Forfin</button>
-    </div>`:`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <button onclick="estimateNutrition('${m.id||''}')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📊 AI-estimat</button>
-      <button onclick="openNutritionRefinement('${m.id||''}')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">🔍 Forfin med Open Food Facts</button>
+    ${m.nutrition?(()=>{
+      const disp=getDisplayNutrition(m.nutrition,m.nutrition.totalWeight);
+      return `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem;font-weight:600">🔥 ${disp.kcal} kcal</span>
+      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥩 ${disp.protein}g protein</span>
+      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🌾 ${disp.carbs}g kulhydrat</span>
+      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥑 ${disp.fat}g fedt</span>
+      <span style="font-size:.65rem;opacity:.6">${disp.label}</span>
+      <button onclick="openNutritionRefinement('${m.id||''}')" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:4px 11px;border-radius:20px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📊 Redigér</button>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:.65rem;opacity:.7;text-transform:uppercase;letter-spacing:1px">Vis:</span>
+      <button onclick="setNutritionViewMode('portion')" style="background:${nutritionViewMode==='portion'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Per portion</button>
+      <button onclick="setNutritionViewMode('total')" style="background:${nutritionViewMode==='total'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Hele retten</button>
+      ${m.nutrition.totalWeight?`<button onclick="setNutritionViewMode('plate')" style="background:${nutritionViewMode==='plate'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">⚖️ Min tallerken</button>`:''}
+      ${nutritionViewMode==='plate'?`<input type="number" value="${plateWeight}" oninput="setPlateWeight(this.value)" style="width:80px;padding:3px 9px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:white;font-size:.72rem;font-family:'DM Sans',sans-serif" placeholder="g"><span style="font-size:.7rem;opacity:.7">g på vægt</span>`:''}
+    </div>`;
+    })():`<div style="margin-top:10px">
+      <button onclick="openNutritionRefinement('${m.id||''}')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📊 Beregn makronæringsstoffer</button>
     </div>`}
     ${m.source?.url&&m.source.url!=='#'?`<div class="hero-source">Kilde: <a href="${m.source.url}" target="_blank">↗ ${m.source.name||m.source.url}</a></div>`:''}
   </div>
@@ -1907,31 +2059,56 @@ function parseIngAmount(amtStr){
   return{value:1,unit:'',kind:'unknown'};
 }
 
-// Open Food Facts API search with timeout
+// Open Food Facts API search with timeout and case-fallback
 async function searchOFF(query){
-  const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&fields=code,product_name,product_name_da,brands,nutriments,quantity,countries`;
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),8000);
-  try{
-    const res=await fetch(url,{signal:ctrl.signal});
-    clearTimeout(timer);
-    if(!res.ok)throw new Error('OFF API '+res.status);
-    const data=await res.json();
-    const products=(data.products||[]).filter(p=>{
-      const n=p.nutriments||{};
-      return n['energy-kcal_100g']!=null&&n['energy-kcal_100g']>0;
-    });
-    products.sort((a,b)=>{
-      const ad=(a.countries||'').toLowerCase().includes('denmark')||(a.countries||'').toLowerCase().includes('danmark')?-1:0;
-      const bd=(b.countries||'').toLowerCase().includes('denmark')||(b.countries||'').toLowerCase().includes('danmark')?-1:0;
-      return ad-bd;
-    });
-    return products.slice(0,8);
-  }catch(e){
-    clearTimeout(timer);
-    if(e.name==='AbortError')throw new Error('Open Food Facts svarer ikke (timeout)');
-    throw e;
+  // Normalize: trim, remove brand parens, capitalize first letter as common variant
+  const cleaned=query.trim().replace(/\([^)]*\)/g,'').trim();
+  if(!cleaned)return[];
+
+  const tryQuery=async(q)=>{
+    const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=10&fields=code,product_name,product_name_da,brands,nutriments,quantity,countries`;
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),8000);
+    try{
+      const res=await fetch(url,{signal:ctrl.signal});
+      clearTimeout(timer);
+      if(!res.ok)throw new Error('OFF API '+res.status);
+      const data=await res.json();
+      return(data.products||[]).filter(p=>{
+        const n=p.nutriments||{};
+        return n['energy-kcal_100g']!=null&&n['energy-kcal_100g']>0;
+      });
+    }catch(e){
+      clearTimeout(timer);
+      if(e.name==='AbortError')throw new Error('Open Food Facts svarer ikke (timeout)');
+      throw e;
+    }
+  };
+
+  // Try original query first
+  let products=await tryQuery(cleaned);
+
+  // If no results, try lowercase
+  if(!products.length&&cleaned!==cleaned.toLowerCase()){
+    products=await tryQuery(cleaned.toLowerCase());
   }
+  // If still no results, try with capitalized first letter
+  if(!products.length){
+    const cap=cleaned.charAt(0).toUpperCase()+cleaned.slice(1).toLowerCase();
+    if(cap!==cleaned)products=await tryQuery(cap);
+  }
+  // Try first word only as last resort (e.g. "Tomat dåse" → "Tomat")
+  if(!products.length&&cleaned.includes(' ')){
+    products=await tryQuery(cleaned.split(/\s+/)[0]);
+  }
+
+  // Sort: Danish products first
+  products.sort((a,b)=>{
+    const ad=(a.countries||'').toLowerCase().includes('denmark')||(a.countries||'').toLowerCase().includes('danmark')?-1:0;
+    const bd=(b.countries||'').toLowerCase().includes('denmark')||(b.countries||'').toLowerCase().includes('danmark')?-1:0;
+    return ad-bd;
+  });
+  return products.slice(0,8);
 }
 
 // Compute nutrition for a single ingredient based on its match + portion settings
@@ -2295,9 +2472,10 @@ function selectIngMatch(idx){
 
 function saveNutritionRefinement(){
   if(!nutSession.recipeId)return;
-  let totalKcal=0,totalP=0,totalC=0,totalF=0;
+  let totalKcal=0,totalP=0,totalC=0,totalF=0,totalWeight=0;
   nutSession.ingredients.forEach(ing=>{
     if(ing.nutrition){totalKcal+=ing.nutrition.kcal;totalP+=ing.nutrition.protein;totalC+=ing.nutrition.carbs;totalF+=ing.nutrition.fat;}
+    totalWeight+=ing.grams||0;
   });
   const portions=nutSession.portions||4;
   const nutrition={
@@ -2306,9 +2484,9 @@ function saveNutritionRefinement(){
     carbs:Math.round(totalC/portions*10)/10,
     fat:Math.round(totalF/portions*10)/10,
     perPortion:portions,
+    totalWeight:Math.round(totalWeight),
     estimatedAt:Date.now(),
     source:'off',
-    // Store per-ingredient for reuse on edit
     ingredientStates:nutSession.ingredients.map(ing=>({
       name:ing.raw.name,
       match:ing.match,
@@ -2329,46 +2507,6 @@ function saveNutritionRefinement(){
 // ── END OF OFF INTEGRATION ──────────────────────────────────────
 
 // Estimate nutrition for a recipe via Edge Function (uses Claude)
-async function estimateNutrition(recipeId,silent){
-  if(!supa||!currentUser){if(!silent)toast('Log ind først');return;}
-  const recipe=S.cookbook.find(r=>r.id===recipeId)||S.meals.find(m=>m?.id===recipeId);
-  if(!recipe){if(!silent)toast('Opskrift ikke fundet');return;}
-  if(!silent)toast('🧮 Beregner næringsindhold…');
-  try{
-    const ingList=(recipe.ingredients||[]).map(i=>`${i.amount||''} ${i.name}`).join('\n');
-    const{data,error}=await supa.functions.invoke('read-recipe',{body:{
-      mode:'nutrition',
-      recipeName:recipe.name,
-      ingredients:ingList
-    }});
-    if(error)throw new Error(error.message);
-    if(data?.error)throw new Error(data.error);
-    const text=data?.text;
-    if(!text)throw new Error('Tomt svar');
-    const parsed=JSON.parse(extractJSON(text));
-    if(!parsed.kcal)throw new Error('Mangler kcal');
-    // Save nutrition to recipe
-    const nutrition={
-      kcal:parsed.kcal,
-      protein:parsed.protein||0,
-      carbs:parsed.carbs||0,
-      fat:parsed.fat||0,
-      perPortion:parsed.perPortion||4,
-      estimatedAt:Date.now()
-    };
-    // Update in cookbook
-    const ci=S.cookbook.findIndex(r=>r.id===recipeId);
-    if(ci>=0)S.cookbook[ci].nutrition=nutrition;
-    // Update in meals
-    S.meals.forEach((m,i)=>{if(m?.id===recipeId)S.meals[i].nutrition=nutrition;});
-    save();renderAll();renderBook();
-    if(!silent)toast(`✓ ~${nutrition.kcal} kcal/portion`);
-  }catch(e){
-    console.error(e);
-    if(!silent)toast('❌ '+e.message);
-  }
-}
-
 async function fetchFromImage(){
   if(!supa||!currentUser){setStatus('arStatus','err','⚠️ Du skal være logget ind for at bruge billedlæsning');return;}
   const hasAny=arState.imgB64_1||arState.imgB64_2||arState.imgB64_3||arState.imgB64_4;
@@ -2894,12 +3032,251 @@ ${bodyHTML}
   }catch(e){toast('Print ikke tilgængeligt: '+e.message);}
 }
 
+function printShoppingList(){
+  const overrides=S.amountOverrides||{};
+  const items=(S.aggregated||getRawItems()).filter(it=>!S.dismissed.includes(it.key)).map(it=>{
+    if(overrides[it.key]!=null)return{...it,amount:overrides[it.key]};
+    return it;
+  });
+  S.manual.forEach(item=>items.push({name:item.name,amount:item.amount,category:item.category||'andet'}));
+  if(!items.length){toast('Indkøbslisten er tom');return;}
+
+  // Group by category
+  const byCat={};CATS.forEach(c=>{byCat[c.k]=[]});
+  items.forEach(item=>{const cat=item.category||'andet';if(!byCat[cat])byCat[cat]=[];byCat[cat].push(item);});
+
+  // Define column groupings: which categories go into which of the 3 columns
+  // Column 1: Frugt og grønt
+  // Column 2: Kød & fisk + Brød + Frysevarer
+  // Column 3: Mejeri + Kolonial + Krydderier + Andet
+  const col1=[
+    {key:'grøntsager',label:'Frugt og grønt'},
+    {key:'frugt',label:null}, // merge into Frugt og grønt
+  ];
+  const col2=[
+    {key:'kød',label:'Kød og fisk'},
+    {key:'brød',label:'Brød'},
+    {key:'frysevarer',label:'Frysevarer'},
+  ];
+  const col3=[
+    {key:'mejeri',label:'Mejeri og æg'},
+    {key:'kolonial',label:'Kolonial'},
+    {key:'krydderier',label:'Krydderier'},
+    {key:'andet',label:'Andet'},
+  ];
+
+  const renderCol=(cols)=>{
+    let html='';
+    let mergedItems=[];let mergedLabel=null;
+    cols.forEach(({key,label})=>{
+      const its=byCat[key]||[];
+      if(!its.length)return;
+      if(label){
+        // Flush previous merged group if any
+        if(mergedItems.length&&mergedLabel){
+          html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+' ':''}${it.name}</div>`).join('')}</div>`;
+        }
+        mergedItems=[...its];
+        mergedLabel=label;
+      } else {
+        // No label = merge into previous group
+        mergedItems.push(...its);
+      }
+    });
+    if(mergedItems.length&&mergedLabel){
+      html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+' ':''}${it.name}</div>`).join('')}</div>`;
+    }
+    return html;
+  };
+
+  const wk=getWeekNumber(new Date());
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 15mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1a1a;
+  background: #fafaf6;
+  padding: 25px;
+  min-height: 100vh;
+}
+.topbar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e4d2b;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.topbar button {
+  background: white;
+  color: #1e4d2b;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .85rem;
+}
+.page {
+  background: white;
+  padding: 50px 55px;
+  max-width: 900px;
+  margin: 30px auto 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  letter-spacing: -.5px;
+}
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 30px;
+}
+.cat-section {
+  margin-bottom: 22px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.cat-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+.item {
+  font-size: .92rem;
+  line-height: 1.7;
+  color: #333;
+}
+@media print {
+  .topbar { display: none !important; }
+  body { background: white; padding: 0; }
+  .page { box-shadow: none; padding: 25px; max-width: none; margin: 0; }
+}
+`;
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Indkøbsliste uge ${wk}</title>
+<style>${css}</style></head><body>
+<div class="topbar"><span style="font-weight:600;font-family:inherit">Indkøbsliste uge ${wk}</span><button onclick="window.print()">🖨️ Print</button></div>
+<div class="page">
+  <h1>INDKØBSLISTE TIL MADPLAN ${wk}</h1>
+  <div class="cols">
+    <div>${renderCol(col1)}</div>
+    <div>${renderCol(col2)}</div>
+    <div>${renderCol(col3)}</div>
+  </div>
+</div>
+</body></html>`;
+  openPrintWindow(html,`indkoebsliste-uge-${wk}`);
+}
+
 function printMealPlan(){
   const meals=(S.meals||[]).filter(m=>m?.name);
   if(!meals.length){toast('Ingen retter at printe');return;}
-  const html=`<h1>🍽️ Madplan — Uge ${S.weekNum}</h1>
-${meals.map(m=>`<div class="meal"><div class="day">${m.day}</div><div class="name">${m.name}</div><div class="meta">${m.cuisine||''}${m.cookTime?' · '+m.cookTime:''}</div></div>`).join('')}`;
-  printHTML(html,`Madplan uge ${S.weekNum}`,`madplan-uge-${S.weekNum}`);
+  const wk=getWeekNumber(new Date());
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 18mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1a1a1a;
+  background: #fafaf6;
+  padding: 30px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+.topbar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e4d2b;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.topbar button {
+  background: white;
+  color: #1e4d2b;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .85rem;
+}
+.page {
+  background: white;
+  padding: 60px 70px;
+  max-width: 540px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  text-align: center;
+}
+.title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+.week {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 36px;
+  font-style: italic;
+}
+.day-block {
+  margin-bottom: 22px;
+  page-break-inside: avoid;
+}
+.day-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+.dish-name {
+  font-size: 1.05rem;
+  color: #333;
+  font-style: italic;
+}
+@media print {
+  .topbar { display: none !important; }
+  body { background: white; padding: 0; }
+  .page { box-shadow: none; padding: 30px; max-width: none; }
+}
+`;
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Madplan uge ${wk}</title>
+<style>${css}</style></head><body>
+<div class="topbar"><span style="font-weight:600;font-family:inherit">Madplan uge ${wk}</span><button onclick="window.print()">🖨️ Print</button></div>
+<div class="page">
+  <div class="title">Madplan</div>
+  <div class="week">Uge ${wk}</div>
+  ${meals.map(m=>`<div class="day-block">
+    <div class="day-name">${m.day}</div>
+    <div class="dish-name">${m.name}</div>
+  </div>`).join('')}
+</div>
+</body></html>`;
+  openPrintWindow(html,`madplan-uge-${wk}`);
 }
 
 function printRecipe(){
@@ -3251,6 +3628,19 @@ function addItem(){
 }
 function removeManual(id){S.manual=S.manual.filter(i=>i.id!==Number(id));delete S.checked[`man-${id}`];renderShopList();save();}
 
+function setItemAmount(key,value,isManual,manualId){
+  if(isManual){
+    const id=Number(manualId);
+    const item=S.manual.find(i=>i.id===id);
+    if(item){item.amount=value;save();}
+  } else {
+    // Aggregated item — use override map
+    if(!S.amountOverrides)S.amountOverrides={};
+    S.amountOverrides[key]=value;
+    save();
+  }
+}
+
 // ── RENDER ALL ───────────────────────────────────────────────────
 function renderAll(){
   document.getElementById('weekLabel').textContent=`Uge ${getWeekNumber(new Date())}`;
@@ -3258,9 +3648,10 @@ function renderAll(){
 }
 
 // ── OVERLAY CLOSE ────────────────────────────────────────────────
+// Modals can ONLY be closed via X button, Cancel, or Save buttons.
+// Clicking outside the modal does nothing.
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
-  if(o.id==='addRecipeOverlay')return;
-  if(e.target===o){o.classList.remove('open');cleanupPasteHandlers();}
+  // Intentionally do nothing — must use buttons
 }));
 
 // ── INIT ─────────────────────────────────────────────────────────
