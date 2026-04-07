@@ -599,6 +599,15 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════
+//  SUPABASE KONFIGURATION
+//  Indsæt dine credentials her én gang, så slipper alle dine enheder
+//  for at indtaste dem. Findes i Supabase: Project Settings → API
+// ═══════════════════════════════════════════════════════════════════
+const SUPABASE_URL = "https://gcenfqabgjxehbsmeqrr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZW5mcWFiZ2p4ZWhic21lcXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTA4OTEsImV4cCI6MjA5MTA2Njg5MX0.Hiem3PyOaekpiYowCbujfP89OH8F0R_kwY9eGdzwk4g";
+// ═══════════════════════════════════════════════════════════════════
+
 // ── CONSTANTS ────────────────────────────────────────────────────
 const DAYS = ["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"];
 const CATS = [
@@ -756,8 +765,13 @@ let _lastRemoteUpdatedAt = 0;
 let _pushTimer = null;
 
 function getSupabaseConfig(){
-  try{return{url:localStorage.getItem('mp-sb-url')||'',key:localStorage.getItem('mp-sb-key')||''};}
-  catch{return{url:'',key:''};}
+  // Hardcoded values take priority — same on all devices that download this file
+  if(SUPABASE_URL&&SUPABASE_ANON_KEY){
+    return{url:SUPABASE_URL,key:SUPABASE_ANON_KEY,hardcoded:true};
+  }
+  // Fallback: localStorage (for development or if you don't want to edit the file)
+  try{return{url:localStorage.getItem('mp-sb-url')||'',key:localStorage.getItem('mp-sb-key')||'',hardcoded:false};}
+  catch{return{url:'',key:'',hardcoded:false};}
 }
 function saveSupabaseConfig(){
   const url=document.getElementById('setupUrl').value.trim();
@@ -771,9 +785,11 @@ function saveSupabaseConfig(){
 }
 function openSetupModal(){
   const c=getSupabaseConfig();
+  if(c.hardcoded){
+    setStatus('setupStatus','ok','✓ Konfiguration er hardcodet i HTML-filen — du behøver intet at indtaste her.');
+  }
   document.getElementById('setupUrl').value=c.url;
   document.getElementById('setupKey').value=c.key;
-  setStatus('setupStatus','','');
   document.getElementById('setupOverlay').classList.add('open');
 }
 function initSupabase(){
