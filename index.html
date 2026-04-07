@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e4d2b'/><text y='.9em' font-size='75' x='12'>🍽️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --green:#1e4d2b;--green-mid:#2d6e3e;--green-light:#e6efe8;
@@ -322,6 +323,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 
     <div class="link-tabs">
       <button class="link-tab active" id="arTabImage" onclick="switchArTab('image')">📷 Billede</button>
+      <button class="link-tab" id="arTabBridge" onclick="switchArTab('bridge')">🔗 Claude.ai</button>
       <button class="link-tab" id="arTabManual" onclick="switchArTab('manual')">✏️ Manuel</button>
     </div>
 
@@ -372,6 +374,24 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
       </div>
     </div>
 
+    <div class="link-panel" id="arPanelBridge">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Gratis alternativ: brug din Claude.ai Pro til at læse opskriften. Kopier prompten, indsæt i Claude.ai sammen med billede/tekst, copy-paste JSON'en tilbage her.</p>
+
+      <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:.7rem;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:.5px">📋 Trin 1: Kopier denne prompt</span>
+          <button class="btn-sm btn-sm-green" onclick="copyBridgePrompt()" style="padding:4px 10px">📋 Kopier</button>
+        </div>
+        <div id="bridgePromptText" style="font-size:.74rem;color:var(--text);background:white;padding:8px 10px;border-radius:6px;font-family:monospace;line-height:1.5;max-height:100px;overflow-y:auto;white-space:pre-wrap"></div>
+      </div>
+
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5"><strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.</p>
+
+      <label class="form-label">Trin 3: Indsæt svaret fra Claude (parses automatisk)</label>
+      <textarea class="paste-area" id="arBridgeJson" placeholder='{"name":"...","cuisine":"...","ingredients":[...],"steps":[...]}' style="min-height:140px;font-family:monospace;font-size:.78rem" oninput="autoParseBridge()"></textarea>
+      <div id="bridgeParsePreview" style="font-size:.78rem;margin-top:4px;min-height:20px"></div>
+    </div>
+
     <div class="link-panel" id="arPanelManual">
       <div class="form-row"><label class="form-label">Rettens navn *</label><input class="form-input" id="arName" placeholder="fx Spaghetti bolognese"></div>
       <div class="form-row-2">
@@ -398,6 +418,15 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
       <div class="form-row-2">
         <div><label class="form-label">Kilde</label><input class="form-input" id="arSourceName" placeholder="fx Valdemarsro"></div>
         <div><label class="form-label">URL</label><input class="form-input" id="arSourceUrl" type="url" placeholder="https://…"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">📸 Madfoto (valgfrit)</label>
+        <div class="img-zone" id="arPhotoZone" ondragover="arPhotoDragOver(event)" ondragleave="arPhotoDragLeave(event)" ondrop="arPhotoDrop(event)" style="padding:14px;margin-bottom:0">
+          <input type="file" id="arPhotoFile" accept="image/*" onchange="arPhotoFileInput(event)">
+          <div id="arPhotoContent"><div class="drop-icon" style="font-size:1.2rem;margin-bottom:3px">📸</div><div class="drop-label" style="font-size:.75rem">Klik, træk eller Ctrl+V</div></div>
+          <img class="img-prev" id="arPhotoPreview" style="display:none;max-height:140px;border-radius:8px">
+          <button class="img-clear-btn" id="arPhotoClearBtn" style="display:none" onclick="arPhotoClear(event)">✕</button>
+        </div>
       </div>
       <div class="form-row">
         <label class="form-label">Ingredienser (ét per linje)</label>
@@ -460,43 +489,14 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
       <button onclick="closeOverlay('settingsOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer">✕</button>
     </div>
 
-    <!-- SYNC -->
+    <!-- SUPABASE STATUS -->
     <div style="background:var(--rema-bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
-      <div class="form-label" style="margin-bottom:6px;color:var(--rema)">☁️ Synkronisering mellem enheder</div>
-      <p style="font-size:.77rem;color:var(--muted);margin-bottom:10px;line-height:1.55">Brug GitHub Gist som gratis "database". Ændringer på computeren dukker op på telefonen inden for få sekunder.</p>
-      <div style="display:flex;gap:7px;margin-bottom:7px">
-        <input class="form-input" id="gistTokenInput" type="password" placeholder="GitHub Personal Access Token (ghp_…)" style="flex:1;font-family:monospace;font-size:.78rem">
-        <button class="btn btn-primary" onclick="saveGistToken()" style="flex:none;padding:9px 13px">Gem</button>
+      <div class="form-label" style="margin-bottom:6px;color:var(--rema)">☁️ Synkronisering</div>
+      <div id="supabaseStatusInfo" style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:10px">Indlæser…</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-sm-muted" onclick="openSetupModal()" style="flex:1;justify-content:center">⚙️ Opsætning</button>
+        <button class="btn btn-sm btn-sm-muted" onclick="doLogout()" style="flex:1;justify-content:center">🚪 Log ud</button>
       </div>
-      <div id="gistFeedback" style="font-size:.73rem;margin-top:4px;color:var(--muted)"></div>
-      <div style="display:flex;gap:6px;margin-top:10px">
-        <button class="btn btn-sm btn-sm-green" onclick="syncPull(true)" style="flex:1;justify-content:center">⬇ Hent</button>
-        <button class="btn btn-sm btn-sm-green" onclick="syncPush(true)" style="flex:1;justify-content:center">⬆ Send</button>
-        <button class="btn btn-sm btn-sm-muted" onclick="clearGistToken()" style="flex:none">Nulstil</button>
-      </div>
-      <details style="margin-top:10px">
-        <summary style="font-size:.74rem;color:var(--rema);cursor:pointer;font-weight:600">📖 Sådan opretter du token</summary>
-        <ol style="font-size:.74rem;color:var(--muted);line-height:1.8;padding:8px 0 0 18px">
-          <li>Gå til <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--rema)">github.com/settings/tokens/new</a></li>
-          <li>Note: "Madplan sync"</li>
-          <li>Expiration: <strong>No expiration</strong></li>
-          <li>Scopes: Sæt flueben ved <strong>gist</strong> (kun den!)</li>
-          <li>Klik "Generate token" → kopier (vises kun én gang!)</li>
-          <li>Indsæt ovenfor og tryk Gem</li>
-        </ol>
-        <p style="font-size:.72rem;color:var(--hint);margin-top:6px;line-height:1.5">Token gemmes lokalt. Første gang du gemmer, oprettes en <em>privat</em> gist som dine data ligger i. Indsæt samme token på iPhone for sync.</p>
-      </details>
-    </div>
-
-    <!-- API KEY -->
-    <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
-      <div class="form-label" style="margin-bottom:6px">🔑 Anthropic API-nøgle</div>
-      <p style="font-size:.77rem;color:var(--muted);margin-bottom:10px;line-height:1.55">Kun nødvendig hvis du vil bruge AI-billedlæsning. Ellers kan du tilføje opskrifter manuelt.</p>
-      <div style="display:flex;gap:7px">
-        <input class="form-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-…" style="flex:1;font-family:monospace;font-size:.8rem">
-        <button class="btn btn-primary" onclick="saveApiKey()" style="flex:none;padding:9px 13px">Gem</button>
-      </div>
-      <div id="apiKeyFeedback" style="font-size:.73rem;margin-top:7px;color:var(--muted)"></div>
     </div>
 
     <details style="margin-bottom:10px">
@@ -510,6 +510,63 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="closeOverlay('settingsOverlay')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY (full screen blocking) -->
+<div class="overlay center" id="loginOverlay" style="background:var(--cream);padding:20px">
+  <div class="modal floating" style="max-width:400px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:2.5rem;margin-bottom:6px">🍽️</div>
+      <div class="modal-title" style="font-size:1.4rem">Madplan</div>
+      <div class="modal-sub">Log ind for at synkronisere dine data</div>
+    </div>
+
+    <div id="loginSetupNeeded" style="display:none;background:var(--offer-bg);border:1px solid #e8c4a0;border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:.78rem;color:var(--offer);line-height:1.5">
+      ⚠️ <strong>Opsætning mangler.</strong> Tryk på ⚙️-knappen nedenfor og indtast Supabase URL + nøgle først.
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="din@email.dk" autocomplete="email">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <div class="status-bar" id="loginStatus"></div>
+
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn" style="width:100%;justify-content:center;margin-bottom:8px">Log ind</button>
+
+    <div style="display:flex;gap:6px;justify-content:center;margin-top:6px">
+      <button class="week-pill" onclick="openSetupModal()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">⚙️ Opsætning</button>
+      <button class="week-pill" onclick="useOfflineMode()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">📴 Offline</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP MODAL (Supabase credentials) -->
+<div class="overlay center" id="setupOverlay">
+  <div class="modal floating" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="modal-title" style="margin:0">⚙️ Supabase opsætning</div>
+      <button onclick="closeOverlay('setupOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer">✕</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Findes i dit Supabase-projekt under <strong>Project Settings → API</strong>. Indtastes kun én gang per enhed.</p>
+    <div class="form-row">
+      <label class="form-label">Project URL</label>
+      <input class="form-input" id="setupUrl" placeholder="https://xxxxx.supabase.co" style="font-family:monospace;font-size:.78rem">
+    </div>
+    <div class="form-row">
+      <label class="form-label">anon public key</label>
+      <input class="form-input" id="setupKey" placeholder="eyJhbGciOi..." style="font-family:monospace;font-size:.78rem">
+    </div>
+    <div class="status-bar" id="setupStatus"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('setupOverlay')">Annuller</button>
+      <button class="btn btn-primary" onclick="saveSupabaseConfig()">Gem ✓</button>
     </div>
   </div>
 </div>
@@ -580,6 +637,7 @@ let arState = {
   imgB64_2:null,imgMime2:'image/png',
   imgB64_3:null,imgMime3:'image/png',
   imgB64_4:null,imgMime4:'image/png',
+  photoB64:null,
   editId:null
 };
 let focusedImgSlot = 1;
@@ -642,13 +700,15 @@ async function dbGet(){try{const db=await openDB();return new Promise((res,rej)=
 
 let _saveTimer=null;
 async function save(){
+  if(_isApplyingRemote)return; // don't push back what we just received
   S.updatedAt=Date.now();
   const d=JSON.stringify(S);
   try{await dbSet(d);}catch(e){}
   if(window.storage){try{await window.storage.set(DB_KEY,d);}catch(e){}}
-  if(getGistToken()){
+  // Push to Supabase if logged in (debounced 1.5s)
+  if(supa&&currentUser){
     clearTimeout(_saveTimer);
-    _saveTimer=setTimeout(()=>syncPush(false),2000);
+    _saveTimer=setTimeout(()=>pushToSupabase(),1500);
   }
 }
 async function load(){
@@ -665,8 +725,18 @@ async function load(){
   updateSyncDot();
   renderAll();
   if(!S.aggregated)runAggregation();
-  // Try pull on load if configured
-  if(getGistToken())syncPull(false);
+
+  // Try Supabase: init, check session, otherwise show login
+  if(initSupabase()){
+    const hasSession=await checkSession();
+    if(hasSession){
+      updateApiKeyStatus();updateSyncDot();
+      await loadFromSupabase();
+      subscribeRealtime();
+    } else {
+      document.getElementById('loginOverlay').classList.add('open');
+    }
+  }
 }
 function migrateMealsTo7(oldMeals){
   const base=makeEmptyWeek();
@@ -676,173 +746,191 @@ function migrateMealsTo7(oldMeals){
   return base;
 }
 
-// ── API KEY ──────────────────────────────────────────────────────
-function getApiKey(){try{return localStorage.getItem('mp-apikey')||'';}catch{return'';}}
-function apiHeaders(){
-  const h={'Content-Type':'application/json','anthropic-version':'2023-06-01'};
-  const k=getApiKey();
-  if(k){h['x-api-key']=k;h['anthropic-dangerous-direct-browser-access']='true';}
-  return h;
-}
-function updateApiKeyStatus(){
-  const el=document.getElementById('apiKeyStatus');if(!el)return;
-  const parts=[];
-  if(getApiKey())parts.push('🔑');
-  if(getGistToken())parts.push('☁️');
-  el.textContent=parts.length?parts.join(' ')+' Aktiv':'Aftensmad — 2 voksne & 2 børn';
-}
-function openSettingsModal(){
-  document.getElementById('apiKeyInput').value=getApiKey();
-  document.getElementById('gistTokenInput').value=getGistToken();
-  const k=getApiKey();
-  document.getElementById('apiKeyFeedback').textContent=k?'✓ Nøgle gemt':'Ingen nøgle';
-  const gt=getGistToken();const gi=getGistId();
-  document.getElementById('gistFeedback').textContent=gt?(gi?`✓ Synkroniseret (Gist: ${gi.slice(0,8)}…)`:'✓ Token gemt — tryk ⬆ Send første gang'):'Ingen sync';
-  document.getElementById('settingsOverlay').classList.add('open');
-}
-function saveApiKey(){
-  const k=document.getElementById('apiKeyInput').value.trim();
-  if(k&&!k.startsWith('sk-ant-')){document.getElementById('apiKeyFeedback').textContent='⚠️ Ugyldig nøgle';return;}
-  try{
-    if(k)localStorage.setItem('mp-apikey',k);
-    else localStorage.removeItem('mp-apikey');
-  }catch{}
-  document.getElementById('apiKeyFeedback').textContent=k?'✓ Gemt!':'Slettet';
-  updateApiKeyStatus();
-}
 
-// ── GIST SYNC ────────────────────────────────────────────────────
-function getGistToken(){try{return localStorage.getItem('mp-gist-token')||'';}catch{return'';}}
-function getGistId(){try{return localStorage.getItem('mp-gist-id')||'';}catch{return'';}}
-function setGistId(id){try{localStorage.setItem('mp-gist-id',id);}catch{}}
-function clearGistToken(){
-  uiConfirm('Nulstil sync?','Dine data forbliver på enheden, men vil ikke længere synkroniseres mellem enheder.',()=>{
-    try{localStorage.removeItem('mp-gist-token');localStorage.removeItem('mp-gist-id');}catch{}
-    document.getElementById('gistTokenInput').value='';
-    document.getElementById('gistFeedback').textContent='Sync nulstillet';
-    updateApiKeyStatus();updateSyncDot();
-  },'Nulstil');
+// ── SUPABASE CLIENT ──────────────────────────────────────────────
+let supa = null;
+let currentUser = null;
+let realtimeChannel = null;
+let _isApplyingRemote = false;
+let _lastRemoteUpdatedAt = 0;
+let _pushTimer = null;
+
+function getSupabaseConfig(){
+  try{return{url:localStorage.getItem('mp-sb-url')||'',key:localStorage.getItem('mp-sb-key')||''};}
+  catch{return{url:'',key:''};}
 }
-async function saveGistToken(){
-  const t=document.getElementById('gistTokenInput').value.trim();
-  if(!t){
-    try{localStorage.removeItem('mp-gist-token');localStorage.removeItem('mp-gist-id');}catch{}
-    document.getElementById('gistFeedback').textContent='Sync slukket';
-    updateSyncDot();updateApiKeyStatus();return;
+function saveSupabaseConfig(){
+  const url=document.getElementById('setupUrl').value.trim();
+  const key=document.getElementById('setupKey').value.trim();
+  if(!url||!key){setStatus('setupStatus','err','⚠️ Begge felter skal udfyldes');return;}
+  if(!url.startsWith('https://')||!url.includes('.supabase.co')){setStatus('setupStatus','err','⚠️ URL skal være https://xxxxx.supabase.co');return;}
+  if(!key.startsWith('eyJ')){setStatus('setupStatus','err','⚠️ anon key skal starte med eyJ');return;}
+  try{localStorage.setItem('mp-sb-url',url);localStorage.setItem('mp-sb-key',key);}catch{}
+  setStatus('setupStatus','ok','✓ Gemt — initialiserer…');
+  setTimeout(()=>{closeOverlay('setupOverlay');initSupabase();document.getElementById('loginSetupNeeded').style.display='none';},500);
+}
+function openSetupModal(){
+  const c=getSupabaseConfig();
+  document.getElementById('setupUrl').value=c.url;
+  document.getElementById('setupKey').value=c.key;
+  setStatus('setupStatus','','');
+  document.getElementById('setupOverlay').classList.add('open');
+}
+function initSupabase(){
+  const c=getSupabaseConfig();
+  if(!c.url||!c.key){
+    document.getElementById('loginSetupNeeded').style.display='block';
+    document.getElementById('loginOverlay').classList.add('open');
+    return false;
   }
-  if(!t.startsWith('ghp_')&&!t.startsWith('github_pat_')){
-    document.getElementById('gistFeedback').textContent='⚠️ Ser ikke ud som en GitHub token (skal starte med ghp_ eller github_pat_)';
-    return;
-  }
-  try{localStorage.setItem('mp-gist-token',t);}catch{}
-  document.getElementById('gistFeedback').textContent='⏳ Tester token og finder gist…';
-  updateSyncDot();
-  // Try to find existing madplan gist for this token
   try{
-    const existing=await findMadplanGist(t);
-    if(existing){
-      setGistId(existing);
-      document.getElementById('gistFeedback').textContent=`✓ Fandt eksisterende gist (${existing.slice(0,8)}…) — tryk ⬇ Hent for at bruge den`;
+    supa=window.supabase.createClient(c.url,c.key,{
+      auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'mp-sb-auth'}
+    });
+    return true;
+  }catch(e){console.error('Supabase init',e);setStatus('loginStatus','err','❌ '+e.message);return false;}
+}
+async function checkSession(){
+  if(!supa)return false;
+  try{
+    const{data,error}=await supa.auth.getSession();
+    if(error||!data.session)return false;
+    currentUser=data.session.user;
+    return true;
+  }catch{return false;}
+}
+async function doLogin(){
+  if(!supa&&!initSupabase())return;
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  if(!email||!password){setStatus('loginStatus','err','⚠️ Email og password påkrævet');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Logger ind…';
+  setStatus('loginStatus','info','🔐 Verificerer…');
+  try{
+    const{data,error}=await supa.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    currentUser=data.user;
+    setStatus('loginStatus','ok','✓ Logget ind!');
+    setTimeout(async()=>{
+      document.getElementById('loginOverlay').classList.remove('open');
+      await loadFromSupabase();
+      subscribeRealtime();
+      updateApiKeyStatus();updateSyncDot();
+    },400);
+  }catch(e){setStatus('loginStatus','err','❌ '+(e.message||'Login fejlede'));}
+  btn.disabled=false;btn.innerHTML='Log ind';
+}
+async function doLogout(){
+  uiConfirm('Log ud?','Lokale data beholdes på enheden.',async()=>{
+    if(supa)try{await supa.auth.signOut();}catch{}
+    currentUser=null;
+    if(realtimeChannel){try{await supa.removeChannel(realtimeChannel);}catch{}realtimeChannel=null;}
+    closeOverlay('settingsOverlay');
+    document.getElementById('loginOverlay').classList.add('open');
+    updateApiKeyStatus();updateSyncDot();
+  },'Log ud');
+}
+function useOfflineMode(){
+  document.getElementById('loginOverlay').classList.remove('open');
+  toast('Offline-tilstand — ingen sync');
+  updateSyncDot();
+}
+async function loadFromSupabase(){
+  if(!supa||!currentUser)return;
+  const dot=document.getElementById('syncDot');dot.className='sync-dot busy';
+  try{
+    const{data,error}=await supa.from('madplan_state').select('data,updated_at').eq('user_id',currentUser.id).maybeSingle();
+    if(error)throw error;
+    if(data&&data.data){
+      const remoteTime=new Date(data.updated_at).getTime();
+      const localTime=S.updatedAt||0;
+      if(remoteTime>localTime){
+        _isApplyingRemote=true;
+        S={...S,...data.data};
+        if(!S.meals||S.meals.length!==7)S.meals=migrateMealsTo7(S.meals);
+        S.aggregated=null;
+        await dbSet(JSON.stringify(S));
+        renderAll();runAggregation();
+        _lastRemoteUpdatedAt=remoteTime;
+        _isApplyingRemote=false;
+      }
     } else {
-      document.getElementById('gistFeedback').textContent='✓ Token gemt — tryk ⬆ Send for at oprette gist';
+      await pushToSupabase();
     }
-    updateSyncDot();updateApiKeyStatus();
+    dot.className='sync-dot';
   }catch(e){
-    document.getElementById('gistFeedback').textContent='❌ Token virker ikke: '+e.message;
-    updateSyncDot();
+    console.error('loadFromSupabase',e);
+    dot.className='sync-dot err';
+    toast('☁️ Hent fejlede: '+e.message);
   }
 }
-async function findMadplanGist(token){
-  const res=await fetch('https://api.github.com/gists?per_page=100',{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const gists=await res.json();
-  const match=gists.find(g=>g.description==='Madplan data (auto-genereret)'&&g.files&&g.files['madplan.json']);
-  return match?match.id:null;
+async function pushToSupabase(){
+  if(!supa||!currentUser||_isApplyingRemote)return;
+  const dot=document.getElementById('syncDot');dot.className='sync-dot busy';
+  try{
+    const now=new Date().toISOString();
+    const{error}=await supa.from('madplan_state').upsert({
+      user_id:currentUser.id,data:S,updated_at:now
+    });
+    if(error)throw error;
+    _lastRemoteUpdatedAt=new Date(now).getTime();
+    dot.className='sync-dot';
+  }catch(e){
+    console.error('pushToSupabase',e);
+    dot.className='sync-dot err';
+  }
+}
+function subscribeRealtime(){
+  if(!supa||!currentUser)return;
+  if(realtimeChannel){try{supa.removeChannel(realtimeChannel);}catch{}}
+  realtimeChannel=supa.channel('madplan-changes')
+    .on('postgres_changes',
+      {event:'*',schema:'public',table:'madplan_state',filter:`user_id=eq.${currentUser.id}`},
+      (payload)=>{
+        const newData=payload.new;
+        if(!newData||!newData.data)return;
+        const remoteTime=new Date(newData.updated_at).getTime();
+        if(remoteTime<=_lastRemoteUpdatedAt)return;
+        if(remoteTime<=(S.updatedAt||0))return;
+        _isApplyingRemote=true;
+        S={...S,...newData.data};
+        if(!S.meals||S.meals.length!==7)S.meals=migrateMealsTo7(S.meals);
+        S.aggregated=null;
+        dbSet(JSON.stringify(S));
+        renderAll();runAggregation();
+        _lastRemoteUpdatedAt=remoteTime;
+        _isApplyingRemote=false;
+        toast('☁️ Opdateret fra anden enhed');
+      })
+    .subscribe();
 }
 function updateSyncDot(){
   const d=document.getElementById('syncDot');if(!d)return;
-  const t=getGistToken();
-  if(!t){d.className='sync-dot off';return;}
+  if(!supa||!currentUser){d.className='sync-dot off';return;}
   d.className='sync-dot';
 }
-async function syncPush(manual){
-  const token=getGistToken();if(!token){if(manual)toast('Ingen token sat');return;}
-  const dot=document.getElementById('syncDot');dot.className='sync-dot busy';
-  try{
-    const payload={updatedAt:S.updatedAt||Date.now(),data:S};
-    const content=JSON.stringify(payload);
-    const files={'madplan.json':{content}};
-    const gid=getGistId();
-    let res;
-    if(gid){
-      res=await fetch('https://api.github.com/gists/'+gid,{method:'PATCH',headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files})});
-    } else {
-      res=await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({description:'Madplan data (auto-genereret)',public:false,files})});
-    }
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const body=await res.json();
-    if(body.id)setGistId(body.id);
-    dot.className='sync-dot';
-    if(manual)toast('⬆ Sendt til sky ✓');
-  }catch(e){
-    console.error('push failed',e);
-    dot.className='sync-dot err';
-    if(manual)toast('❌ Sync fejlede: '+e.message);
-  }
+function updateApiKeyStatus(){
+  const el=document.getElementById('apiKeyStatus');if(!el)return;
+  if(currentUser){el.textContent='☁️ '+currentUser.email;}
+  else{el.textContent='Aftensmad — 2 voksne & 2 børn';}
 }
-async function syncPull(manual){
-  const token=getGistToken();if(!token){if(manual)toast('Ingen token sat');return;}
-  const gid=getGistId();
-  const dot=document.getElementById('syncDot');dot.className='sync-dot busy';
-  try{
-    let targetId=gid;
-    if(!targetId){
-      targetId=await findMadplanGist(token);
-      if(!targetId){dot.className='sync-dot';if(manual)toast('Ingen gist fundet — tryk ⬆ Send først');return;}
-      setGistId(targetId);
-    }
-    const res=await fetch('https://api.github.com/gists/'+targetId,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const gist=await res.json();
-    const content=gist.files?.['madplan.json']?.content;
-    if(!content)throw new Error('Tom gist');
-    const remote=JSON.parse(content);
-    const remoteTime=remote.updatedAt||0;
-    const localTime=S.updatedAt||0;
-    if(remoteTime>localTime||manual){
-      S={...S,...remote.data};
-      if(!S.meals||S.meals.length!==7)S.meals=migrateMealsTo7(S.meals);
-      S.aggregated=null;
-      await dbSet(JSON.stringify(S));
-      renderAll();runAggregation();
-      dot.className='sync-dot';
-      if(manual)toast('⬇ Hentet fra sky ✓');
-    } else {
-      dot.className='sync-dot';
-      if(manual)toast('Allerede opdateret');
-    }
-  }catch(e){
-    console.error('pull failed',e);
-    dot.className='sync-dot err';
-    if(manual)toast('❌ Hent fejlede: '+e.message);
+function openSettingsModal(){
+  const info=document.getElementById('supabaseStatusInfo');
+  if(currentUser){
+    info.innerHTML=`✓ <strong>Logget ind som ${currentUser.email}</strong><br>Realtime sync aktiv. Ændringer vises live på andre enheder.`;
+  } else {
+    info.innerHTML='⚠️ Ikke logget ind. Tryk på 🚪 nedenfor for at logge ind.';
   }
+  document.getElementById('settingsOverlay').classList.add('open');
 }
+// Stubs to avoid breaking references in old code
+function getApiKey(){return '';}
+function apiHeaders(){return{};}
 
-// ── API ──────────────────────────────────────────────────────────
+// ── API HELPERS ──────────────────────────────────────────────────
 function fetchWithTimeout(url,options,ms){
   return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
-}
-async function callClaudeVision(b64,mime,prompt){
-  const res=await fetchWithTimeout('https://api.anthropic.com/v1/messages',{
-    method:'POST',headers:apiHeaders(),
-    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,system:SYSTEM_PROMPT,messages:[{role:'user',content:[
-      {type:'image',source:{type:'base64',media_type:mime,data:b64}},
-      {type:'text',text:prompt}
-    ]}]})
-  },32000);
-  if(!res.ok)throw new Error('API '+res.status);
-  const data=await res.json();
-  return data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
 }
 function extractJSON(text){
   let c=text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
@@ -850,6 +938,7 @@ function extractJSON(text){
   let d=0;for(let i=s;i<c.length;i++){if(c[i]==='{')d++;else if(c[i]==='}'){d--;if(d===0)return c.slice(s,i+1);}}
   return c.slice(s);
 }
+
 
 // ── RENDER MEALS ─────────────────────────────────────────────────
 function renderMealCards(){
@@ -1031,6 +1120,7 @@ function renderRecipe(){
 function renderRecipeContent(el, m, dayLabel){
   const scale=recipeScale;
   el.innerHTML=`
+  ${m.photo?`<img src="${m.photo}" style="width:100%;max-height:220px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px;display:block">`:''}
   <div class="recipe-hero">
     <button onclick="printRecipe()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1" title="Print opskrift">🖨️ Print</button>
     <div class="hero-day">${dayLabel}</div><div class="hero-name">${m.name}</div>
@@ -1114,6 +1204,7 @@ function renderBookCards(){
     const mainIngs=(r.mainIngredients||[]);
     return`<div class="book-card ${isExp?'expanded':''}" onclick="toggleBook('${r.id}')">
       <button class="bc-del-btn" onclick="deleteBook(event,'${r.id}')" title="Slet">🗑️</button>
+      ${r.photo?`<img src="${r.photo}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;display:block">`:''}
       <div class="bc-name">${r.name}</div>
       <div class="bc-meta">
         <span class="mbadge mb-cuisine">${cEmoji} ${r.cuisine||'–'}</span>
@@ -1189,8 +1280,15 @@ function buildIngGroups(){
 function openAddRecipeModal(existingRecipe=null){
   arState.editId=existingRecipe?.id||null;
   arState.imgB64_1=null;arState.imgB64_2=null;arState.imgB64_3=null;arState.imgB64_4=null;
+  arState.photoB64=existingRecipe?.photo||null;
   document.getElementById('addRecipeTitle').textContent=existingRecipe?'Rediger opskrift':'Tilføj opskrift';
   setStatus('arStatus','','');
+  document.getElementById('arBridgeJson').value='';
+  // Reset photo zone UI
+  document.getElementById('arPhotoPreview').style.display='none';
+  document.getElementById('arPhotoContent').style.display='block';
+  document.getElementById('arPhotoClearBtn').style.display='none';
+  document.getElementById('arPhotoZone').classList.remove('has-img');
   if(existingRecipe){
     switchArTab('manual');
     fillManualForm(existingRecipe);
@@ -1205,7 +1303,7 @@ function openAddRecipeModal(existingRecipe=null){
 
 function switchArTab(tab){
   arState.tab=tab;
-  ['image','manual'].forEach(t=>{
+  ['image','bridge','manual'].forEach(t=>{
     document.getElementById('arTab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
     document.getElementById('arPanel'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
   });
@@ -1214,14 +1312,71 @@ function switchArTab(tab){
   document.getElementById('arSaveBtn').style.display=tab==='manual'?'flex':'none';
   if(tab==='image'){
     const w=document.getElementById('imgProxyWarning');
-    if(!getApiKey()){
+    if(!currentUser){
       w.innerHTML=`<div style="background:var(--offer-bg);border:1px solid #e8c4a0;border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:10px;font-size:.78rem;color:var(--offer);line-height:1.5">
-        ⚠️ <strong>AI-billedlæsning kræver API-nøgle.</strong> Tryk ⚙️ for at tilføje, eller brug <strong>✏️ Manuel</strong>-fanen.
+        ⚠️ <strong>Log ind for at bruge billedlæsning</strong> — den kører via Supabase Edge Function. Eller brug <strong>🔗 Claude.ai</strong>-fanen (gratis med Pro).
       </div>`;
-    } else {
-      w.innerHTML='';
-    }
+    } else {w.innerHTML='';}
+  } else if(tab==='bridge'){
+    document.getElementById('bridgePromptText').textContent=getBridgePrompt();
   }
+}
+
+function getBridgePrompt(){
+  return `Udtræk opskriften fra det vedhæftede billede (eller tekst) ORDRET. Tilpas kun mængder til 4 portioner hvis nødvendigt. Returner KUN dette JSON — ingen forklaring, ingen markdown:
+
+{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"fx 30 min","ingredients":[{"name":"string","amount":"fx 500 g","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["trin 1","trin 2"]}`;
+}
+
+function copyBridgePrompt(){
+  const text=getBridgePrompt();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>toast('Prompt kopieret ✓')).catch(()=>fallbackCopy(text));
+  } else {fallbackCopy(text);}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('Prompt kopieret ✓');}
+  catch(e){toast('Kunne ikke kopiere — marker og kopier manuelt');}
+  ta.remove();
+}
+
+function parseBridgeJson(){
+  const raw=document.getElementById('arBridgeJson').value.trim();
+  if(!raw){setStatus('arStatus','err','⚠️ Indsæt JSON fra Claude.ai først');return;}
+  try{
+    const parsed=JSON.parse(extractJSON(raw));
+    if(!parsed.name){throw new Error('Mangler felt: name');}
+    fillManualForm(parsed);
+    switchArTab('manual');
+    setStatus('arStatus','ok','✓ Indlæst — tjek og gem');
+  }catch(e){
+    setStatus('arStatus','err','❌ Kunne ikke læse JSON: '+e.message);
+  }
+}
+
+let _bridgeParseTimer=null;
+function autoParseBridge(){
+  clearTimeout(_bridgeParseTimer);
+  _bridgeParseTimer=setTimeout(()=>{
+    const raw=document.getElementById('arBridgeJson').value.trim();
+    const preview=document.getElementById('bridgeParsePreview');
+    if(!raw){preview.innerHTML='';return;}
+    try{
+      const parsed=JSON.parse(extractJSON(raw));
+      if(!parsed.name){preview.innerHTML='<span style="color:var(--offer)">⚠️ Mangler "name" felt</span>';return;}
+      const nIng=(parsed.ingredients||[]).length;
+      const nSteps=(parsed.steps||[]).length;
+      preview.innerHTML=`<div style="background:var(--green-light);border-radius:6px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="flex:1;min-width:0"><strong style="color:var(--green-mid)">${parsed.name}</strong> <span style="color:var(--muted)">— ${nIng} ingredienser, ${nSteps} trin</span></div>
+        <button class="btn-sm btn-sm-green" onclick="parseBridgeJson()" style="flex-shrink:0">Indlæs →</button>
+      </div>`;
+    }catch(e){
+      preview.innerHTML=`<span style="color:var(--hint);font-size:.72rem">Venter på valid JSON…</span>`;
+    }
+  },400);
 }
 
 function focusImgSlot(n){
@@ -1238,6 +1393,7 @@ function setupArPaste(){
       if(!item.type.startsWith('image/'))continue;
       e.preventDefault();
       if(arState.tab==='image')loadImgToSlot(item.getAsFile(),focusedImgSlot);
+      else if(arState.tab==='manual')loadArPhoto(item.getAsFile());
       return;
     }
   };
@@ -1258,6 +1414,52 @@ function arClearImg(e,n){
   document.getElementById('arImgZone'+n).classList.remove('has-img','drag-over');
   document.getElementById('arImgFile'+n).value='';
   setStatus('arStatus','','');
+}
+
+// Photo upload (shown on recipe card)
+function arPhotoDragOver(e){e.preventDefault();document.getElementById('arPhotoZone').classList.add('drag-over');}
+function arPhotoDragLeave(e){document.getElementById('arPhotoZone').classList.remove('drag-over');}
+function arPhotoDrop(e){e.preventDefault();document.getElementById('arPhotoZone').classList.remove('drag-over');const f=e.dataTransfer?.files?.[0];if(f&&f.type.startsWith('image/'))loadArPhoto(f);}
+function arPhotoFileInput(e){const f=e.target.files?.[0];if(f)loadArPhoto(f);}
+function loadArPhoto(file){
+  const reader=new FileReader();
+  reader.onerror=()=>toast('Kunne ikke læse filen');
+  reader.onload=(ev)=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const MAX=800;
+        let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+        if(w>MAX||h>MAX){const s=Math.min(MAX/w,MAX/h);w=Math.round(w*s);h=Math.round(h*s);}
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img,0,0,w,h);
+        const out=canvas.toDataURL('image/jpeg',0.75);
+        arState.photoB64=out;
+        document.getElementById('arPhotoPreview').src=out;
+      }catch(e){
+        arState.photoB64=ev.target.result;
+        document.getElementById('arPhotoPreview').src=ev.target.result;
+      }
+      document.getElementById('arPhotoPreview').style.display='block';
+      document.getElementById('arPhotoContent').style.display='none';
+      document.getElementById('arPhotoClearBtn').style.display='flex';
+      document.getElementById('arPhotoZone').classList.add('has-img');
+    };
+    img.onerror=()=>toast('Billedet kunne ikke dekodes');
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function arPhotoClear(e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  arState.photoB64=null;
+  document.getElementById('arPhotoPreview').src='';document.getElementById('arPhotoPreview').style.display='none';
+  document.getElementById('arPhotoContent').style.display='block';document.getElementById('arPhotoClearBtn').style.display='none';
+  document.getElementById('arPhotoZone').classList.remove('has-img','drag-over');
+  document.getElementById('arPhotoFile').value='';
 }
 
 function loadImgToSlot(file,slotNum){
@@ -1306,32 +1508,25 @@ Returner KUN dette JSON:
 6-12 ingredienser, 4-10 trin.`;
 
 async function fetchFromImage(){
-  if(!getApiKey()){setStatus('arStatus','err','⚠️ Tilføj Anthropic API-nøgle under ⚙️');return;}
+  if(!supa||!currentUser){setStatus('arStatus','err','⚠️ Du skal være logget ind for at bruge billedlæsning');return;}
   const hasAny=arState.imgB64_1||arState.imgB64_2||arState.imgB64_3||arState.imgB64_4;
   if(!hasAny){setStatus('arStatus','err','⚠️ Indsæt mindst ét billede');return;}
   const btn=document.getElementById('arImageBtn');
   btn.disabled=true;btn.innerHTML=`<span class="spinner"></span> Læser…`;
   try{
-    const slots=[
+    const images=[
       {b64:arState.imgB64_1,mime:arState.imgMime1,label:'Ingredienser 1'},
       {b64:arState.imgB64_2,mime:arState.imgMime2,label:'Ingredienser 2'},
       {b64:arState.imgB64_3,mime:arState.imgMime3,label:'Fremgangsmåde 1'},
       {b64:arState.imgB64_4,mime:arState.imgMime4,label:'Fremgangsmåde 2'},
     ].filter(s=>s.b64&&s.b64.length>200);
-    if(!slots.length)throw new Error('Ingen gyldige billeder');
-    const content=[];
-    slots.forEach(s=>content.push({type:'image',source:{type:'base64',media_type:s.mime||'image/jpeg',data:s.b64}}));
-    content.push({type:'text',text:RECIPE_EXTRACT_PROMPT(`Billederne: ${slots.map(s=>s.label).join(', ')}`)});
-    setStatus('arStatus','info','📤 Sender til AI…');
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:apiHeaders(),
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,system:SYSTEM_PROMPT,messages:[{role:'user',content}]})
-    });
-    const raw=await res.text();
-    let data;try{data=JSON.parse(raw);}catch{throw new Error(`HTTP ${res.status}: ${raw.slice(0,150)}`);}
-    if(!res.ok)throw new Error(data?.error?.message||`HTTP ${res.status}`);
-    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    if(!text)throw new Error('Tomt svar');
+    if(!images.length)throw new Error('Ingen gyldige billeder');
+    setStatus('arStatus','info','📤 Sender til Edge Function…');
+    const{data,error}=await supa.functions.invoke('read-recipe',{body:{images}});
+    if(error)throw new Error(error.message||'Edge Function fejl');
+    if(data?.error)throw new Error(data.error);
+    const text=data?.text;
+    if(!text)throw new Error('Tomt svar fra Edge Function');
     const parsed=JSON.parse(extractJSON(text));
     fillManualForm(parsed);
     switchArTab('manual');
@@ -1348,6 +1543,14 @@ function fillManualForm(r){
   document.getElementById('arSourceUrl').value=r.source?.url||'';
   document.getElementById('arIngredients').value=(r.ingredients||[]).map(i=>`${i.amount} ${i.name}`).join('\n');
   document.getElementById('arSteps').value=(r.steps||[]).join('\n');
+  // Restore photo preview when editing
+  if(arState.photoB64){
+    document.getElementById('arPhotoPreview').src=arState.photoB64;
+    document.getElementById('arPhotoPreview').style.display='block';
+    document.getElementById('arPhotoContent').style.display='none';
+    document.getElementById('arPhotoClearBtn').style.display='flex';
+    document.getElementById('arPhotoZone').classList.add('has-img');
+  }
 }
 function clearManualForm(){
   ['arName','arCookTime','arSourceName','arSourceUrl','arIngredients','arSteps'].forEach(id=>document.getElementById(id).value='');
@@ -1411,6 +1614,7 @@ function saveRecipe(){
     cuisine:document.getElementById('arCuisine').value,
     cookTime:document.getElementById('arCookTime').value.trim(),
     source:{name:document.getElementById('arSourceName').value.trim()||extractDomain(sourceUrl),url:sourceUrl||'#'},
+    photo:arState.photoB64||null,
     ingredients,steps,
     mainIngredients:extractMainIngredients(ingredients)
   };
@@ -1474,7 +1678,7 @@ function renderPickerList(){
     const cEmoji=CUISINE_LIST.find(c=>c.k===r.cuisine)?.l.split(' ')[0]||'🍴';
     const mainIngs=(r.mainIngredients||[]).slice(0,3);
     return`<div class="book-card" onclick="selectFromPicker('${r.id}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div style="width:40px;height:40px;border-radius:8px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${cEmoji}</div>
+      ${r.photo?`<img src="${r.photo}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0">`:`<div style="width:40px;height:40px;border-radius:8px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${cEmoji}</div>`}
       <div style="flex:1;min-width:0">
         <div class="bc-name" style="padding-right:0;font-size:.92rem">${r.name}</div>
         <div class="bc-meta">
@@ -1727,14 +1931,8 @@ document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
   if(e.target===o){o.classList.remove('open');cleanupPasteHandlers();}
 }));
 
-// Periodic sync pull (every 60s if idle and token set)
-setInterval(()=>{if(getGistToken()&&document.visibilityState==='visible')syncPull(false);},60000);
-// Sync on visibility change (iPhone opens app)
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&getGistToken())syncPull(false);});
-
 // ── INIT ─────────────────────────────────────────────────────────
 load();
 </script>
 </body>
 </html>
-
