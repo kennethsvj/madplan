@@ -45,6 +45,21 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 .tab .tb{display:none}
 
 .content{padding:14px 14px 90px;max-width:660px;margin:0 auto}
+@media(min-width:900px){
+  .content{max-width:980px;padding:24px 28px 100px}
+  .meal-card{padding:18px 22px}
+  .recipe-hero{padding:28px 28px}
+  .hero-name{font-size:1.7rem}
+  .header{padding:16px 28px 15px}
+  .tabs{padding:0 14px}
+  .modal{max-width:560px}
+}
+@media(min-width:1200px){
+  .content{max-width:1100px}
+  /* Two-column grid for meal cards on wide screens */
+  #mealCards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #mealCards .meal-card{margin-bottom:0}
+}
 .section{display:none}.section.active{display:block}
 
 .meal-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;border:1px solid var(--border);}
@@ -229,7 +244,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
   </div>
   <div class="header-btns">
     <button class="week-pill" onclick="openSettingsModal()" title="Indstillinger"><span class="sync-dot off" id="syncDot"></span>⚙️</button>
-    <button class="week-pill" onclick="openNewWeekModal()" title="Ny uge"><span id="weekLabel">Uge –</span> <span>↻</span></button>
+    <div class="week-pill" style="cursor:default" title="Aktuel uge"><span id="weekLabel">Uge –</span></div>
   </div>
 </div>
 
@@ -246,7 +261,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
   <div class="section active" id="madplan">
     <div class="sec-top">
       <h2>Ugens middage</h2>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-sm btn-sm-green" onclick="openNewWeekModal()" title="Generér madplan">✨ Auto-madplan</button>
         <button class="btn-sm btn-sm-green" onclick="saveWeekToBank()" title="Gem i arkiv">💾 Arkivér</button>
         <button class="btn-sm btn-sm-muted" onclick="printMealPlan()">🖨️</button>
       </div>
@@ -429,12 +445,12 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
         </div>
       </div>
       <div class="form-row">
-        <label class="form-label">Ingredienser (ét per linje)</label>
-        <textarea class="paste-area" id="arIngredients" style="min-height:100px" placeholder="500 g hakket oksekød&#10;400 g hakkede tomater&#10;2 fed hvidløg&#10;…"></textarea>
+        <label class="form-label">Ingredienser (ét per linje • brug <code>=== Sektionsnavn ===</code> til delretter)</label>
+        <textarea class="paste-area" id="arIngredients" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;400 g kyllingefilet&#10;2 spsk soja&#10;=== Syltede gulerødder ===&#10;4 gulerødder&#10;1 dl riseddike&#10;..."></textarea>
       </div>
       <div class="form-row">
-        <label class="form-label">Fremgangsmåde (ét trin per linje)</label>
-        <textarea class="paste-area" id="arSteps" style="min-height:100px" placeholder="Snit løg og hvidløg fint.&#10;Brun oksekødet.&#10;…"></textarea>
+        <label class="form-label">Fremgangsmåde (ét trin per linje • samme sektioner som ingredienser)</label>
+        <textarea class="paste-area" id="arSteps" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;Rør marinaden sammen og vend kyllingen i den.&#10;Brun den på pande.&#10;=== Syltede gulerødder ===&#10;Kog vand, sukker og eddike op.&#10;..."></textarea>
       </div>
     </div>
 
@@ -464,13 +480,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:va
 <!-- NEW WEEK MODAL -->
 <div class="overlay center" id="newWeekOverlay">
   <div class="modal floating">
-    <div class="modal-title">Ny uges madplan</div>
-    <div class="modal-sub" id="nwSub">Lås dage med 🔒 — de beholdes ved blanding</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--green-light);border-radius:var(--radius-sm)">
-      <label style="font-size:.72rem;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:.5px">Uge:</label>
-      <input id="nwWeekInput" type="number" min="1" max="53" class="form-input" style="width:70px;padding:5px 8px;font-size:.85rem;margin:0" value="1">
-      <span style="font-size:.72rem;color:var(--muted);margin-left:auto">(Nuværende: <span id="nwCurrentWeek">–</span>)</span>
-    </div>
+    <div class="modal-title">✨ Auto-generér madplan</div>
+    <div class="modal-sub" id="nwSub">Lås dage med 🔒 — de beholdes ved blanding. Filtrér efter køkken hvis du vil.</div>
     <div class="cuis-chips" id="nwCuisChips"></div>
     <div class="nw-grid" id="nwGrid"></div>
     <div class="modal-btns">
@@ -683,6 +694,26 @@ function cleanupPasteHandlers(){if(document._arPaste){document.removeEventListen
 function makeEmptyWeek(){return DAYS.map(day=>({day,name:null}));}
 function extractDomain(url){try{return new URL(url).hostname.replace('www.','');}catch{return'';}}
 
+// Normalize a recipe so it always has a `sections` array.
+// Old format: {ingredients:[], steps:[]}  →  sections:[{title:'',ingredients,steps}]
+// New format: {sections:[...]} → unchanged
+// Also exposes flat .ingredients/.steps for backward compatibility (aggregation, etc.)
+function normalizeRecipe(r){
+  if(!r)return r;
+  if(!r.sections||!Array.isArray(r.sections)||!r.sections.length){
+    r.sections=[{title:'',ingredients:r.ingredients||[],steps:r.steps||[]}];
+  }
+  // Rebuild flat lists from sections (so aggregation/main-ing extraction still works)
+  const allIng=[],allSteps=[];
+  r.sections.forEach(sec=>{
+    (sec.ingredients||[]).forEach(i=>allIng.push(i));
+    (sec.steps||[]).forEach(s=>allSteps.push(s));
+  });
+  r.ingredients=allIng;
+  r.steps=allSteps;
+  return r;
+}
+
 function switchTab(id,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -730,6 +761,9 @@ async function load(){
   if(!S.cookbook)S.cookbook=[];
   if(!S.weekBank)S.weekBank=[];
   if(!S.dismissed)S.dismissed=[];
+  // Normalize all recipes to section structure
+  S.cookbook.forEach(normalizeRecipe);
+  S.meals.forEach(m=>{if(m&&m.name)normalizeRecipe(m);});
   updateApiKeyStatus();
   updateSyncDot();
   renderAll();
@@ -1134,7 +1168,11 @@ function renderRecipe(){
 }
 
 function renderRecipeContent(el, m, dayLabel){
+  normalizeRecipe(m);
   const scale=recipeScale;
+  const sections=m.sections||[];
+  const hasMultipleSections=sections.length>1||(sections[0]?.title);
+
   el.innerHTML=`
   ${m.photo?`<img src="${m.photo}" style="width:100%;max-height:220px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px;display:block">`:''}
   <div class="recipe-hero">
@@ -1147,16 +1185,20 @@ function renderRecipeContent(el, m, dayLabel){
     </div>
     ${m.source?.url&&m.source.url!=='#'?`<div class="hero-source">Kilde: <a href="${m.source.url}" target="_blank">↗ ${m.source.name||m.source.url}</a></div>`:''}
   </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div class="slabel" style="margin:0">Ingredienser</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0">
+    <div class="slabel" style="margin:0">${hasMultipleSections?'Opskriften har flere delretter':'Ingredienser & fremgangsmåde'}</div>
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:.72rem;color:var(--muted)">Skaler:</span>
       ${[1,2,3,4].map(n=>`<button onclick="recipeScale=${n};renderRecipe()" style="padding:3px 9px;border-radius:20px;border:1.5px solid ${scale===n?'var(--green)':'var(--border)'};background:${scale===n?'var(--green)':'var(--cream)'};color:${scale===n?'white':'var(--muted)'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${n}×</button>`).join('')}
     </div>
   </div>
-  ${(m.ingredients||[]).map(ing=>`<div class="ing-row"><span>${ing.name}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
-  <div class="slabel">Fremgangsmåde</div>
-  ${(m.steps||[]).map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`).join('')}`;
+  ${sections.map((sec,si)=>`
+    ${sec.title?`<div style="margin-top:${si>0?'22px':'14px'};padding:10px 14px;background:var(--green);color:white;border-radius:var(--radius-sm);font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:500">${sec.title}</div>`:''}
+    ${(sec.ingredients||[]).length?`<div class="slabel" style="margin-top:12px">Ingredienser</div>`:''}
+    ${(sec.ingredients||[]).map(ing=>`<div class="ing-row"><span>${ing.name}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
+    ${(sec.steps||[]).length?`<div class="slabel" style="margin-top:12px">Fremgangsmåde</div>`:''}
+    ${(sec.steps||[]).map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`).join('')}
+  `).join('')}`;
 }
 
 function showRecipe(idx){
@@ -1339,9 +1381,9 @@ function switchArTab(tab){
 }
 
 function getBridgePrompt(){
-  return `Udtræk opskriften fra det vedhæftede billede (eller tekst) ORDRET. Tilpas kun mængder til 4 portioner hvis nødvendigt. Returner KUN dette JSON — ingen forklaring, ingen markdown:
+  return `Udtræk opskriften fra det vedhæftede billede (eller tekst) ORDRET. Tilpas kun mængder til 4 portioner hvis nødvendigt. Hvis opskriften indeholder FLERE DELRETTER (fx hovedret + tilbehør + sauce), STRUKTURÉR dem som separate sections med titler. Returner KUN dette JSON — ingen forklaring, ingen markdown:
 
-{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"fx 30 min","ingredients":[{"name":"string","amount":"fx 500 g","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["trin 1","trin 2"]}`;
+{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"fx 30 min","sections":[{"title":"fx Vietnamesisk kylling (eller tom streng hvis ingen sektioner)","ingredients":[{"name":"string","amount":"fx 500 g","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["trin 1","trin 2"]}]}`;
 }
 
 function copyBridgePrompt(){
@@ -1516,12 +1558,14 @@ function loadImgToSlot(file,slotNum){
 
 const RECIPE_EXTRACT_PROMPT = (context)=>`Udtræk og TRANSSKRIBÉR opskriften ordret fra dette indhold. VIGTIGE REGLER:
 - Skriv trin PRÆCIS som de fremgår af kilden — ingen omskrivning
-- Behold originalens ordlyd i "steps"
+- Behold originalens ordlyd
 - Tilpas til 4 portioner kun hvis nødvendigt
+- Hvis opskriften har FLERE DELRETTER eller SEKTIONER (fx "Vietnamesisk kylling", "Syltede gulerødder", "Ris", "Mayo", "Til servering"), så STRUKTURÉR dem som separate sections — bevar originalens opdeling og rækkefølge
+- Hvis det er én simpel ret uden underopskrifter, brug én section med tom titel ""
 ${context}
 Returner KUN dette JSON:
-{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"string","ingredients":[{"name":"string","amount":"string","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["ORDRET trin"]}
-6-12 ingredienser, 4-10 trin.`;
+{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"string","sections":[{"title":"sektionsnavn eller tom streng","ingredients":[{"name":"string","amount":"string","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["ORDRET trin"]}]}
+Hver section: 2-12 ingredienser, 1-8 trin.`;
 
 async function fetchFromImage(){
   if(!supa||!currentUser){setStatus('arStatus','err','⚠️ Du skal være logget ind for at bruge billedlæsning');return;}
@@ -1557,9 +1601,28 @@ function fillManualForm(r){
   document.getElementById('arCookTime').value=r.cookTime||'';
   document.getElementById('arSourceName').value=r.source?.name||'';
   document.getElementById('arSourceUrl').value=r.source?.url||'';
-  document.getElementById('arIngredients').value=(r.ingredients||[]).map(i=>`${i.amount} ${i.name}`).join('\n');
-  document.getElementById('arSteps').value=(r.steps||[]).join('\n');
-  // Restore photo preview when editing
+
+  // If recipe has sections, format them with === Section title === markers
+  let ingText='', stepText='';
+  if(r.sections&&Array.isArray(r.sections)&&r.sections.length){
+    const parts=[],sparts=[];
+    r.sections.forEach((sec,i)=>{
+      if(sec.title){
+        parts.push(`=== ${sec.title} ===`);
+        sparts.push(`=== ${sec.title} ===`);
+      }
+      (sec.ingredients||[]).forEach(ing=>parts.push(`${ing.amount} ${ing.name}`));
+      (sec.steps||[]).forEach(s=>sparts.push(s));
+    });
+    ingText=parts.join('\n');
+    stepText=sparts.join('\n');
+  } else {
+    ingText=(r.ingredients||[]).map(i=>`${i.amount} ${i.name}`).join('\n');
+    stepText=(r.steps||[]).join('\n');
+  }
+  document.getElementById('arIngredients').value=ingText;
+  document.getElementById('arSteps').value=stepText;
+
   if(arState.photoB64){
     document.getElementById('arPhotoPreview').src=arState.photoB64;
     document.getElementById('arPhotoPreview').style.display='block';
@@ -1568,21 +1631,65 @@ function fillManualForm(r){
     document.getElementById('arPhotoZone').classList.add('has-img');
   }
 }
+
+// Parse manual form text into sections. Lines starting with === Title === are section headers.
+function parseManualSections(ingText, stepText){
+  const parseBlock=(text,isIngredients)=>{
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    const sections=[];
+    let current={title:'',items:[]};
+    lines.forEach(line=>{
+      const m=line.match(/^={2,}\s*(.+?)\s*={2,}$/);
+      if(m){
+        if(current.items.length||current.title)sections.push(current);
+        current={title:m[1],items:[]};
+      } else {
+        current.items.push(line);
+      }
+    });
+    if(current.items.length||current.title)sections.push(current);
+    if(!sections.length)sections.push({title:'',items:[]});
+    return sections;
+  };
+
+  const ingSections=parseBlock(ingText);
+  const stepSections=parseBlock(stepText);
+
+  // Merge ingSections and stepSections by title (or by index if no titles)
+  const result=[];
+  const allTitles=new Set();
+  ingSections.forEach(s=>allTitles.add(s.title));
+  stepSections.forEach(s=>allTitles.add(s.title));
+
+  // Preserve order from ingSections first, then add any extras from stepSections
+  const orderedTitles=[];
+  ingSections.forEach(s=>{if(!orderedTitles.includes(s.title))orderedTitles.push(s.title);});
+  stepSections.forEach(s=>{if(!orderedTitles.includes(s.title))orderedTitles.push(s.title);});
+
+  orderedTitles.forEach(title=>{
+    const ingSec=ingSections.find(s=>s.title===title);
+    const stepSec=stepSections.find(s=>s.title===title);
+    result.push({
+      title,
+      ingredients:ingSec?ingSec.items.map(line=>parseIngLine(line)):[],
+      steps:stepSec?stepSec.items:[]
+    });
+  });
+  return result;
+}
+
+function parseIngLine(line){
+  const m=line.match(/^([\d½¼¾⅓⅔,./\s]+(?:g|kg|dl|l|ml|stk|spsk|tsk|fed|bundt|håndfuld|pose|dåse|pk\.?)?)\s+(.+)/i);
+  if(m)return{name:m[2].trim(),amount:m[1].trim(),category:guessCat(m[2])};
+  const m2=line.match(/^(.+?)\s*[-–]\s*([\d½¼¾⅓⅔,./\s]+\S+)$/);
+  if(m2)return{name:m2[1].trim(),amount:m2[2].trim(),category:guessCat(m2[1])};
+  return{name:line,amount:'',category:'kolonial'};
+}
 function clearManualForm(){
   ['arName','arCookTime','arSourceName','arSourceUrl','arIngredients','arSteps'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('arCuisine').value='dansk';
 }
 
-function parseManualIngredients(text){
-  return text.split('\n').filter(Boolean).map(line=>{
-    line=line.trim();
-    const m=line.match(/^([\d½¼¾⅓⅔,./\s]+(?:g|kg|dl|l|ml|stk|spsk|tsk|fed|bundt|håndfuld|pose|dåse|pk\.?)?)\s+(.+)/i);
-    if(m)return{name:m[2].trim(),amount:m[1].trim(),category:guessCat(m[2])};
-    const m2=line.match(/^(.+?)\s*[-–]\s*([\d½¼¾⅓⅔,./\s]+\S+)$/);
-    if(m2)return{name:m2[1].trim(),amount:m2[2].trim(),category:guessCat(m2[1])};
-    return{name:line,amount:'',category:'kolonial'};
-  });
-}
 function guessCat(name){
   const n=name.toLowerCase();
   if(/kylling|okse|svin|laks|fisk|rejer|kød|torsk|tun|skinkek|bacon|pølse|medister/.test(n))return'kød';
@@ -1621,8 +1728,12 @@ function extractMainIngredients(ingredients){
 function saveRecipe(){
   const name=document.getElementById('arName').value.trim();
   if(!name){toast('Navn er påkrævet');return;}
-  const ingredients=parseManualIngredients(document.getElementById('arIngredients').value.trim());
-  const steps=document.getElementById('arSteps').value.trim().split('\n').filter(Boolean).map(s=>s.trim());
+  const ingText=document.getElementById('arIngredients').value.trim();
+  const stepText=document.getElementById('arSteps').value.trim();
+  const sections=parseManualSections(ingText,stepText);
+  // Flatten for backward compatibility
+  const allIng=[],allSteps=[];
+  sections.forEach(sec=>{(sec.ingredients||[]).forEach(i=>allIng.push(i));(sec.steps||[]).forEach(s=>allSteps.push(s));});
   const sourceUrl=document.getElementById('arSourceUrl').value.trim();
   const recipe={
     id:arState.editId||('book-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),
@@ -1631,8 +1742,10 @@ function saveRecipe(){
     cookTime:document.getElementById('arCookTime').value.trim(),
     source:{name:document.getElementById('arSourceName').value.trim()||extractDomain(sourceUrl),url:sourceUrl||'#'},
     photo:arState.photoB64||null,
-    ingredients,steps,
-    mainIngredients:extractMainIngredients(ingredients)
+    sections,
+    ingredients:allIng,
+    steps:allSteps,
+    mainIngredients:extractMainIngredients(allIng)
   };
   if(arState.editId){
     S.cookbook=S.cookbook.map(r=>r.id===arState.editId?recipe:r);
@@ -1720,8 +1833,6 @@ function openAddFromPicker(){pickerFromPicker=true;closeOverlay('pickerOverlay')
 // ── NEW WEEK ─────────────────────────────────────────────────────
 function openNewWeekModal(){
   nwCuisFilter='alle';nwLocked=[false,false,false,false,false,false,false];
-  document.getElementById('nwWeekInput').value=S.weekNum||getWeekNumber(new Date());
-  document.getElementById('nwCurrentWeek').textContent=getWeekNumber(new Date());
   buildNwCuisChips();shuffleNewWeek();
   document.getElementById('newWeekOverlay').classList.add('open');
 }
@@ -1764,13 +1875,12 @@ function renderNwGrid(){
 }
 function confirmNewWeek(){
   if(!S.cookbook.length){toast('Tilføj opskrifter først');return;}
-  const newWeek=parseInt(document.getElementById('nwWeekInput').value)||getWeekNumber(new Date());
   S.meals=DAYS.map((day,i)=>{
     const base=nwLocked[i]?S.meals[i]:(nwSelected[i]||S.meals[i]);
     return base&&base.name?{...base,day}:{day,name:null};
   });
   S.checked={};S.manual=[];S.dismissed=[];S.selectedMeal=null;S.aggregated=null;
-  S.weekNum=newWeek;
+  S.weekNum=getWeekNumber(new Date());
   save();renderAll();runAggregation();closeOverlay('newWeekOverlay');
   toast('Ny madplan klar ✨');
 }
@@ -1912,16 +2022,337 @@ function printRecipe(){
   const idx=S.selectedMeal;
   const m=(idx!=null&&S.meals[idx]?.name)?S.meals[idx]:null;
   if(!m){toast('Vælg en opskrift først');return;}
+  normalizeRecipe(m);
   const scale=recipeScale;
-  const html=`<h1>${m.name}</h1>
-<div class="meta">${m.day||''} ${m.cuisine?'· 🍴 '+m.cuisine:''} ${m.cookTime?'· ⏱ '+m.cookTime:''} · 👥 ${4*scale} portioner</div>
-${m.source?.name?`<div class="src">Kilde: ${m.source.name}${m.source.url&&m.source.url!=='#'?' — '+m.source.url:''}</div>`:''}
-<h2>Ingredienser</h2>
-<ul class="ing-list">${(m.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="ing-amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
-<h2>Fremgangsmåde</h2>
-<ol class="step-list">${(m.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>`;
-  const slug=m.name.toLowerCase().replace(/[^a-z0-9æøå]+/gi,'-').slice(0,40);
-  printHTML(html,m.name,slug);
+  const sections=m.sections||[];
+  const hasMultipleSections=sections.length>1||(sections[0]?.title);
+
+  // Build sections HTML
+  let sectionsHTML='';
+  if(hasMultipleSections){
+    sectionsHTML=sections.map(sec=>`
+      ${sec.title?`<div class="section-title">${sec.title}</div>`:''}
+      <div class="section-grid">
+        <div class="section-ings">
+          <h3>Ingredienser</h3>
+          <ul>${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+        </div>
+        <div class="section-steps">
+          <h3>Fremgangsmåde</h3>
+          <ol>${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    const sec=sections[0]||{ingredients:m.ingredients||[],steps:m.steps||[]};
+    sectionsHTML=`<div class="main-grid">
+      <div class="ings-col">
+        <h2 class="col-title">INGREDIENSER</h2>
+        <ul class="ings-list">${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+      </div>
+      <div class="divider"></div>
+      <div class="steps-col">
+        <h2 class="col-title">FREMGANGSMÅDE</h2>
+        <ol class="steps-list">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+      </div>
+    </div>`;
+  }
+
+  const designedHTML=`
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="recipe-title">${m.name.toUpperCase()}</h1>
+      ${m.cuisine?`<div class="subtitle">${m.cuisine.toUpperCase()} · ${m.day||''}</div>`:''}
+    </div>
+    <div class="meta-box">
+      <div class="meta-row">🍽️ ${4*scale} portioner</div>
+      ${m.cookTime?`<div class="meta-row">⏱ ${m.cookTime}</div>`:''}
+    </div>
+  </header>
+
+  ${m.photo?`<div class="hero-img"><img src="${m.photo}" alt="${m.name}"></div>`:'<div class="hero-divider"></div>'}
+
+  ${sectionsHTML}
+
+  ${m.source?.name?`<footer class="recipe-footer">Kilde: ${m.source.name}${m.source.url&&m.source.url!=='#'?' — '+m.source.url:''}</footer>`:''}
+</div>`;
+
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 12mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #2a2a2a;
+  background: #fafaf7;
+  line-height: 1.55;
+  padding: 20px;
+}
+.topbar {
+  background: #1e4d2b;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.topbar button {
+  background: white;
+  color: #1e4d2b;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .9rem;
+}
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 50px 55px 40px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e0ddd5;
+}
+.recipe-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #1a1a1a;
+  line-height: 1.05;
+  margin-bottom: 6px;
+  max-width: 500px;
+}
+.subtitle {
+  font-size: .75rem;
+  letter-spacing: 2.5px;
+  color: #888;
+  font-family: Arial, sans-serif;
+}
+.meta-box {
+  text-align: right;
+  font-size: .92rem;
+  color: #555;
+  font-family: Arial, sans-serif;
+}
+.meta-row {
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.hero-img {
+  margin: 0 0 30px;
+  border-radius: 4px;
+  overflow: hidden;
+  page-break-inside: avoid;
+}
+.hero-img img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+.hero-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #1e4d2b 30%, #1e4d2b 70%, transparent);
+  margin: 0 0 30px;
+}
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1.6fr;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+.divider {
+  background: #e0ddd5;
+  width: 1px;
+}
+.col-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  margin-bottom: 18px;
+  color: #1a1a1a;
+  text-align: center;
+}
+.ings-col {
+  background: #f5f1ea;
+  padding: 22px 20px;
+  border-radius: 6px;
+}
+.ings-list {
+  list-style: none;
+}
+.ings-list li {
+  padding: 9px 0;
+  border-bottom: 1px dotted #d4cfc3;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: .95rem;
+}
+.ings-list li:last-child { border-bottom: none; }
+.amt {
+  color: #1e4d2b;
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: Arial, sans-serif;
+  font-size: .88rem;
+}
+.steps-list {
+  padding-left: 0;
+  counter-reset: step-counter;
+  list-style: none;
+}
+.steps-list li {
+  padding: 6px 0 14px 32px;
+  position: relative;
+  font-size: .96rem;
+  line-height: 1.7;
+  counter-increment: step-counter;
+}
+.steps-list li::before {
+  content: counter(step-counter) ".";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: #1e4d2b;
+}
+
+/* Multi-section recipes */
+.section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  background: #1e4d2b;
+  padding: 12px 22px;
+  margin: 28px 0 18px;
+  border-radius: 4px;
+  letter-spacing: .5px;
+  page-break-after: avoid;
+}
+.section-title:first-child { margin-top: 8px; }
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 24px;
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+}
+.section-ings, .section-steps { font-size: .92rem; }
+.section-ings h3, .section-steps h3 {
+  font-family: Arial, sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.section-ings ul {
+  list-style: none;
+  background: #f5f1ea;
+  padding: 14px 16px;
+  border-radius: 4px;
+}
+.section-ings li {
+  padding: 6px 0;
+  border-bottom: 1px dotted #d4cfc3;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: .9rem;
+}
+.section-ings li:last-child { border-bottom: none; }
+.section-steps ol {
+  list-style: none;
+  counter-reset: sub-step;
+}
+.section-steps li {
+  padding: 4px 0 10px 26px;
+  position: relative;
+  counter-increment: sub-step;
+  font-size: .92rem;
+  line-height: 1.65;
+}
+.section-steps li::before {
+  content: counter(sub-step) ".";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: #1e4d2b;
+}
+
+.recipe-footer {
+  margin-top: 30px;
+  padding-top: 18px;
+  border-top: 1px solid #e0ddd5;
+  font-size: .78rem;
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+@media print {
+  .topbar { display: none !important; }
+  body { background: white; padding: 0; }
+  .page { box-shadow: none; padding: 0; max-width: none; }
+}
+`;
+
+  const fullHTML=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>${m.name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<style>${css}</style></head><body>
+<div class="topbar"><span style="font-weight:600">${m.name}</span><button onclick="window.print()">🖨️ Print</button></div>
+${designedHTML}
+</body></html>`;
+
+  openPrintWindow(fullHTML, m.name);
+}
+
+function openPrintWindow(fullHTML, title){
+  // Try to open in new tab. If blocked, download as file.
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(w){
+      toast('Åbnet i ny fane — tryk 🖨️ Print der');
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return;
+    }
+  }catch(e){}
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=(title.toLowerCase().replace(/[^a-z0-9æøå]+/gi,'-').slice(0,40))+'.html';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
+    toast('📥 Fil downloadet — åbn den og tryk Ctrl+P');
+  }catch(e){toast('Print ikke tilgængeligt: '+e.message);}
 }
 
 // ── SHOPPING ACTIONS ─────────────────────────────────────────────
@@ -1937,7 +2368,7 @@ function removeManual(id){S.manual=S.manual.filter(i=>i.id!==Number(id));delete 
 
 // ── RENDER ALL ───────────────────────────────────────────────────
 function renderAll(){
-  document.getElementById('weekLabel').textContent=`Uge ${S.weekNum||'–'}`;
+  document.getElementById('weekLabel').textContent=`Uge ${getWeekNumber(new Date())}`;
   renderMealCards();renderShopList();renderRecipe();
 }
 
