@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="da">
 <head>
 <meta charset="UTF-8">
@@ -18,606 +17,606 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap');
 
 :root {
-/* Base palette */
-–bg: #ffffff;
-–bg-soft: #f7f8fa;
-–bg-softer: #fafbfc;
-–bg-card: #ffffff;
-–border: #e8eaed;
-–border-soft: #f0f2f5;
-–text: #0a0a0a;
-–text-soft: #4a5568;
-–text-mute: #8a92a6;
-–text-hint: #b8bdcc;
-–text-faint: #d1d5db;
+  /* Base palette */
+  --bg: #ffffff;
+  --bg-soft: #f7f8fa;
+  --bg-softer: #fafbfc;
+  --bg-card: #ffffff;
+  --border: #e8eaed;
+  --border-soft: #f0f2f5;
+  --text: #0a0a0a;
+  --text-soft: #4a5568;
+  --text-mute: #8a92a6;
+  --text-hint: #b8bdcc;
+  --text-faint: #d1d5db;
 
-/* Primary (near-black for CTAs) */
-–primary: #0a0a0a;
-–primary-hover: #1f1f1f;
+  /* Primary (near-black for CTAs) */
+  --primary: #0a0a0a;
+  --primary-hover: #1f1f1f;
 
-/* Section colors */
-–c-home: #f59e0b;    –c-home-soft: #fffbeb;    –c-home-border: #fde68a;
-–c-plan: #f97316;    –c-plan-soft: #fff7ed;    –c-plan-border: #fed7aa;
-–c-shop: #16a34a;    –c-shop-soft: #f0fdf4;    –c-shop-border: #bbf7d0;
-–c-book: #2563eb;    –c-book-soft: #eff6ff;    –c-book-border: #bfdbfe;
-–c-archive: #8b5cf6; –c-archive-soft: #f5f3ff; –c-archive-border: #ddd6fe;
-–c-fav: #f43f5e;     –c-fav-soft: #fff1f3;     –c-fav-border: #fecdd3;
-–c-week: #eab308;    –c-week-soft: #fefce8;    –c-week-border: #fde68a;
+  /* Section colors */
+  --c-home: #f59e0b;    --c-home-soft: #fffbeb;    --c-home-border: #fde68a;
+  --c-plan: #f97316;    --c-plan-soft: #fff7ed;    --c-plan-border: #fed7aa;
+  --c-shop: #16a34a;    --c-shop-soft: #f0fdf4;    --c-shop-border: #bbf7d0;
+  --c-book: #2563eb;    --c-book-soft: #eff6ff;    --c-book-border: #bfdbfe;
+  --c-archive: #8b5cf6; --c-archive-soft: #f5f3ff; --c-archive-border: #ddd6fe;
+  --c-fav: #f43f5e;     --c-fav-soft: #fff1f3;     --c-fav-border: #fecdd3;
+  --c-week: #eab308;    --c-week-soft: #fefce8;    --c-week-border: #fde68a;
 
-/* Cuisine colors */
-–cu-dansk: #dc2626;  –cu-ital: #16a34a;   –cu-mex: #f97316;
-–cu-asia: #eab308;   –cu-ind: #ea580c;    –cu-thai: #dc2626;
-–cu-fra: #2563eb;    –cu-gr: #0891b2;     –cu-am: #7c3aed;
-–cu-jp: #e11d48;     –cu-ma: #d97706;     –cu-sp: #ca8a04;
-–cu-me: #059669;
+  /* Cuisine colors */
+  --cu-dansk: #dc2626;  --cu-ital: #16a34a;   --cu-mex: #f97316;
+  --cu-asia: #eab308;   --cu-ind: #ea580c;    --cu-thai: #dc2626;
+  --cu-fra: #2563eb;    --cu-gr: #0891b2;     --cu-am: #7c3aed;
+  --cu-jp: #e11d48;     --cu-ma: #d97706;     --cu-sp: #ca8a04;
+  --cu-me: #059669;
 
-/* Legacy vars kept for compatibility */
-–cream: var(–bg-soft);
-–card: var(–bg-card);
-–green: var(–c-book);
-–green-light: var(–c-book-soft);
-–green-mid: var(–c-book);
-–muted: var(–text-soft);
-–hint: var(–text-mute);
-–offer: var(–c-plan);
-–offer-bg: var(–c-plan-soft);
-–rema: var(–c-book);
-–rema-bg: var(–c-book-soft);
+  /* Legacy vars kept for compatibility */
+  --cream: var(--bg-soft);
+  --card: var(--bg-card);
+  --green: var(--c-book);
+  --green-light: var(--c-book-soft);
+  --green-mid: var(--c-book);
+  --muted: var(--text-soft);
+  --hint: var(--text-mute);
+  --offer: var(--c-plan);
+  --offer-bg: var(--c-plan-soft);
+  --rema: var(--c-book);
+  --rema-bg: var(--c-book-soft);
 
-–radius: 14px;
-–radius-sm: 10px;
-–radius-lg: 18px;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 18px;
 
-–shadow-sm: 0 1px 2px rgba(0,0,0,.04);
-–shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-–shadow-md: 0 4px 12px -2px rgba(0,0,0,.08), 0 2px 4px -1px rgba(0,0,0,.04);
-–shadow-lg: 0 10px 25px -5px rgba(0,0,0,.08), 0 4px 10px -2px rgba(0,0,0,.04);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px -2px rgba(0,0,0,.08), 0 2px 4px -1px rgba(0,0,0,.04);
+  --shadow-lg: 0 10px 25px -5px rgba(0,0,0,.08), 0 4px 10px -2px rgba(0,0,0,.04);
 }
 
-- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
-  body {
-  font-family: ‘Inter’, system-ui, -apple-system, sans-serif;
-  background: var(–bg);
-  color: var(–text);
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  }
+}
 
 /* ── TOP NAV (desktop) ──────────────────────────────── */
 .header {
-background: var(–bg);
-border-bottom: 1px solid var(–border);
-padding: 12px 24px;
-position: sticky;
-top: 0;
-z-index: 100;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 .header > div:first-child { display: none; }
 .header-sub { display: none; }
 .header h1 { display: none; }
 .header-btns {
-display: flex;
-align-items: center;
-gap: 8px;
-margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 .week-pill {
-background: var(–bg-soft);
-border: 1px solid var(–border);
-color: var(–text-soft);
-padding: 8px 14px;
-border-radius: 999px;
-font-size: 13px;
-font-weight: 600;
-cursor: pointer;
-display: inline-flex;
-align-items: center;
-gap: 6px;
-font-family: inherit;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
 }
-.week-pill:hover { background: var(–border-soft); color: var(–text); }
+.week-pill:hover { background: var(--border-soft); color: var(--text); }
 .sync-dot {
-width: 7px;
-height: 7px;
-border-radius: 50%;
-background: #ef4444;
-display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: inline-block;
 }
 .sync-dot.on { background: #22c55e; }
 
 /* Tabs become pill-style top nav */
 .tabs {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 4px;
-position: fixed;
-top: 13px;
-left: 50%;
-transform: translateX(-50%);
-z-index: 101;
-padding: 0;
-border: none;
-background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: fixed;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  padding: 0;
+  border: none;
+  background: none;
 }
 .tab {
-display: flex;
-align-items: center;
-gap: 8px;
-padding: 9px 16px;
-border-radius: 999px;
-font-size: 13px;
-font-weight: 500;
-color: var(–text-soft);
-cursor: pointer;
-border: none;
-background: none;
-font-family: inherit;
-transition: all .18s ease;
-white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-soft);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: all .18s ease;
+  white-space: nowrap;
 }
-.tab:hover { background: var(–bg-soft); color: var(–text); }
+.tab:hover { background: var(--bg-soft); color: var(--text); }
 .tab.active {
-background: var(–c-book-soft);
-color: var(–c-book);
-font-weight: 600;
+  background: var(--c-book-soft);
+  color: var(--c-book);
+  font-weight: 600;
 }
-.tab[onclick*=“madplan”].active { background: var(–c-plan-soft); color: var(–c-plan); }
-.tab[onclick*=“indkoeb”].active { background: var(–c-shop-soft); color: var(–c-shop); }
-.tab[onclick*=“opskriftbog”].active { background: var(–c-book-soft); color: var(–c-book); }
-.tab[onclick*=“bank”].active { background: var(–c-archive-soft); color: var(–c-archive); }
+.tab[onclick*="madplan"].active { background: var(--c-plan-soft); color: var(--c-plan); }
+.tab[onclick*="indkoeb"].active { background: var(--c-shop-soft); color: var(--c-shop); }
+.tab[onclick*="opskriftbog"].active { background: var(--c-book-soft); color: var(--c-book); }
+.tab[onclick*="bank"].active { background: var(--c-archive-soft); color: var(--c-archive); }
 .tab .ti { font-size: 16px; }
 .tab .tb { display: none; }
 
 /* ── PAGE CONTENT ──────────────────────────────── */
 .content {
-max-width: 1280px;
-margin: 0 auto;
-padding: 32px 24px 80px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
 }
 .section { display: none; }
 .section.active { display: block; }
 
 .sec-top {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 16px;
-margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 .sec-top h2 {
-font-size: 30px;
-font-weight: 800;
-letter-spacing: -0.6px;
-color: var(–text);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--text);
 }
 .sec-top > div { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ── BUTTONS ──────────────────────────────── */
 .btn {
-display: inline-flex;
-align-items: center;
-gap: 6px;
-padding: 10px 16px;
-border-radius: 10px;
-font-family: inherit;
-font-size: 13px;
-font-weight: 600;
-cursor: pointer;
-border: 1px solid transparent;
-transition: all .15s ease;
-white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .15s ease;
+  white-space: nowrap;
 }
 .btn-primary {
-background: var(–primary);
-color: white;
-border-color: var(–primary);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 .btn-primary:hover {
-background: var(–primary-hover);
-transform: translateY(-1px);
-box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
 .btn-secondary {
-background: var(–bg);
-color: var(–text);
-border-color: var(–border);
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
 }
-.btn-secondary:hover { background: var(–bg-soft); border-color: var(–text-mute); }
+.btn-secondary:hover { background: var(--bg-soft); border-color: var(--text-mute); }
 .btn-cancel {
-background: var(–bg-soft);
-color: var(–text-soft);
-border-color: var(–border);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  border-color: var(--border);
 }
-.btn-cancel:hover { background: var(–border-soft); }
+.btn-cancel:hover { background: var(--border-soft); }
 
 .btn-sm {
-display: inline-flex;
-align-items: center;
-gap: 5px;
-padding: 8px 14px;
-border-radius: 9px;
-font-family: inherit;
-font-size: 12px;
-font-weight: 600;
-cursor: pointer;
-border: 1px solid var(–border);
-background: var(–bg);
-color: var(–text);
-transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  transition: all .15s;
 }
-.btn-sm:hover { background: var(–bg-soft); border-color: var(–text-mute); }
+.btn-sm:hover { background: var(--bg-soft); border-color: var(--text-mute); }
 .btn-sm-green {
-background: var(–c-shop-soft);
-border-color: var(–c-shop-border);
-color: var(–c-shop);
+  background: var(--c-shop-soft);
+  border-color: var(--c-shop-border);
+  color: var(--c-shop);
 }
 .btn-sm-green:hover { background: #dcfce7; }
 .btn-sm-muted {
-background: var(–bg-soft);
-color: var(–text-soft);
+  background: var(--bg-soft);
+  color: var(--text-soft);
 }
 
 .btn-add {
-background: var(–primary);
-color: white;
-border: none;
-padding: 10px 18px;
-border-radius: 10px;
-font-family: inherit;
-font-size: 13px;
-font-weight: 600;
-cursor: pointer;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.btn-add:hover { background: var(–primary-hover); }
+.btn-add:hover { background: var(--primary-hover); }
 
 /* ── MEAL CARDS (madplan) ──────────────────────────────── */
 .meal-card {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 18px 20px;
-margin-bottom: 12px;
-transition: all .2s ease;
-position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: all .2s ease;
+  position: relative;
 }
 .meal-card:hover {
-border-color: var(–text-mute);
-box-shadow: var(–shadow-md);
-transform: translateY(-1px);
+  border-color: var(--text-mute);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 .day-row {
-display: flex;
-align-items: center;
-justify-content: space-between;
-margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 .day-label {
-font-size: 11px;
-font-weight: 700;
-color: var(–c-plan);
-text-transform: uppercase;
-letter-spacing: 1px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-plan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 .meal-name {
-font-size: 18px;
-font-weight: 700;
-color: var(–text);
-margin-bottom: 8px;
-line-height: 1.3;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.3;
 }
 .meal-meta {
-display: flex;
-gap: 8px;
-flex-wrap: wrap;
-margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 .mbadge {
-display: inline-flex;
-align-items: center;
-gap: 4px;
-padding: 4px 10px;
-border-radius: 999px;
-font-size: 11px;
-font-weight: 600;
-background: var(–bg-soft);
-color: var(–text-soft);
-border: 1px solid var(–border);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
 }
-.mb-cuisine { background: var(–c-book-soft); color: var(–c-book); border-color: var(–c-book-border); }
-.mb-time { background: var(–c-plan-soft); color: var(–c-plan); border-color: var(–c-plan-border); }
+.mb-cuisine { background: var(--c-book-soft); color: var(--c-book); border-color: var(--c-book-border); }
+.mb-time { background: var(--c-plan-soft); color: var(--c-plan); border-color: var(--c-plan-border); }
 .meal-src {
-font-size: 11px;
-color: var(–text-mute);
-margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-bottom: 10px;
 }
-.meal-src a { color: var(–c-book); text-decoration: none; }
+.meal-src a { color: var(--c-book); text-decoration: none; }
 .meal-src a:hover { text-decoration: underline; }
 .card-actions {
-display: flex;
-gap: 6px;
-margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
 }
 .card-actions .btn { flex: 1; justify-content: center; padding: 9px 12px; font-size: 12px; }
 
 /* Meal grid on wide screens */
 @media (min-width: 1000px) {
-#mealCards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-#mealCards .meal-card { margin-bottom: 0; }
+  #mealCards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  #mealCards .meal-card { margin-bottom: 0; }
 }
 
 /* ── SHOPPING LIST ──────────────────────────────── */
 .shop-agg-bar {
-background: var(–c-shop-soft);
-border: 1px solid var(–c-shop-border);
-color: var(–c-shop);
-padding: 10px 14px;
-border-radius: 10px;
-font-size: 12px;
-font-weight: 600;
-margin-bottom: 14px;
-display: flex;
-align-items: center;
-gap: 8px;
+  background: var(--c-shop-soft);
+  border: 1px solid var(--c-shop-border);
+  color: var(--c-shop);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .btn-reagg {
-margin-left: auto;
-background: var(–bg);
-border: 1px solid var(–c-shop-border);
-color: var(–c-shop);
-padding: 4px 10px;
-border-radius: 999px;
-font-size: 11px;
-font-weight: 600;
-cursor: pointer;
-font-family: inherit;
+  margin-left: auto;
+  background: var(--bg);
+  border: 1px solid var(--c-shop-border);
+  color: var(--c-shop);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
 }
 .agg-spin {
-display: inline-block;
-width: 12px;
-height: 12px;
-border: 2px solid var(–c-shop-border);
-border-top-color: var(–c-shop);
-border-radius: 50%;
-animation: spin 1s linear infinite;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--c-shop-border);
+  border-top-color: var(--c-shop);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .add-panel {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
 }
 .add-title {
-font-size: 12px;
-font-weight: 700;
-color: var(–text-mute);
-text-transform: uppercase;
-letter-spacing: 0.5px;
-margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
 }
 .add-row {
-display: flex;
-gap: 8px;
-flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .add-input, .add-select {
-padding: 10px 14px;
-border: 1px solid var(–border);
-border-radius: 10px;
-font-family: inherit;
-font-size: 13px;
-background: var(–bg);
-color: var(–text);
-outline: none;
-flex: 1;
-min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  flex: 1;
+  min-width: 0;
 }
-.add-input:focus, .add-select:focus { border-color: var(–c-book); box-shadow: 0 0 0 3px var(–c-book-soft); }
+.add-input:focus, .add-select:focus { border-color: var(--c-book); box-shadow: 0 0 0 3px var(--c-book-soft); }
 
 .shop-stat {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-margin: 16px 0;
-font-size: 12px;
-color: var(–text-mute);
-font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: var(--text-mute);
+  font-weight: 600;
 }
 .progress-bar {
-flex: 1;
-height: 8px;
-background: var(–bg-soft);
-border-radius: 999px;
-overflow: hidden;
+  flex: 1;
+  height: 8px;
+  background: var(--bg-soft);
+  border-radius: 999px;
+  overflow: hidden;
 }
 .progress-fill {
-height: 100%;
-background: var(–c-shop);
-border-radius: 999px;
-transition: width .3s ease;
+  height: 100%;
+  background: var(--c-shop);
+  border-radius: 999px;
+  transition: width .3s ease;
 }
 
 .cat-block { margin-bottom: 20px; }
 .cat-hdr {
-display: flex;
-align-items: center;
-gap: 8px;
-font-size: 12px;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 0.5px;
-color: var(–text-mute);
-margin-bottom: 10px;
-padding-bottom: 6px;
-border-bottom: 1px solid var(–border-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-mute);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .shop-row {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 10px 12px;
-border-radius: 10px;
-margin-bottom: 4px;
-transition: background .15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  transition: background .15s;
 }
-.shop-row:hover { background: var(–bg-soft); }
-.shop-row.checked .iname-main { text-decoration: line-through; color: var(–text-mute); }
-.shop-row input[type=“checkbox”] {
-width: 18px;
-height: 18px;
-accent-color: var(–c-shop);
-cursor: pointer;
+.shop-row:hover { background: var(--bg-soft); }
+.shop-row.checked .iname-main { text-decoration: line-through; color: var(--text-mute); }
+.shop-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--c-shop);
+  cursor: pointer;
 }
 .iname { flex: 1; min-width: 0; }
 .iname-main {
-font-size: 14px;
-font-weight: 500;
-color: var(–text);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
 }
 .iname-meals {
-display: block;
-font-size: 11px;
-color: var(–text-mute);
-margin-top: 2px;
+  display: block;
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 2px;
 }
 .del-btn {
-width: 26px;
-height: 26px;
-border-radius: 6px;
-border: 1px solid var(–border);
-background: var(–bg);
-color: var(–text-mute);
-cursor: pointer;
-font-size: 12px;
-display: flex;
-align-items: center;
-justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-mute);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.del-btn:hover { background: var(–c-fav-soft); color: var(–c-fav); border-color: var(–c-fav-border); }
+.del-btn:hover { background: var(--c-fav-soft); color: var(--c-fav); border-color: var(--c-fav-border); }
 
 /* ── RECIPE VIEW ──────────────────────────────── */
 .recipe-hero {
-background: linear-gradient(135deg, var(–c-book), #1e40af);
-color: white;
-padding: 28px 28px;
-border-radius: var(–radius);
-margin-bottom: 20px;
-position: relative;
+  background: linear-gradient(135deg, var(--c-book), #1e40af);
+  color: white;
+  padding: 28px 28px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  position: relative;
 }
 .hero-day {
-font-size: 11px;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 1.5px;
-opacity: 0.8;
-margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.8;
+  margin-bottom: 6px;
 }
 .hero-name {
-font-size: 28px;
-font-weight: 800;
-letter-spacing: -0.5px;
-margin-bottom: 12px;
-line-height: 1.15;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  line-height: 1.15;
 }
 .hero-meta {
-display: flex;
-gap: 16px;
-font-size: 13px;
-opacity: 0.9;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  opacity: 0.9;
 }
 .hero-meta span { display: flex; align-items: center; gap: 5px; }
 .hero-source {
-margin-top: 12px;
-font-size: 12px;
-opacity: 0.8;
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.8;
 }
 .hero-source a { color: white; text-decoration: underline; }
 
 .scale-row {
-display: flex;
-align-items: center;
-gap: 10px;
-margin-bottom: 20px;
-padding: 12px 16px;
-background: var(–bg-soft);
-border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--bg-soft);
+  border-radius: 10px;
 }
 .scale-label {
-font-size: 12px;
-font-weight: 600;
-color: var(–text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 .scale-btns { display: flex; gap: 4px; margin-left: auto; }
 .scale-btn {
-padding: 6px 12px;
-border: 1px solid var(–border);
-background: var(–bg);
-color: var(–text);
-border-radius: 8px;
-font-family: inherit;
-font-size: 12px;
-font-weight: 600;
-cursor: pointer;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.scale-btn.active { background: var(–primary); color: white; border-color: var(–primary); }
+.scale-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
 .recipe-section {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 20px 22px;
-margin-bottom: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 14px;
 }
 
 /* Legacy recipe view classes */
 .slabel {
-font-size: 12px;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 0.6px;
-color: var(–c-book);
-margin: 16px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--c-book);
+  margin: 16px 0 8px;
 }
 .ing-row {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 9px 14px;
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: 10px;
-margin-bottom: 5px;
-font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 5px;
+  font-size: 14px;
 }
 .ing-qty {
-font-weight: 700;
-color: var(–c-book);
-font-size: 13px;
-white-space: nowrap;
-margin-left: 12px;
+  font-weight: 700;
+  color: var(--c-book);
+  font-size: 13px;
+  white-space: nowrap;
+  margin-left: 12px;
 }
 .step-txt {
-flex: 1;
-font-size: 14px;
-line-height: 1.6;
-color: var(–text);
-padding-top: 2px;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  padding-top: 2px;
 }
 .empty-state {
-text-align: center;
-padding: 60px 20px;
-color: var(–text-mute);
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-mute);
 }
 .empty-state .eicon { font-size: 48px; margin-bottom: 14px; }
 
@@ -626,145 +625,145 @@ color: var(–text-mute);
 .assign-row, .assign-label, .assign-days, .assign-day-btn,
 .cuis-chip, .cuis-chips, .book-toolbar, .book-search-wrap,
 .book-search-icon, .book-add-btn {
-/* Deprecated — absorbed into new classes */
+  /* Deprecated — absorbed into new classes */
 }
 .recipe-section-title {
-font-size: 18px;
-font-weight: 800;
-margin-bottom: 12px;
-color: var(–text);
-padding-bottom: 10px;
-border-bottom: 2px solid var(–c-book-soft);
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--c-book-soft);
 }
 .recipe-subsection {
-margin-bottom: 16px;
-padding-bottom: 12px;
-border-bottom: 1px dashed var(–border);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
 }
 .recipe-subsection:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 .recipe-subsection-title {
-font-size: 13px;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 0.6px;
-color: var(–c-book);
-margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--c-book);
+  margin-bottom: 8px;
 }
 .ingredient-row {
-display: flex;
-gap: 8px;
-padding: 6px 0;
-font-size: 14px;
-color: var(–text);
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--text);
 }
 .ingredient-amount {
-min-width: 90px;
-font-weight: 600;
-color: var(–text-soft);
+  min-width: 90px;
+  font-weight: 600;
+  color: var(--text-soft);
 }
 .step-row {
-display: flex;
-gap: 12px;
-padding: 8px 0;
-font-size: 14px;
-line-height: 1.6;
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
 }
 .step-num {
-flex-shrink: 0;
-width: 24px;
-height: 24px;
-border-radius: 50%;
-background: var(–c-book);
-color: white;
-font-size: 12px;
-font-weight: 700;
-display: flex;
-align-items: center;
-justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-book);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── COOKBOOK (recipe grid) ──────────────────────────────── */
 .book-empty {
-border: 2px dashed var(–border);
-border-radius: var(–radius-lg);
-padding: 52px 24px;
-text-align: center;
-background: var(–bg-softer);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 52px 24px;
+  text-align: center;
+  background: var(--bg-softer);
 }
 .be-icon { font-size: 40px; margin-bottom: 12px; }
 .book-empty h3 {
-font-size: 17px;
-font-weight: 700;
-margin-bottom: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 .book-empty p {
-font-size: 14px;
-color: var(–text-mute);
-margin-bottom: 18px;
+  font-size: 14px;
+  color: var(--text-mute);
+  margin-bottom: 18px;
 }
 
 .book-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-gap: 18px;
-margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
 }
 .book-card {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-overflow: hidden;
-cursor: pointer;
-transition: all .22s ease;
-display: flex;
-flex-direction: column;
-position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .22s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 .book-card::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 3px;
-background: var(–border);
-z-index: 2;
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--border);
+  z-index: 2;
 }
-.book-card.cu-dansk::before { background: var(–cu-dansk); }
-.book-card.cu-ital::before, .book-card.cu-italiensk::before { background: var(–cu-ital); }
-.book-card.cu-mex::before, .book-card.cu-mexicansk::before { background: var(–cu-mex); }
-.book-card.cu-asia::before, .book-card.cu-asiatisk::before { background: var(–cu-asia); }
-.book-card.cu-ind::before, .book-card.cu-indisk::before { background: var(–cu-ind); }
-.book-card.cu-thai::before { background: var(–cu-thai); }
-.book-card.cu-fransk::before, .book-card.cu-fra::before { background: var(–cu-fra); }
-.book-card.cu-græsk::before, .book-card.cu-gr::before { background: var(–cu-gr); }
-.book-card.cu-amerikansk::before { background: var(–cu-am); }
-.book-card.cu-japansk::before { background: var(–cu-jp); }
-.book-card.cu-marokkansk::before { background: var(–cu-ma); }
-.book-card.cu-spansk::before { background: var(–cu-sp); }
-.book-card.cu-mellemøstlig::before { background: var(–cu-me); }
+.book-card.cu-dansk::before { background: var(--cu-dansk); }
+.book-card.cu-ital::before, .book-card.cu-italiensk::before { background: var(--cu-ital); }
+.book-card.cu-mex::before, .book-card.cu-mexicansk::before { background: var(--cu-mex); }
+.book-card.cu-asia::before, .book-card.cu-asiatisk::before { background: var(--cu-asia); }
+.book-card.cu-ind::before, .book-card.cu-indisk::before { background: var(--cu-ind); }
+.book-card.cu-thai::before { background: var(--cu-thai); }
+.book-card.cu-fransk::before, .book-card.cu-fra::before { background: var(--cu-fra); }
+.book-card.cu-græsk::before, .book-card.cu-gr::before { background: var(--cu-gr); }
+.book-card.cu-amerikansk::before { background: var(--cu-am); }
+.book-card.cu-japansk::before { background: var(--cu-jp); }
+.book-card.cu-marokkansk::before { background: var(--cu-ma); }
+.book-card.cu-spansk::before { background: var(--cu-sp); }
+.book-card.cu-mellemøstlig::before { background: var(--cu-me); }
 
 .book-card:hover {
-border-color: var(–text-mute);
-transform: translateY(-3px);
-box-shadow: var(–shadow-lg);
+  border-color: var(--text-mute);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 .book-image {
-width: 100%;
-aspect-ratio: 16 / 10;
-object-fit: cover;
-object-position: center;
-background: var(–bg-soft);
-display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center;
+  background: var(--bg-soft);
+  display: block;
 }
 .book-image-placeholder {
-width: 100%;
-aspect-ratio: 16 / 10;
-display: flex;
-align-items: center;
-justify-content: center;
-position: relative;
-overflow: hidden;
-font-size: 42px;
-color: rgba(0,0,0,.3);
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-size: 42px;
+  color: rgba(0,0,0,.3);
 }
 .book-image-placeholder.cu-dansk, .book-image-placeholder.cu- { background: linear-gradient(135deg, #fef2f2, #fecaca); }
 .book-image-placeholder.cu-ital, .book-image-placeholder.cu-italiensk { background: linear-gradient(135deg, #f0fdf4, #bbf7d0); }
@@ -781,567 +780,566 @@ color: rgba(0,0,0,.3);
 .book-image-placeholder.cu-mellemøstlig { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); }
 
 .book-cuisine-tag {
-position: absolute;
-top: 10px;
-left: 10px;
-background: rgba(255,255,255,.95);
-backdrop-filter: blur(4px);
-padding: 4px 10px;
-border-radius: 999px;
-font-size: 11px;
-font-weight: 600;
-color: var(–text);
-box-shadow: var(–shadow-sm);
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
 .book-body {
-padding: 14px 16px 16px;
-display: flex;
-flex-direction: column;
-gap: 4px;
-flex: 1;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
 }
 .book-source {
-font-size: 11px;
-color: var(–text-mute);
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.3px;
+  font-size: 11px;
+  color: var(--text-mute);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 .book-name {
-font-size: 15px;
-font-weight: 700;
-color: var(–text);
-line-height: 1.35;
-margin-top: 2px;
-margin-bottom: 6px;
-display: -webkit-box;
--webkit-line-clamp: 2;
--webkit-box-orient: vertical;
-overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .book-meta {
-margin-top: auto;
-padding-top: 10px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-font-size: 12px;
-color: var(–text-mute);
-border-top: 1px solid var(–border-soft);
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-mute);
+  border-top: 1px solid var(--border-soft);
 }
 .book-meta-info { display: flex; gap: 10px; }
 .book-meta-info span { display: flex; align-items: center; gap: 4px; font-weight: 500; }
 .book-actions {
-display: flex;
-gap: 4px;
+  display: flex;
+  gap: 4px;
 }
 .book-btn {
-width: 28px;
-height: 28px;
-border-radius: 7px;
-border: 1px solid var(–border);
-background: var(–bg);
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-color: var(–text-mute);
-font-size: 12px;
-transition: all .15s;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-mute);
+  font-size: 12px;
+  transition: all .15s;
 }
-.book-btn:hover { background: var(–bg-soft); color: var(–text); }
+.book-btn:hover { background: var(--bg-soft); color: var(--text); }
 
 .book-filters {
-display: flex;
-align-items: center;
-gap: 8px;
-flex-wrap: wrap;
-margin-bottom: 18px;
-padding-bottom: 18px;
-border-bottom: 1px solid var(–border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
 }
 .book-search-row {
-display: flex;
-gap: 10px;
-margin-bottom: 14px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 .book-search {
-flex: 1;
-position: relative;
+  flex: 1;
+  position: relative;
 }
 .book-search input {
-width: 100%;
-padding: 12px 16px 12px 42px;
-border: 1px solid var(–border);
-border-radius: 12px;
-font-family: inherit;
-font-size: 14px;
-background: var(–bg);
-color: var(–text);
-outline: none;
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
 }
-.book-search input:focus { border-color: var(–c-book); box-shadow: 0 0 0 3px var(–c-book-soft); }
+.book-search input:focus { border-color: var(--c-book); box-shadow: 0 0 0 3px var(--c-book-soft); }
 .book-search::before {
-content: ‘🔍’;
-position: absolute;
-left: 14px;
-top: 50%;
-transform: translateY(-50%);
-opacity: 0.45;
-pointer-events: none;
+  content: '🔍';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .chip {
-display: inline-flex;
-align-items: center;
-gap: 5px;
-padding: 7px 13px;
-border: 1px solid var(–border);
-border-radius: 999px;
-background: var(–bg);
-font-size: 12px;
-font-weight: 500;
-color: var(–text);
-cursor: pointer;
-transition: all .18s;
-font-family: inherit;
-white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .18s;
+  font-family: inherit;
+  white-space: nowrap;
 }
-.chip:hover { border-color: var(–text); background: var(–bg-soft); }
-.chip.active { background: var(–text); color: white; border-color: var(–text); }
+.chip:hover { border-color: var(--text); background: var(--bg-soft); }
+.chip.active { background: var(--text); color: white; border-color: var(--text); }
 
 /* ── BOOK SECTION STATS ──────────────────────────────── */
 .stats-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 12px;
-margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 .stat-card {
-border-radius: var(–radius);
-padding: 16px 18px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-border: 1px solid transparent;
-cursor: pointer;
-transition: all .2s ease;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .2s ease;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(–shadow-md); }
-.stat-card.book { background: var(–c-book-soft); border-color: var(–c-book-border); color: var(–c-book); }
-.stat-card.fav { background: var(–c-fav-soft); border-color: var(–c-fav-border); color: var(–c-fav); }
-.stat-card.week { background: var(–c-week-soft); border-color: var(–c-week-border); color: #a16207; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card.book { background: var(--c-book-soft); border-color: var(--c-book-border); color: var(--c-book); }
+.stat-card.fav { background: var(--c-fav-soft); border-color: var(--c-fav-border); color: var(--c-fav); }
+.stat-card.week { background: var(--c-week-soft); border-color: var(--c-week-border); color: #a16207; }
 .stat-label {
-font-size: 11px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.4px;
-margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
 }
 .stat-value {
-font-size: 26px;
-font-weight: 800;
-color: var(–text);
-letter-spacing: -0.5px;
-line-height: 1;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 .stat-icon { font-size: 22px; opacity: 0.7; }
 
 .book-section-header {
-display: flex;
-align-items: center;
-gap: 12px;
-margin-bottom: 16px;
-margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 28px;
 }
 .book-section-icon {
-width: 34px;
-height: 34px;
-border-radius: 10px;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 16px;
-border: 1px solid;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 1px solid;
 }
-.book-section-icon.book { background: var(–c-book-soft); color: var(–c-book); border-color: var(–c-book-border); }
-.book-section-icon.fav { background: var(–c-fav-soft); color: var(–c-fav); border-color: var(–c-fav-border); }
+.book-section-icon.book { background: var(--c-book-soft); color: var(--c-book); border-color: var(--c-book-border); }
+.book-section-icon.fav { background: var(--c-fav-soft); color: var(--c-fav); border-color: var(--c-fav-border); }
 .book-section-title {
-font-size: 20px;
-font-weight: 800;
-letter-spacing: -0.3px;
-display: flex;
-align-items: center;
-gap: 8px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .book-section-title-count {
-color: var(–text-mute);
-font-weight: 500;
-font-size: 14px;
+  color: var(--text-mute);
+  font-weight: 500;
+  font-size: 14px;
 }
 
 /* ── ARCHIVE / BANK ──────────────────────────────── */
 .link-tabs {
-display: flex;
-gap: 6px;
-margin-bottom: 18px;
-border-bottom: 1px solid var(–border);
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
 }
 .link-tab {
-padding: 10px 18px;
-border: none;
-background: none;
-font-family: inherit;
-font-size: 13px;
-font-weight: 600;
-color: var(–text-mute);
-cursor: pointer;
-border-bottom: 2px solid transparent;
-margin-bottom: -1px;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-mute);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
 }
 .link-tab.active {
-color: var(–c-archive);
-border-bottom-color: var(–c-archive);
+  color: var(--c-archive);
+  border-bottom-color: var(--c-archive);
 }
 .link-panel { display: none; }
 .link-panel.active { display: block; }
 
 /* Tab colors for recipe modal specifically */
-#addRecipeOverlay .link-tab.active { color: var(–c-book); border-bottom-color: var(–c-book); }
+#addRecipeOverlay .link-tab.active { color: var(--c-book); border-bottom-color: var(--c-book); }
 #addRecipeOverlay .link-tabs { margin-bottom: 20px; }
 
 /* Image-drop zones for screenshot mode */
 .img-zone {
-border: 2px dashed var(–border);
-border-radius: 12px;
-padding: 14px;
-text-align: center;
-cursor: pointer;
-transition: all .15s;
-background: var(–bg-softer);
-position: relative;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--bg-softer);
+  position: relative;
 }
-.img-zone:hover { border-color: var(–c-book); background: var(–c-book-soft); }
-.img-zone.drag { border-color: var(–c-book); background: var(–c-book-soft); }
-.img-zone.has-img { padding: 4px; border-style: solid; border-color: var(–c-shop); background: var(–c-shop-soft); }
+.img-zone:hover { border-color: var(--c-book); background: var(--c-book-soft); }
+.img-zone.drag { border-color: var(--c-book); background: var(--c-book-soft); }
+.img-zone.has-img { padding: 4px; border-style: solid; border-color: var(--c-shop); background: var(--c-shop-soft); }
 .img-prev { max-width: 100%; border-radius: 6px; display: block; }
 .drop-icon { opacity: 0.6; }
-.drop-label { font-size: 12px; color: var(–text-mute); font-weight: 500; }
+.drop-label { font-size: 12px; color: var(--text-mute); font-weight: 500; }
 
 /* Visual distinction: image slots for ingredients vs steps */
 .img-slot-ing { }
-.img-slot-ing .img-zone { border-color: var(–c-shop-border); background: var(–c-shop-soft); }
-.img-slot-ing .img-zone:hover { border-color: var(–c-shop); }
-.img-slot-ing .slot-label { color: var(–c-shop); }
-.img-slot-step .img-zone { border-color: var(–c-book-border); background: var(–c-book-soft); }
-.img-slot-step .img-zone:hover { border-color: var(–c-book); }
-.img-slot-step .slot-label { color: var(–c-book); }
+.img-slot-ing .img-zone { border-color: var(--c-shop-border); background: var(--c-shop-soft); }
+.img-slot-ing .img-zone:hover { border-color: var(--c-shop); }
+.img-slot-ing .slot-label { color: var(--c-shop); }
+.img-slot-step .img-zone { border-color: var(--c-book-border); background: var(--c-book-soft); }
+.img-slot-step .img-zone:hover { border-color: var(--c-book); }
+.img-slot-step .slot-label { color: var(--c-book); }
 .slot-label {
-font-size: 11px;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 0.4px;
-margin-bottom: 5px;
-display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 5px;
+  display: block;
 }
 
 .bank-card {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 16px 18px;
-margin-bottom: 10px;
-transition: all .2s;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: all .2s;
 }
-.bank-card:hover { border-color: var(–text-mute); box-shadow: var(–shadow-md); }
+.bank-card:hover { border-color: var(--text-mute); box-shadow: var(--shadow-md); }
 .bank-hdr { display: flex; justify-content: space-between; align-items: flex-start; }
 .bank-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-.bank-date { font-size: 11px; color: var(–text-mute); }
+.bank-date { font-size: 11px; color: var(--text-mute); }
 .bank-meals {
-display: flex;
-flex-wrap: wrap;
-gap: 6px;
-margin: 10px 0;
-font-size: 12px;
-color: var(–text-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: var(--text-soft);
 }
 .bank-meals span {
-background: var(–bg-soft);
-padding: 4px 10px;
-border-radius: 999px;
-border: 1px solid var(–border);
+  background: var(--bg-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
 }
 .bank-actions { display: flex; gap: 6px; margin-top: 10px; }
 
 /* ── MODALS ──────────────────────────────── */
 .overlay {
-position: fixed;
-inset: 0;
-background: rgba(10,10,10,.5);
-backdrop-filter: blur(4px);
-z-index: 1000;
-display: none;
-align-items: flex-start;
-justify-content: center;
-padding: 30px 16px;
-overflow-y: auto;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 30px 16px;
+  overflow-y: auto;
 }
 .overlay.center { align-items: center; }
 .overlay.open { display: flex; }
 .modal {
-background: var(–bg);
-border-radius: var(–radius-lg);
-padding: 26px 28px;
-max-width: 760px;
-width: 100%;
-box-shadow: var(–shadow-lg);
-border: 1px solid var(–border);
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 26px 28px;
+  max-width: 760px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
 }
 .modal.floating { max-width: 500px; }
 .modal-title {
-font-size: 20px;
-font-weight: 800;
-letter-spacing: -0.3px;
-margin-bottom: 4px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
 }
 .modal-sub {
-font-size: 13px;
-color: var(–text-mute);
-margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-mute);
+  margin-bottom: 16px;
 }
 .modal-btns {
-display: flex;
-gap: 8px;
-justify-content: flex-end;
-margin-top: 20px;
-padding-top: 16px;
-border-top: 1px solid var(–border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .form-row { margin-bottom: 14px; }
 .form-row-2 { display: flex; gap: 12px; margin-bottom: 14px; }
 .form-row-2 > * { flex: 1; }
 .form-label {
-display: block;
-font-size: 12px;
-font-weight: 600;
-color: var(–text-soft);
-margin-bottom: 6px;
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin-bottom: 6px;
 }
 .form-input, .form-select, .form-textarea {
-width: 100%;
-padding: 11px 14px;
-border: 1px solid var(–border);
-border-radius: 10px;
-font-family: inherit;
-font-size: 14px;
-background: var(–bg);
-color: var(–text);
-outline: none;
-transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
 }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-border-color: var(–c-book);
-box-shadow: 0 0 0 3px var(–c-book-soft);
+  border-color: var(--c-book);
+  box-shadow: 0 0 0 3px var(--c-book-soft);
 }
 .form-textarea { min-height: 120px; resize: vertical; font-family: inherit; }
 .paste-area {
-min-height: 140px !important;
-font-family: ‘Menlo’, ‘Monaco’, monospace;
-font-size: 13px;
+  min-height: 140px !important;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 13px;
 }
 
 .img-upload-box {
-border: 2px dashed var(–border);
-border-radius: 12px;
-padding: 24px;
-text-align: center;
-cursor: pointer;
-transition: all .15s;
-background: var(–bg-softer);
-position: relative;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--bg-softer);
+  position: relative;
 }
-.img-upload-box:hover { border-color: var(–c-book); background: var(–c-book-soft); }
+.img-upload-box:hover { border-color: var(--c-book); background: var(--c-book-soft); }
 .img-upload-box.has-img { padding: 6px; border-style: solid; }
 .img-upload-box img { max-width: 100%; max-height: 200px; border-radius: 8px; }
 .img-clear-btn {
-position: absolute;
-top: 8px;
-right: 8px;
-background: rgba(0,0,0,.7);
-color: white;
-border: none;
-border-radius: 50%;
-width: 24px;
-height: 24px;
-cursor: pointer;
-font-size: 12px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 /* ── TOASTS ──────────────────────────────── */
 .toast {
-position: fixed;
-bottom: 80px;
-left: 50%;
-transform: translateX(-50%) translateY(100px);
-background: var(–text);
-color: white;
-padding: 12px 20px;
-border-radius: 999px;
-font-size: 13px;
-font-weight: 600;
-box-shadow: var(–shadow-lg);
-z-index: 2000;
-opacity: 0;
-transition: all .3s;
-pointer-events: none;
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--text);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  opacity: 0;
+  transition: all .3s;
+  pointer-events: none;
 }
 .toast.show {
-opacity: 1;
-transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .spinner {
-display: inline-block;
-width: 14px;
-height: 14px;
-border: 2px solid var(–border);
-border-top-color: var(–c-book);
-border-radius: 50%;
-animation: spin 1s linear infinite;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--c-book);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .status-msg {
-padding: 10px 14px;
-border-radius: 10px;
-font-size: 12px;
-font-weight: 500;
-margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
 }
-.status-msg.ok { background: var(–c-shop-soft); color: var(–c-shop); border: 1px solid var(–c-shop-border); }
-.status-msg.err { background: var(–c-fav-soft); color: var(–c-fav); border: 1px solid var(–c-fav-border); }
-.status-msg.info { background: var(–c-book-soft); color: var(–c-book); border: 1px solid var(–c-book-border); }
+.status-msg.ok { background: var(--c-shop-soft); color: var(--c-shop); border: 1px solid var(--c-shop-border); }
+.status-msg.err { background: var(--c-fav-soft); color: var(--c-fav); border: 1px solid var(--c-fav-border); }
+.status-msg.info { background: var(--c-book-soft); color: var(--c-book); border: 1px solid var(--c-book-border); }
 
 /* ── QUICK ADD CHIPS ──────────────────────────────── */
 #quickAddPanel {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: var(–radius);
-padding: 0;
-margin-bottom: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  margin-bottom: 14px;
 }
 #quickAddPanel summary {
-cursor: pointer;
-padding: 12px 16px;
-font-size: 13px;
-font-weight: 600;
-color: var(–text-soft);
-list-style: none;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 #quickAddPanel summary::-webkit-details-marker { display: none; }
-#quickAddPanel[open] summary { border-bottom: 1px solid var(–border-soft); }
+#quickAddPanel[open] summary { border-bottom: 1px solid var(--border-soft); }
 
 /* ── MOBILE ──────────────────────────────── */
 @media (max-width: 900px) {
-.header {
-padding: 10px 14px;
-position: sticky;
-}
-.header-btns { gap: 6px; }
-.week-pill { padding: 7px 11px; font-size: 12px; }
+  .header {
+    padding: 10px 14px;
+    position: sticky;
+  }
+  .header-btns { gap: 6px; }
+  .week-pill { padding: 7px 11px; font-size: 12px; }
 
-.tabs {
-position: fixed;
-top: auto;
-bottom: 0;
-left: 0;
-right: 0;
-transform: none;
-background: var(–bg);
-border-top: 1px solid var(–border);
-padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-gap: 0;
-z-index: 101;
-box-shadow: 0 -2px 10px rgba(0,0,0,.04);
-}
-.tab {
-flex-direction: column;
-gap: 2px;
-padding: 8px 2px;
-border-radius: 10px;
-font-size: 10px;
-font-weight: 600;
-min-height: 52px;
-}
-.tab .ti { font-size: 20px; }
-.tab.active { background: none; color: var(–c-book); }
-.tab[onclick*=“madplan”].active { background: none; color: var(–c-plan); }
-.tab[onclick*=“indkoeb”].active { background: none; color: var(–c-shop); }
-.tab[onclick*=“bank”].active { background: none; color: var(–c-archive); }
-.tab[onclick*=“opskrift”]:not([onclick*=“opskriftbog”]) { display: none; }
+  .tabs {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    z-index: 101;
+    box-shadow: 0 -2px 10px rgba(0,0,0,.04);
+  }
+  .tab {
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 2px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    min-height: 52px;
+  }
+  .tab .ti { font-size: 20px; }
+  .tab.active { background: none; color: var(--c-book); }
+  .tab[onclick*="madplan"].active { background: none; color: var(--c-plan); }
+  .tab[onclick*="indkoeb"].active { background: none; color: var(--c-shop); }
+  .tab[onclick*="bank"].active { background: none; color: var(--c-archive); }
+  .tab[onclick*="opskrift"]:not([onclick*="opskriftbog"]) { display: none; }
 
-.content { padding: 20px 14px 90px; }
+  .content { padding: 20px 14px 90px; }
 
-.sec-top { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
-.sec-top h2 { font-size: 22px; }
-.sec-top > div { gap: 6px; }
+  .sec-top { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+  .sec-top h2 { font-size: 22px; }
+  .sec-top > div { gap: 6px; }
 
-.stats-grid { gap: 8px; margin-bottom: 18px; }
-.stat-card { padding: 12px 14px; flex-direction: column; align-items: flex-start; gap: 6px; }
-.stat-card .stat-icon { align-self: flex-end; margin-top: -6px; font-size: 18px; }
-.stat-label { font-size: 10px; }
-.stat-value { font-size: 20px; }
+  .stats-grid { gap: 8px; margin-bottom: 18px; }
+  .stat-card { padding: 12px 14px; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .stat-card .stat-icon { align-self: flex-end; margin-top: -6px; font-size: 18px; }
+  .stat-label { font-size: 10px; }
+  .stat-value { font-size: 20px; }
 
-.meal-card { padding: 14px 16px; }
-.meal-name { font-size: 16px; }
-.hero-name { font-size: 22px; }
-.recipe-hero { padding: 22px 22px; }
+  .meal-card { padding: 14px 16px; }
+  .meal-name { font-size: 16px; }
+  .hero-name { font-size: 22px; }
+  .recipe-hero { padding: 22px 22px; }
 
-.book-grid { grid-template-columns: 1fr; gap: 12px; }
-.book-card { flex-direction: row; }
-.book-image, .book-image-placeholder {
-aspect-ratio: 1;
-width: 110px;
-flex-shrink: 0;
-font-size: 28px;
-}
-.book-card::before { top: 0; left: 0; bottom: 0; right: auto; width: 3px; height: auto; }
-.book-body { padding: 12px 14px; min-width: 0; }
-.book-name { font-size: 14px; }
-.book-cuisine-tag { top: 6px; left: 6px; font-size: 10px; padding: 3px 8px; }
+  .book-grid { grid-template-columns: 1fr; gap: 12px; }
+  .book-card { flex-direction: row; }
+  .book-image, .book-image-placeholder {
+    aspect-ratio: 1;
+    width: 110px;
+    flex-shrink: 0;
+    font-size: 28px;
+  }
+  .book-card::before { top: 0; left: 0; bottom: 0; right: auto; width: 3px; height: auto; }
+  .book-body { padding: 12px 14px; min-width: 0; }
+  .book-name { font-size: 14px; }
+  .book-cuisine-tag { top: 6px; left: 6px; font-size: 10px; padding: 3px 8px; }
 
-.book-search-row { gap: 6px; }
-.book-filters { gap: 6px; }
-.chip { padding: 8px 14px; font-size: 12px; }
+  .book-search-row { gap: 6px; }
+  .book-filters { gap: 6px; }
+  .chip { padding: 8px 14px; font-size: 12px; }
 
-.modal { padding: 22px 20px; border-radius: var(–radius); }
-.modal-title { font-size: 18px; }
-.form-row-2 { flex-direction: column; gap: 12px; }
+  .modal { padding: 22px 20px; border-radius: var(--radius); }
+  .modal-title { font-size: 18px; }
+  .form-row-2 { flex-direction: column; gap: 12px; }
 }
 
 @media (max-width: 500px) {
-.stats-grid { grid-template-columns: 1fr; }
-.stat-card { flex-direction: row; align-items: center; }
-.stat-card .stat-icon { align-self: auto; margin: 0; font-size: 24px; }
-.stat-value { font-size: 24px; }
-.sec-top h2 { font-size: 20px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card { flex-direction: row; align-items: center; }
+  .stat-card .stat-icon { align-self: auto; margin: 0; font-size: 24px; }
+  .stat-value { font-size: 24px; }
+  .sec-top h2 { font-size: 20px; }
 }
 
 /* ── PRINT ──────────────────────────────── */
 @media print {
-.header, .tabs, .card-actions, .add-panel, #indkoeb, #opskrift, #opskriftbog, #bank, .toast { display: none !important; }
-#madplan { display: block !important; }
-body { background: white; }
-.meal-card { border: 1px solid #ddd; break-inside: avoid; margin-bottom: 8px; }
-.content { padding: 10px; }
+  .header, .tabs, .card-actions, .add-panel, #indkoeb, #opskrift, #opskriftbog, #bank, .toast { display: none !important; }
+  #madplan { display: block !important; }
+  body { background: white; }
+  .meal-card { border: 1px solid #ddd; break-inside: avoid; margin-bottom: 8px; }
+  .content { padding: 10px; }
 }
 </style>
-
 </head>
 <body>
 
@@ -1385,7 +1383,6 @@ body { background: white; }
   </div>
 
   <!-- INDKØB -->
-
   <div class="section" id="indkoeb">
     <div class="sec-top">
       <div style="display:flex;align-items:center;gap:14px">
@@ -1402,44 +1399,39 @@ body { background: white; }
       </div>
     </div>
 
-```
-<!-- Quick-add chips -->
-<details id="quickAddPanel" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:0;margin-bottom:14px">
-  <summary style="cursor:pointer;padding:11px 14px;font-size:.78rem;font-weight:600;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between">
-    <span>⚡ Hurtig-tilføj ofte købte varer</span>
-    <span style="font-size:.7rem;color:var(--hint)">Klik for at åbne ▾</span>
-  </summary>
-  <div style="padding:0 14px 14px" id="quickAddChips"></div>
-</details>
+    <!-- Quick-add chips -->
+    <details id="quickAddPanel" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:0;margin-bottom:14px">
+      <summary style="cursor:pointer;padding:11px 14px;font-size:.78rem;font-weight:600;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between">
+        <span>⚡ Hurtig-tilføj ofte købte varer</span>
+        <span style="font-size:.7rem;color:var(--hint)">Klik for at åbne ▾</span>
+      </summary>
+      <div style="padding:0 14px 14px" id="quickAddChips"></div>
+    </details>
 
-<div class="add-panel" style="margin-bottom:14px;border-style:solid;border-color:var(--border)">
-  <div class="add-title">➕ Tilføj vare manuelt</div>
-  <div class="add-row">
-    <input class="add-input" id="addName" placeholder="Varenavn…" onkeydown="if(event.key==='Enter')addItem()">
-    <input class="add-input" id="addAmt" placeholder="Mængde" style="max-width:90px" onkeydown="if(event.key==='Enter')addItem()">
-    <select class="add-select" id="addCat">
-      <option value="kød">🥩 Kød</option><option value="grøntsager">🥦 Grønt</option>
-      <option value="mejeri">🧀 Mejeri</option><option value="kolonial" selected>🫙 Kolonial</option>
-      <option value="brød">🍞 Brød</option><option value="krydderier">🧂 Krydderier</option>
-      <option value="andet">🛒 Andet</option>
-    </select>
-    <button class="btn-add" onclick="addItem()">Tilføj</button>
-  </div>
-</div>
-<div class="shop-stat"><span id="statLabel">0 / 0 afkrydset</span><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
-<div id="shopList"></div>
-```
-
+    <div class="add-panel" style="margin-bottom:14px;border-style:solid;border-color:var(--border)">
+      <div class="add-title">➕ Tilføj vare manuelt</div>
+      <div class="add-row">
+        <input class="add-input" id="addName" placeholder="Varenavn…" onkeydown="if(event.key==='Enter')addItem()">
+        <input class="add-input" id="addAmt" placeholder="Mængde" style="max-width:90px" onkeydown="if(event.key==='Enter')addItem()">
+        <select class="add-select" id="addCat">
+          <option value="kød">🥩 Kød</option><option value="grøntsager">🥦 Grønt</option>
+          <option value="mejeri">🧀 Mejeri</option><option value="kolonial" selected>🫙 Kolonial</option>
+          <option value="brød">🍞 Brød</option><option value="krydderier">🧂 Krydderier</option>
+          <option value="andet">🛒 Andet</option>
+        </select>
+        <button class="btn-add" onclick="addItem()">Tilføj</button>
+      </div>
+    </div>
+    <div class="shop-stat"><span id="statLabel">0 / 0 afkrydset</span><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
+    <div id="shopList"></div>
   </div>
 
   <!-- OPSKRIFT -->
-
   <div class="section" id="opskrift">
     <div id="recipeContent"><div class="empty-state"><div class="eicon">📖</div><p>Vælg en ret fra <strong>Madplanen</strong> for at se opskriften</p></div></div>
   </div>
 
   <!-- KOGEBOG -->
-
   <div class="section" id="opskriftbog">
     <div class="sec-top">
       <div style="display:flex;align-items:center;gap:14px">
@@ -1461,7 +1453,6 @@ body { background: white; }
   </div>
 
   <!-- BANK -->
-
   <div class="section" id="bank">
     <div class="sec-top">
       <div style="display:flex;align-items:center;gap:14px">
@@ -1482,7 +1473,6 @@ body { background: white; }
 </div>
 
 <!-- ADD/EDIT RECIPE MODAL -->
-
 <div class="overlay" id="addRecipeOverlay">
   <div class="modal">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -1493,145 +1483,141 @@ body { background: white; }
       <button onclick="closeOverlay('addRecipeOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0;margin-left:8px" title="Luk">✕</button>
     </div>
 
-```
-<div class="link-tabs">
-  <button class="link-tab active" id="arTabImage" onclick="switchArTab('image')">📷 Billede</button>
-  <button class="link-tab" id="arTabBridge" onclick="switchArTab('bridge')">🔗 Claude.ai</button>
-  <button class="link-tab" id="arTabManual" onclick="switchArTab('manual')">✏️ Manuel</button>
-</div>
+    <div class="link-tabs">
+      <button class="link-tab active" id="arTabImage" onclick="switchArTab('image')">📷 Billede</button>
+      <button class="link-tab" id="arTabBridge" onclick="switchArTab('bridge')">🔗 Claude.ai</button>
+      <button class="link-tab" id="arTabManual" onclick="switchArTab('manual')">✏️ Manuel</button>
+    </div>
 
-<div class="link-panel active" id="arPanelImage">
-  <div id="imgProxyWarning"></div>
-  <p style="font-size:13px;color:var(--text-mute);margin-bottom:12px;line-height:1.5">Klik på et felt → <kbd style="background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11px">Ctrl+V</kbd> for at indsætte screenshot. Virker bedst fra <strong>computer</strong>.</p>
-  <div style="background:var(--c-shop-soft);border:1px solid var(--c-shop-border);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--c-shop);display:flex;align-items:center;gap:8px">
-    🥕 <strong>Grønne felter</strong> = ingredienser
-    <span style="margin-left:auto">📋 <strong style="color:var(--c-book)">Blå felter</strong> = fremgangsmåde</span>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-    <div class="img-slot-ing">
-      <div class="slot-label">🥕 Ingredienser 1</div>
-      <div class="img-zone" id="arImgZone1" ondragover="arDragOver(event,1)" ondragleave="arDragLeave(event,1)" ondrop="arDrop(event,1)" onclick="focusImgSlot(1)">
-        <input type="file" id="arImgFile1" accept="image/jpeg,image/png" onchange="arFileInput(event,1)" style="display:none">
-        <div id="arImgContent1"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
-        <img class="img-prev" id="arImgPreview1" style="display:none;max-height:110px">
-        <button class="img-clear-btn" id="arImgClearBtn1" style="display:none" onclick="arClearImg(event,1)">✕</button>
+    <div class="link-panel active" id="arPanelImage">
+      <div id="imgProxyWarning"></div>
+      <p style="font-size:13px;color:var(--text-mute);margin-bottom:12px;line-height:1.5">Klik på et felt → <kbd style="background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11px">Ctrl+V</kbd> for at indsætte screenshot. Virker bedst fra <strong>computer</strong>.</p>
+      <div style="background:var(--c-shop-soft);border:1px solid var(--c-shop-border);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--c-shop);display:flex;align-items:center;gap:8px">
+        🥕 <strong>Grønne felter</strong> = ingredienser
+        <span style="margin-left:auto">📋 <strong style="color:var(--c-book)">Blå felter</strong> = fremgangsmåde</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="img-slot-ing">
+          <div class="slot-label">🥕 Ingredienser 1</div>
+          <div class="img-zone" id="arImgZone1" ondragover="arDragOver(event,1)" ondragleave="arDragLeave(event,1)" ondrop="arDrop(event,1)" onclick="focusImgSlot(1)">
+            <input type="file" id="arImgFile1" accept="image/jpeg,image/png" onchange="arFileInput(event,1)" style="display:none">
+            <div id="arImgContent1"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
+            <img class="img-prev" id="arImgPreview1" style="display:none;max-height:110px">
+            <button class="img-clear-btn" id="arImgClearBtn1" style="display:none" onclick="arClearImg(event,1)">✕</button>
+          </div>
+        </div>
+        <div class="img-slot-ing">
+          <div class="slot-label">🥕 Ingredienser 2</div>
+          <div class="img-zone" id="arImgZone2" ondragover="arDragOver(event,2)" ondragleave="arDragLeave(event,2)" ondrop="arDrop(event,2)" onclick="focusImgSlot(2)">
+            <input type="file" id="arImgFile2" accept="image/jpeg,image/png" onchange="arFileInput(event,2)" style="display:none">
+            <div id="arImgContent2"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
+            <img class="img-prev" id="arImgPreview2" style="display:none;max-height:110px">
+            <button class="img-clear-btn" id="arImgClearBtn2" style="display:none" onclick="arClearImg(event,2)">✕</button>
+          </div>
+        </div>
+        <div class="img-slot-step">
+          <div class="slot-label">📋 Fremgangsmåde 1</div>
+          <div class="img-zone" id="arImgZone3" ondragover="arDragOver(event,3)" ondragleave="arDragLeave(event,3)" ondrop="arDrop(event,3)" onclick="focusImgSlot(3)">
+            <input type="file" id="arImgFile3" accept="image/jpeg,image/png" onchange="arFileInput(event,3)" style="display:none">
+            <div id="arImgContent3"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
+            <img class="img-prev" id="arImgPreview3" style="display:none;max-height:110px">
+            <button class="img-clear-btn" id="arImgClearBtn3" style="display:none" onclick="arClearImg(event,3)">✕</button>
+          </div>
+        </div>
+        <div class="img-slot-step">
+          <div class="slot-label">📋 Fremgangsmåde 2</div>
+          <div class="img-zone" id="arImgZone4" ondragover="arDragOver(event,4)" ondragleave="arDragLeave(event,4)" ondrop="arDrop(event,4)" onclick="focusImgSlot(4)">
+            <input type="file" id="arImgFile4" accept="image/jpeg,image/png" onchange="arFileInput(event,4)" style="display:none">
+            <div id="arImgContent4"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
+            <img class="img-prev" id="arImgPreview4" style="display:none;max-height:110px">
+            <button class="img-clear-btn" id="arImgClearBtn4" style="display:none" onclick="arClearImg(event,4)">✕</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn btn-secondary" onclick="openFileForSlot()" style="flex:none">📁 Vælg fil</button>
+        <button class="btn btn-primary" onclick="fetchFromImage()" id="arImageBtn" style="flex:1;justify-content:center">✨ Læs opskrift</button>
       </div>
     </div>
-    <div class="img-slot-ing">
-      <div class="slot-label">🥕 Ingredienser 2</div>
-      <div class="img-zone" id="arImgZone2" ondragover="arDragOver(event,2)" ondragleave="arDragLeave(event,2)" ondrop="arDrop(event,2)" onclick="focusImgSlot(2)">
-        <input type="file" id="arImgFile2" accept="image/jpeg,image/png" onchange="arFileInput(event,2)" style="display:none">
-        <div id="arImgContent2"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
-        <img class="img-prev" id="arImgPreview2" style="display:none;max-height:110px">
-        <button class="img-clear-btn" id="arImgClearBtn2" style="display:none" onclick="arClearImg(event,2)">✕</button>
+
+    <div class="link-panel" id="arPanelBridge">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Gratis alternativ: brug din Claude.ai Pro til at læse opskriften. Kopier prompten, indsæt i Claude.ai sammen med billede/tekst, copy-paste JSON'en tilbage her.</p>
+
+      <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:.7rem;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:.5px">📋 Trin 1: Kopier denne prompt</span>
+          <button class="btn-sm btn-sm-green" onclick="copyBridgePrompt()" style="padding:4px 10px">📋 Kopier</button>
+        </div>
+        <div id="bridgePromptText" style="font-size:.74rem;color:var(--text);background:white;padding:8px 10px;border-radius:6px;font-family:monospace;line-height:1.5;max-height:100px;overflow-y:auto;white-space:pre-wrap"></div>
+      </div>
+
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5"><strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.</p>
+
+      <label class="form-label">Trin 3: Indsæt svaret fra Claude (parses automatisk)</label>
+      <textarea class="paste-area" id="arBridgeJson" placeholder='{"name":"...","cuisine":"...","ingredients":[...],"steps":[...]}' style="min-height:140px;font-family:monospace;font-size:.78rem" oninput="autoParseBridge()"></textarea>
+      <div id="bridgeParsePreview" style="font-size:.78rem;margin-top:4px;min-height:20px"></div>
+    </div>
+
+    <div class="link-panel" id="arPanelManual">
+      <div class="form-row"><label class="form-label">Rettens navn *</label><input class="form-input" id="arName" placeholder="fx Spaghetti bolognese"></div>
+      <div class="form-row-2">
+        <div><label class="form-label">Køkken *</label>
+          <select class="form-select" id="arCuisine">
+            <option value="dansk">🇩🇰 Dansk</option>
+            <option value="italiensk">🇮🇹 Italiensk</option>
+            <option value="mexicansk">🌮 Mexicansk</option>
+            <option value="asiatisk">🥢 Asiatisk</option>
+            <option value="indisk">🫙 Indisk</option>
+            <option value="græsk">🫒 Græsk</option>
+            <option value="mellemøstlig">🌿 Mellemøstlig</option>
+            <option value="amerikansk">🍔 Amerikansk</option>
+            <option value="fransk">🥐 Fransk</option>
+            <option value="spansk">🥘 Spansk</option>
+            <option value="japansk">🍱 Japansk</option>
+            <option value="thai">🌶️ Thai</option>
+            <option value="marokkansk">🧆 Marokkansk</option>
+            <option value="andet">🌍 Andet</option>
+          </select>
+        </div>
+        <div><label class="form-label">Tid</label><input class="form-input" id="arCookTime" placeholder="fx 30 min"></div>
+      </div>
+      <div class="form-row-2">
+        <div><label class="form-label">Kilde</label><input class="form-input" id="arSourceName" placeholder="fx Valdemarsro"></div>
+        <div><label class="form-label">URL</label><input class="form-input" id="arSourceUrl" type="url" placeholder="https://…"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">📸 Madfoto (valgfrit)</label>
+        <div class="img-zone" id="arPhotoZone" ondragover="arPhotoDragOver(event)" ondragleave="arPhotoDragLeave(event)" ondrop="arPhotoDrop(event)" style="padding:14px;margin-bottom:0">
+          <input type="file" id="arPhotoFile" accept="image/*" onchange="arPhotoFileInput(event)">
+          <div id="arPhotoContent"><div class="drop-icon" style="font-size:1.2rem;margin-bottom:3px">📸</div><div class="drop-label" style="font-size:.75rem">Klik, træk eller Ctrl+V</div></div>
+          <img class="img-prev" id="arPhotoPreview" style="display:none;max-height:140px;border-radius:8px">
+          <button class="img-clear-btn" id="arPhotoClearBtn" style="display:none" onclick="arPhotoClear(event)">✕</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">🏷️ Ingredienstags <span style="color:var(--text-mute);font-weight:400">(kommasepareret — bruges til filtrering i kogebogen)</span></label>
+        <input class="form-input" id="arMainIngs" placeholder="fx kylling, pasta, grøntsager">
+        <div style="font-size:11px;color:var(--text-mute);margin-top:4px">Eksisterende tags: <span id="arExistingTags"></span></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Ingredienser (ét per linje • brug <code>=== Sektionsnavn ===</code> til delretter)</label>
+        <textarea class="paste-area" id="arIngredients" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;400 g kyllingefilet&#10;2 spsk soja&#10;=== Syltede gulerødder ===&#10;4 gulerødder&#10;1 dl riseddike&#10;..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Fremgangsmåde (ét trin per linje • samme sektioner som ingredienser)</label>
+        <textarea class="paste-area" id="arSteps" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;Rør marinaden sammen og vend kyllingen i den.&#10;Brun den på pande.&#10;=== Syltede gulerødder ===&#10;Kog vand, sukker og eddike op.&#10;..."></textarea>
       </div>
     </div>
-    <div class="img-slot-step">
-      <div class="slot-label">📋 Fremgangsmåde 1</div>
-      <div class="img-zone" id="arImgZone3" ondragover="arDragOver(event,3)" ondragleave="arDragLeave(event,3)" ondrop="arDrop(event,3)" onclick="focusImgSlot(3)">
-        <input type="file" id="arImgFile3" accept="image/jpeg,image/png" onchange="arFileInput(event,3)" style="display:none">
-        <div id="arImgContent3"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
-        <img class="img-prev" id="arImgPreview3" style="display:none;max-height:110px">
-        <button class="img-clear-btn" id="arImgClearBtn3" style="display:none" onclick="arClearImg(event,3)">✕</button>
-      </div>
+
+    <div class="status-bar" id="arStatus"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('addRecipeOverlay')">Annuller</button>
+      <button class="btn btn-primary" onclick="saveRecipe()" id="arSaveBtn" style="display:none">Gem ✓</button>
     </div>
-    <div class="img-slot-step">
-      <div class="slot-label">📋 Fremgangsmåde 2</div>
-      <div class="img-zone" id="arImgZone4" ondragover="arDragOver(event,4)" ondragleave="arDragLeave(event,4)" ondrop="arDrop(event,4)" onclick="focusImgSlot(4)">
-        <input type="file" id="arImgFile4" accept="image/jpeg,image/png" onchange="arFileInput(event,4)" style="display:none">
-        <div id="arImgContent4"><div class="drop-icon" style="font-size:22px;margin-bottom:2px">📷</div><div class="drop-label">Klik → Ctrl+V</div></div>
-        <img class="img-prev" id="arImgPreview4" style="display:none;max-height:110px">
-        <button class="img-clear-btn" id="arImgClearBtn4" style="display:none" onclick="arClearImg(event,4)">✕</button>
-      </div>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;margin-bottom:8px">
-    <button class="btn btn-secondary" onclick="openFileForSlot()" style="flex:none">📁 Vælg fil</button>
-    <button class="btn btn-primary" onclick="fetchFromImage()" id="arImageBtn" style="flex:1;justify-content:center">✨ Læs opskrift</button>
-  </div>
-</div>
-
-<div class="link-panel" id="arPanelBridge">
-  <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Gratis alternativ: brug din Claude.ai Pro til at læse opskriften. Kopier prompten, indsæt i Claude.ai sammen med billede/tekst, copy-paste JSON'en tilbage her.</p>
-
-  <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:.7rem;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:.5px">📋 Trin 1: Kopier denne prompt</span>
-      <button class="btn-sm btn-sm-green" onclick="copyBridgePrompt()" style="padding:4px 10px">📋 Kopier</button>
-    </div>
-    <div id="bridgePromptText" style="font-size:.74rem;color:var(--text);background:white;padding:8px 10px;border-radius:6px;font-family:monospace;line-height:1.5;max-height:100px;overflow-y:auto;white-space:pre-wrap"></div>
-  </div>
-
-  <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5"><strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.</p>
-
-  <label class="form-label">Trin 3: Indsæt svaret fra Claude (parses automatisk)</label>
-  <textarea class="paste-area" id="arBridgeJson" placeholder='{"name":"...","cuisine":"...","ingredients":[...],"steps":[...]}' style="min-height:140px;font-family:monospace;font-size:.78rem" oninput="autoParseBridge()"></textarea>
-  <div id="bridgeParsePreview" style="font-size:.78rem;margin-top:4px;min-height:20px"></div>
-</div>
-
-<div class="link-panel" id="arPanelManual">
-  <div class="form-row"><label class="form-label">Rettens navn *</label><input class="form-input" id="arName" placeholder="fx Spaghetti bolognese"></div>
-  <div class="form-row-2">
-    <div><label class="form-label">Køkken *</label>
-      <select class="form-select" id="arCuisine">
-        <option value="dansk">🇩🇰 Dansk</option>
-        <option value="italiensk">🇮🇹 Italiensk</option>
-        <option value="mexicansk">🌮 Mexicansk</option>
-        <option value="asiatisk">🥢 Asiatisk</option>
-        <option value="indisk">🫙 Indisk</option>
-        <option value="græsk">🫒 Græsk</option>
-        <option value="mellemøstlig">🌿 Mellemøstlig</option>
-        <option value="amerikansk">🍔 Amerikansk</option>
-        <option value="fransk">🥐 Fransk</option>
-        <option value="spansk">🥘 Spansk</option>
-        <option value="japansk">🍱 Japansk</option>
-        <option value="thai">🌶️ Thai</option>
-        <option value="marokkansk">🧆 Marokkansk</option>
-        <option value="andet">🌍 Andet</option>
-      </select>
-    </div>
-    <div><label class="form-label">Tid</label><input class="form-input" id="arCookTime" placeholder="fx 30 min"></div>
-  </div>
-  <div class="form-row-2">
-    <div><label class="form-label">Kilde</label><input class="form-input" id="arSourceName" placeholder="fx Valdemarsro"></div>
-    <div><label class="form-label">URL</label><input class="form-input" id="arSourceUrl" type="url" placeholder="https://…"></div>
-  </div>
-  <div class="form-row">
-    <label class="form-label">📸 Madfoto (valgfrit)</label>
-    <div class="img-zone" id="arPhotoZone" ondragover="arPhotoDragOver(event)" ondragleave="arPhotoDragLeave(event)" ondrop="arPhotoDrop(event)" style="padding:14px;margin-bottom:0">
-      <input type="file" id="arPhotoFile" accept="image/*" onchange="arPhotoFileInput(event)">
-      <div id="arPhotoContent"><div class="drop-icon" style="font-size:1.2rem;margin-bottom:3px">📸</div><div class="drop-label" style="font-size:.75rem">Klik, træk eller Ctrl+V</div></div>
-      <img class="img-prev" id="arPhotoPreview" style="display:none;max-height:140px;border-radius:8px">
-      <button class="img-clear-btn" id="arPhotoClearBtn" style="display:none" onclick="arPhotoClear(event)">✕</button>
-    </div>
-  </div>
-  <div class="form-row">
-    <label class="form-label">🏷️ Ingredienstags <span style="color:var(--text-mute);font-weight:400">(kommasepareret — bruges til filtrering i kogebogen)</span></label>
-    <input class="form-input" id="arMainIngs" placeholder="fx kylling, pasta, grøntsager">
-    <div style="font-size:11px;color:var(--text-mute);margin-top:4px">Eksisterende tags: <span id="arExistingTags"></span></div>
-  </div>
-  <div class="form-row">
-    <label class="form-label">Ingredienser (ét per linje • brug <code>=== Sektionsnavn ===</code> til delretter)</label>
-    <textarea class="paste-area" id="arIngredients" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;400 g kyllingefilet&#10;2 spsk soja&#10;=== Syltede gulerødder ===&#10;4 gulerødder&#10;1 dl riseddike&#10;..."></textarea>
-  </div>
-  <div class="form-row">
-    <label class="form-label">Fremgangsmåde (ét trin per linje • samme sektioner som ingredienser)</label>
-    <textarea class="paste-area" id="arSteps" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;Rør marinaden sammen og vend kyllingen i den.&#10;Brun den på pande.&#10;=== Syltede gulerødder ===&#10;Kog vand, sukker og eddike op.&#10;..."></textarea>
-  </div>
-</div>
-
-<div class="status-bar" id="arStatus"></div>
-<div class="modal-btns">
-  <button class="btn btn-cancel" onclick="closeOverlay('addRecipeOverlay')">Annuller</button>
-  <button class="btn btn-primary" onclick="saveRecipe()" id="arSaveBtn" style="display:none">Gem ✓</button>
-</div>
-```
-
   </div>
 </div>
 
 <!-- PICKER MODAL -->
-
 <div class="overlay" id="pickerOverlay">
   <div class="modal">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
@@ -1650,7 +1636,6 @@ body { background: white; }
 </div>
 
 <!-- NEW WEEK MODAL -->
-
 <div class="overlay center" id="newWeekOverlay">
   <div class="modal floating">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -1669,7 +1654,6 @@ body { background: white; }
 </div>
 
 <!-- SETTINGS MODAL -->
-
 <div class="overlay center" id="settingsOverlay">
   <div class="modal floating" style="max-width:480px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -1677,36 +1661,32 @@ body { background: white; }
       <button onclick="closeOverlay('settingsOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer">✕</button>
     </div>
 
-```
-<!-- SUPABASE STATUS -->
-<div style="background:var(--rema-bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
-  <div class="form-label" style="margin-bottom:6px;color:var(--rema)">☁️ Synkronisering</div>
-  <div id="supabaseStatusInfo" style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:10px">Indlæser…</div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <button class="btn btn-sm btn-sm-muted" onclick="openSetupModal()" style="flex:1;justify-content:center">⚙️ Opsætning</button>
-    <button class="btn btn-sm btn-sm-muted" onclick="doLogout()" style="flex:1;justify-content:center">🚪 Log ud</button>
-  </div>
-</div>
+    <!-- SUPABASE STATUS -->
+    <div style="background:var(--rema-bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+      <div class="form-label" style="margin-bottom:6px;color:var(--rema)">☁️ Synkronisering</div>
+      <div id="supabaseStatusInfo" style="font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:10px">Indlæser…</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-sm-muted" onclick="openSetupModal()" style="flex:1;justify-content:center">⚙️ Opsætning</button>
+        <button class="btn btn-sm btn-sm-muted" onclick="doLogout()" style="flex:1;justify-content:center">🚪 Log ud</button>
+      </div>
+    </div>
 
-<details style="margin-bottom:10px">
-  <summary style="font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer">📱 Tilføj til iOS-hjemmeskærm</summary>
-  <ol style="font-size:.77rem;color:var(--muted);line-height:1.9;padding:10px 0 0 18px">
-    <li>Åbn appen i <strong>Safari</strong> (ikke Chrome)</li>
-    <li>Tryk på <strong>Del ↑</strong> nederst</li>
-    <li>Vælg <strong>"Føj til hjemmeskærm"</strong></li>
-  </ol>
-</details>
+    <details style="margin-bottom:10px">
+      <summary style="font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer">📱 Tilføj til iOS-hjemmeskærm</summary>
+      <ol style="font-size:.77rem;color:var(--muted);line-height:1.9;padding:10px 0 0 18px">
+        <li>Åbn appen i <strong>Safari</strong> (ikke Chrome)</li>
+        <li>Tryk på <strong>Del ↑</strong> nederst</li>
+        <li>Vælg <strong>"Føj til hjemmeskærm"</strong></li>
+      </ol>
+    </details>
 
-<div class="modal-btns">
-  <button class="btn btn-cancel" onclick="closeOverlay('settingsOverlay')">Luk</button>
-</div>
-```
-
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('settingsOverlay')">Luk</button>
+    </div>
   </div>
 </div>
 
 <!-- LOGIN OVERLAY (full screen blocking) -->
-
 <div class="overlay center" id="loginOverlay" style="background:var(--cream);padding:20px">
   <div class="modal floating" style="max-width:400px">
     <div style="text-align:center;margin-bottom:18px">
@@ -1715,35 +1695,31 @@ body { background: white; }
       <div class="modal-sub">Log ind for at synkronisere dine data</div>
     </div>
 
-```
-<div id="loginSetupNeeded" style="display:none;background:var(--offer-bg);border:1px solid #e8c4a0;border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:.78rem;color:var(--offer);line-height:1.5">
-  ⚠️ <strong>Opsætning mangler.</strong> Tryk på ⚙️-knappen nedenfor og indtast Supabase URL + nøgle først.
-</div>
+    <div id="loginSetupNeeded" style="display:none;background:var(--offer-bg);border:1px solid #e8c4a0;border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:.78rem;color:var(--offer);line-height:1.5">
+      ⚠️ <strong>Opsætning mangler.</strong> Tryk på ⚙️-knappen nedenfor og indtast Supabase URL + nøgle først.
+    </div>
 
-<div class="form-row">
-  <label class="form-label">Email</label>
-  <input class="form-input" id="loginEmail" type="email" placeholder="din@email.dk" autocomplete="email">
-</div>
-<div class="form-row">
-  <label class="form-label">Password</label>
-  <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-</div>
+    <div class="form-row">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="din@email.dk" autocomplete="email">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
 
-<div class="status-bar" id="loginStatus"></div>
+    <div class="status-bar" id="loginStatus"></div>
 
-<button class="btn btn-primary" onclick="doLogin()" id="loginBtn" style="width:100%;justify-content:center;margin-bottom:8px">Log ind</button>
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn" style="width:100%;justify-content:center;margin-bottom:8px">Log ind</button>
 
-<div style="display:flex;gap:6px;justify-content:center;margin-top:6px">
-  <button class="week-pill" onclick="openSetupModal()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">⚙️ Opsætning</button>
-  <button class="week-pill" onclick="useOfflineMode()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">📴 Offline</button>
-</div>
-```
-
+    <div style="display:flex;gap:6px;justify-content:center;margin-top:6px">
+      <button class="week-pill" onclick="openSetupModal()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">⚙️ Opsætning</button>
+      <button class="week-pill" onclick="useOfflineMode()" style="background:var(--warm);color:var(--muted);border-color:var(--border)">📴 Offline</button>
+    </div>
   </div>
 </div>
 
 <!-- SETUP MODAL (Supabase credentials) -->
-
 <div class="overlay center" id="setupOverlay">
   <div class="modal floating" style="max-width:480px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -1768,7 +1744,6 @@ body { background: white; }
 </div>
 
 <!-- GENERIC CONFIRM MODAL -->
-
 <div class="overlay center" id="confirmOverlay">
   <div class="modal floating" style="max-width:380px">
     <div class="modal-title" id="confirmTitle">Er du sikker?</div>
@@ -1781,7 +1756,6 @@ body { background: white; }
 </div>
 
 <!-- NUTRITION REFINEMENT MODAL -->
-
 <div class="overlay" id="nutritionOverlay">
   <div class="modal" style="max-width:760px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -1792,27 +1766,23 @@ body { background: white; }
       <button onclick="closeOverlay('nutritionOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px;line-height:1;flex-shrink:0;margin-left:8px" title="Luk">✕</button>
     </div>
 
-```
-<!-- Live total at top -->
-<div id="nutLiveTotal" style="background:var(--green);color:white;padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"></div>
+    <!-- Live total at top -->
+    <div id="nutLiveTotal" style="background:var(--green);color:white;padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"></div>
 
-<div style="background:var(--rema-bg);border:1px solid #c5d8ef;border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:14px;font-size:.74rem;color:var(--rema);line-height:1.5">
-  💡 <strong>Sådan fungerer det:</strong> Hver ingrediens auto-matches mod Open Food Facts. Tjek matchet, juster størrelse hvis nødvendigt — totalen opdateres live.
-</div>
+    <div style="background:var(--rema-bg);border:1px solid #c5d8ef;border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:14px;font-size:.74rem;color:var(--rema);line-height:1.5">
+      💡 <strong>Sådan fungerer det:</strong> Hver ingrediens auto-matches mod Open Food Facts. Tjek matchet, juster størrelse hvis nødvendigt — totalen opdateres live.
+    </div>
 
-<div id="nutIngList"></div>
+    <div id="nutIngList"></div>
 
-<div class="modal-btns">
-  <button class="btn btn-cancel" onclick="closeOverlay('nutritionOverlay')">Annuller</button>
-  <button class="btn btn-primary" onclick="saveNutritionRefinement()">Gem ✓</button>
-</div>
-```
-
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('nutritionOverlay')">Annuller</button>
+      <button class="btn btn-primary" onclick="saveNutritionRefinement()">Gem ✓</button>
+    </div>
   </div>
 </div>
 
 <!-- INGREDIENT SEARCH MODAL (sub-modal of nutrition) -->
-
 <div class="overlay center" id="ingSearchOverlay">
   <div class="modal floating" style="max-width:520px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
@@ -1828,7 +1798,6 @@ body { background: white; }
 </div>
 
 <!-- ADD COMMON ITEM MODAL -->
-
 <div class="overlay center" id="addCommonOverlay">
   <div class="modal floating" style="max-width:420px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -1867,7 +1836,6 @@ body { background: white; }
 </div>
 
 <!-- ARCHIVE MODAL -->
-
 <div class="overlay center" id="archiveOverlay">
   <div class="modal floating" style="max-width:400px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
@@ -1894,6 +1862,7 @@ body { background: white; }
 const SUPABASE_URL = "https://gcenfqabgjxehbsmeqrr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZW5mcWFiZ2p4ZWhic21lcXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTA4OTEsImV4cCI6MjA5MTA2Njg5MX0.Hiem3PyOaekpiYowCbujfP89OH8F0R_kwY9eGdzwk4g";
 // ═══════════════════════════════════════════════════════════════════
+
 // ── CONSTANTS ────────────────────────────────────────────────────
 const DAYS = ["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"];
 const CATS = [
@@ -4251,106 +4220,104 @@ h2{font-size:1.1rem;color:#1e4d2b;margin:20px 0 10px;border-bottom:1px solid #dd
 .src{font-size:.8rem;color:#888;margin-top:10px;font-style:italic}
 @media print{.topbar{display:none!important}body{margin:0;padding:15px;max-width:none}@page{margin:15mm}}
 </style></head><body>
-
 <div class="topbar"><span style="font-weight:600">${title}</span><button onclick="window.print()">🖨️ Print</button></div>
 ${bodyHTML}
 </body></html>`;
 
-// Strategy: open in a new browser tab. Works in deployed app, GitHub Pages, PWA.
-// If popup is blocked (e.g. Claude.ai sandbox), falls through to download.
-try{
-const blob=new Blob([fullHTML],{type:‘text/html’});
-const url=URL.createObjectURL(blob);
-const w=window.open(url,’_blank’);
-if(w){
-toast(‘Åbnet i ny fane — tryk 🖨️ Print der’);
-setTimeout(()=>URL.revokeObjectURL(url),60000);
-return;
-}
-}catch(e){}
+  // Strategy: open in a new browser tab. Works in deployed app, GitHub Pages, PWA.
+  // If popup is blocked (e.g. Claude.ai sandbox), falls through to download.
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(w){
+      toast('Åbnet i ny fane — tryk 🖨️ Print der');
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return;
+    }
+  }catch(e){}
 
-// Fallback: download file. User opens it manually and prints.
-try{
-const blob=new Blob([fullHTML],{type:‘text/html’});
-const url=URL.createObjectURL(blob);
-const a=document.createElement(‘a’);
-a.href=url;a.download=(filename||‘print’)+’.html’;
-document.body.appendChild(a);a.click();
-setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
-toast(‘📥 Fil downloadet — åbn den og tryk Ctrl+P / Cmd+P’);
-}catch(e){toast(’Print ikke tilgængeligt: ’+e.message);}
+  // Fallback: download file. User opens it manually and prints.
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=(filename||'print')+'.html';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
+    toast('📥 Fil downloadet — åbn den og tryk Ctrl+P / Cmd+P');
+  }catch(e){toast('Print ikke tilgængeligt: '+e.message);}
 }
 
 function printShoppingList(){
-const overrides=S.amountOverrides||{};
-const items=(S.aggregated||getRawItems()).filter(it=>!S.dismissed.includes(it.key)).map(it=>{
-if(overrides[it.key]!=null)return{…it,amount:overrides[it.key]};
-return it;
-});
-S.manual.forEach(item=>items.push({name:item.name,amount:item.amount,category:item.category||‘andet’}));
-if(!items.length){toast(‘Indkøbslisten er tom’);return;}
+  const overrides=S.amountOverrides||{};
+  const items=(S.aggregated||getRawItems()).filter(it=>!S.dismissed.includes(it.key)).map(it=>{
+    if(overrides[it.key]!=null)return{...it,amount:overrides[it.key]};
+    return it;
+  });
+  S.manual.forEach(item=>items.push({name:item.name,amount:item.amount,category:item.category||'andet'}));
+  if(!items.length){toast('Indkøbslisten er tom');return;}
 
-// Group by category
-const byCat={};CATS.forEach(c=>{byCat[c.k]=[]});
-items.forEach(item=>{const cat=item.category||‘andet’;if(!byCat[cat])byCat[cat]=[];byCat[cat].push(item);});
+  // Group by category
+  const byCat={};CATS.forEach(c=>{byCat[c.k]=[]});
+  items.forEach(item=>{const cat=item.category||'andet';if(!byCat[cat])byCat[cat]=[];byCat[cat].push(item);});
 
-// Define column groupings: which categories go into which of the 3 columns
-// Column 1: Frugt og grønt
-// Column 2: Kød & fisk + Brød + Frysevarer
-// Column 3: Mejeri + Kolonial + Krydderier + Andet
-const col1=[
-{key:‘grøntsager’,label:‘Frugt og grønt’},
-{key:‘frugt’,label:null}, // merge into Frugt og grønt
-];
-const col2=[
-{key:‘kød’,label:‘Kød og fisk’},
-{key:‘brød’,label:‘Brød’},
-{key:‘frysevarer’,label:‘Frysevarer’},
-];
-const col3=[
-{key:‘mejeri’,label:‘Mejeri og æg’},
-{key:‘kolonial’,label:‘Kolonial’},
-{key:‘krydderier’,label:‘Krydderier’},
-{key:‘andet’,label:‘Andet’},
-];
+  // Define column groupings: which categories go into which of the 3 columns
+  // Column 1: Frugt og grønt
+  // Column 2: Kød & fisk + Brød + Frysevarer
+  // Column 3: Mejeri + Kolonial + Krydderier + Andet
+  const col1=[
+    {key:'grøntsager',label:'Frugt og grønt'},
+    {key:'frugt',label:null}, // merge into Frugt og grønt
+  ];
+  const col2=[
+    {key:'kød',label:'Kød og fisk'},
+    {key:'brød',label:'Brød'},
+    {key:'frysevarer',label:'Frysevarer'},
+  ];
+  const col3=[
+    {key:'mejeri',label:'Mejeri og æg'},
+    {key:'kolonial',label:'Kolonial'},
+    {key:'krydderier',label:'Krydderier'},
+    {key:'andet',label:'Andet'},
+  ];
 
-const renderCol=(cols)=>{
-let html=’’;
-let mergedItems=[];let mergedLabel=null;
-cols.forEach(({key,label})=>{
-const its=byCat[key]||[];
-if(!its.length)return;
-if(label){
-// Flush previous merged group if any
-if(mergedItems.length&&mergedLabel){
-html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+’ ‘:’’}${it.name}</div>`).join('')}</div>`;
-}
-mergedItems=[…its];
-mergedLabel=label;
-} else {
-// No label = merge into previous group
-mergedItems.push(…its);
-}
-});
-if(mergedItems.length&&mergedLabel){
-html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+’ ‘:’’}${it.name}</div>`).join('')}</div>`;
-}
-return html;
-};
+  const renderCol=(cols)=>{
+    let html='';
+    let mergedItems=[];let mergedLabel=null;
+    cols.forEach(({key,label})=>{
+      const its=byCat[key]||[];
+      if(!its.length)return;
+      if(label){
+        // Flush previous merged group if any
+        if(mergedItems.length&&mergedLabel){
+          html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+' ':''}${it.name}</div>`).join('')}</div>`;
+        }
+        mergedItems=[...its];
+        mergedLabel=label;
+      } else {
+        // No label = merge into previous group
+        mergedItems.push(...its);
+      }
+    });
+    if(mergedItems.length&&mergedLabel){
+      html+=`<div class="cat-section"><div class="cat-name">${mergedLabel}</div>${mergedItems.map(it=>`<div class="item">${it.amount?it.amount+' ':''}${it.name}</div>`).join('')}</div>`;
+    }
+    return html;
+  };
 
-const wk=getWeekNumber(new Date());
-const css=`
-
-- { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { margin: 15mm; size: A4; }
-  body {
-  font-family: Georgia, ‘Times New Roman’, serif;
+  const wk=getWeekNumber(new Date());
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 15mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
   color: #1a1a1a;
   background: #fafaf6;
   padding: 25px;
   min-height: 100vh;
-  }
-  .topbar {
+}
+.topbar {
   position: fixed;
   top: 12px;
   left: 50%;
@@ -4364,8 +4331,8 @@ const css=`
   align-items: center;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
-  }
-  .topbar button {
+}
+.topbar button {
   background: white;
   color: #1e4d2b;
   border: none;
@@ -4375,50 +4342,49 @@ const css=`
   cursor: pointer;
   font-family: inherit;
   font-size: .85rem;
-  }
-  .page {
+}
+.page {
   background: white;
   padding: 50px 55px;
   max-width: 900px;
   margin: 30px auto 0;
   box-shadow: 0 4px 24px rgba(0,0,0,.06);
-  }
-  h1 {
+}
+h1 {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 30px;
   letter-spacing: -.5px;
-  }
-  .cols {
+}
+.cols {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 30px;
-  }
-  .cat-section {
+}
+.cat-section {
   margin-bottom: 22px;
   break-inside: avoid;
   page-break-inside: avoid;
-  }
-  .cat-name {
+}
+.cat-name {
   font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 8px;
   color: #1a1a1a;
-  }
-  .item {
+}
+.item {
   font-size: .92rem;
   line-height: 1.7;
   color: #333;
-  }
-  @media print {
+}
+@media print {
   .topbar { display: none !important; }
   body { background: white; padding: 0; }
   .page { box-shadow: none; padding: 25px; max-width: none; margin: 0; }
-  }
-  `; const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Indkøbsliste uge ${wk}</title>
-
+}
+`;
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Indkøbsliste uge ${wk}</title>
 <style>${css}</style></head><body>
-
 <div class="topbar"><span style="font-weight:600;font-family:inherit">Indkøbsliste uge ${wk}</span><button onclick="window.print()">🖨️ Print</button></div>
 <div class="page">
   <h1>INDKØBSLISTE TIL MADPLAN ${wk}</h1>
@@ -4433,23 +4399,22 @@ const css=`
 }
 
 function printMealPlan(){
-const meals=(S.meals||[]).filter(m=>m?.name);
-if(!meals.length){toast(‘Ingen retter at printe’);return;}
-const wk=getWeekNumber(new Date());
-const css=`
-
-- { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { margin: 18mm; size: A4; }
-  body {
-  font-family: Georgia, ‘Times New Roman’, serif;
+  const meals=(S.meals||[]).filter(m=>m?.name);
+  if(!meals.length){toast('Ingen retter at printe');return;}
+  const wk=getWeekNumber(new Date());
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 18mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
   color: #1a1a1a;
   background: #fafaf6;
   padding: 30px;
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  }
-  .topbar {
+}
+.topbar {
   position: fixed;
   top: 12px;
   left: 50%;
@@ -4463,8 +4428,8 @@ const css=`
   align-items: center;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
-  }
-  .topbar button {
+}
+.topbar button {
   background: white;
   color: #1e4d2b;
   border: none;
@@ -4474,51 +4439,50 @@ const css=`
   cursor: pointer;
   font-family: inherit;
   font-size: .85rem;
-  }
-  .page {
+}
+.page {
   background: white;
   padding: 60px 70px;
   max-width: 540px;
   width: 100%;
   box-shadow: 0 4px 24px rgba(0,0,0,.06);
   text-align: center;
-  }
-  .title {
+}
+.title {
   font-size: 2.6rem;
   font-weight: 700;
   margin-bottom: 4px;
   color: #1a1a1a;
-  }
-  .week {
+}
+.week {
   font-size: 1.2rem;
   color: #666;
   margin-bottom: 36px;
   font-style: italic;
-  }
-  .day-block {
+}
+.day-block {
   margin-bottom: 22px;
   page-break-inside: avoid;
-  }
-  .day-name {
+}
+.day-name {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 4px;
   color: #1a1a1a;
-  }
-  .dish-name {
+}
+.dish-name {
   font-size: 1.05rem;
   color: #333;
   font-style: italic;
-  }
-  @media print {
+}
+@media print {
   .topbar { display: none !important; }
   body { background: white; padding: 0; }
   .page { box-shadow: none; padding: 30px; max-width: none; }
-  }
-  `; const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Madplan uge ${wk}</title>
-
+}
+`;
+  const html=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Madplan uge ${wk}</title>
 <style>${css}</style></head><body>
-
 <div class="topbar"><span style="font-weight:600;font-family:inherit">Madplan uge ${wk}</span><button onclick="window.print()">🖨️ Print</button></div>
 <div class="page">
   <div class="title">Madplan</div>
@@ -4533,25 +4497,46 @@ const css=`
 }
 
 function printRecipe(){
-const idx=S.selectedMeal;
-const m=(idx!=null&&S.meals[idx]?.name)?S.meals[idx]:null;
-if(!m){toast(‘Vælg en opskrift først’);return;}
-normalizeRecipe(m);
-const scale=recipeScale;
-const sections=m.sections||[];
-const hasMultipleSections=sections.length>1||(sections[0]?.title);
+  const idx=S.selectedMeal;
+  const m=(idx!=null&&S.meals[idx]?.name)?S.meals[idx]:null;
+  if(!m){toast('Vælg en opskrift først');return;}
+  normalizeRecipe(m);
+  const scale=recipeScale;
+  const sections=m.sections||[];
+  const hasMultipleSections=sections.length>1||(sections[0]?.title);
 
-// Build sections HTML
-let sectionsHTML=’’;
-if(hasMultipleSections){
-sectionsHTML=sections.map(sec=>` ${sec.title?`<div class="section-title">${sec.title}</div>`:''} <div class="section-grid"> <div class="section-ings"> <h3>Ingredienser</h3> <ul>${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul> </div> <div class="section-steps"> <h3>Fremgangsmåde</h3> <ol>${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol> </div> </div> `).join(’’);
-} else {
-const sec=sections[0]||{ingredients:m.ingredients||[],steps:m.steps||[]};
-sectionsHTML=`<div class="main-grid"> <div class="ings-col"> <h2 class="col-title">INGREDIENSER</h2> <ul class="ings-list">${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul> </div> <div class="divider"></div> <div class="steps-col"> <h2 class="col-title">FREMGANGSMÅDE</h2> <ol class="steps-list">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol> </div> </div>`;
-}
+  // Build sections HTML
+  let sectionsHTML='';
+  if(hasMultipleSections){
+    sectionsHTML=sections.map(sec=>`
+      ${sec.title?`<div class="section-title">${sec.title}</div>`:''}
+      <div class="section-grid">
+        <div class="section-ings">
+          <h3>Ingredienser</h3>
+          <ul>${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+        </div>
+        <div class="section-steps">
+          <h3>Fremgangsmåde</h3>
+          <ol>${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    const sec=sections[0]||{ingredients:m.ingredients||[],steps:m.steps||[]};
+    sectionsHTML=`<div class="main-grid">
+      <div class="ings-col">
+        <h2 class="col-title">INGREDIENSER</h2>
+        <ul class="ings-list">${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+      </div>
+      <div class="divider"></div>
+      <div class="steps-col">
+        <h2 class="col-title">FREMGANGSMÅDE</h2>
+        <ol class="steps-list">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+      </div>
+    </div>`;
+  }
 
-const designedHTML=`
-
+  const designedHTML=`
 <div class="page">
   <header class="page-header">
     <div>
@@ -4564,26 +4549,24 @@ const designedHTML=`
     </div>
   </header>
 
-${m.photo?`<div class="hero-img"><img src="${m.photo}" alt="${m.name}"></div>`:’<div class="hero-divider"></div>’}
+  ${m.photo?`<div class="hero-img"><img src="${m.photo}" alt="${m.name}"></div>`:'<div class="hero-divider"></div>'}
 
-${sectionsHTML}
+  ${sectionsHTML}
 
-${m.source?.name?`<footer class="recipe-footer">Kilde: ${m.source.name}${m.source.url&&m.source.url!=='#'?' — '+m.source.url:''}</footer>`:’’}
-
+  ${m.source?.name?`<footer class="recipe-footer">Kilde: ${m.source.name}${m.source.url&&m.source.url!=='#'?' — '+m.source.url:''}</footer>`:''}
 </div>`;
 
-const css=`
-
-- { box-sizing: border-box; margin: 0; padding: 0; }
-  @page { margin: 12mm; size: A4; }
-  body {
-  font-family: Georgia, ‘Times New Roman’, serif;
+  const css=`
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { margin: 12mm; size: A4; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
   color: #2a2a2a;
   background: #fafaf7;
   line-height: 1.55;
   padding: 20px;
-  }
-  .topbar {
+}
+.topbar {
   background: #1e4d2b;
   color: white;
   padding: 12px 20px;
@@ -4595,8 +4578,8 @@ const css=`
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  }
-  .topbar button {
+}
+.topbar button {
   background: white;
   color: #1e4d2b;
   border: none;
@@ -4606,24 +4589,24 @@ const css=`
   cursor: pointer;
   font-family: inherit;
   font-size: .9rem;
-  }
-  .page {
+}
+.page {
   max-width: 800px;
   margin: 0 auto;
   background: white;
   padding: 50px 55px 40px;
   box-shadow: 0 4px 24px rgba(0,0,0,.06);
-  }
-  .page-header {
+}
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 30px;
   padding-bottom: 24px;
   border-bottom: 1px solid #e0ddd5;
-  }
-  .recipe-title {
-  font-family: ‘Playfair Display’, Georgia, serif;
+}
+.recipe-title {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 2.6rem;
   font-weight: 600;
   letter-spacing: 1px;
@@ -4631,281 +4614,279 @@ const css=`
   line-height: 1.05;
   margin-bottom: 6px;
   max-width: 500px;
-  }
-  .subtitle {
+}
+.subtitle {
   font-size: .75rem;
   letter-spacing: 2.5px;
   color: #888;
   font-family: Arial, sans-serif;
-  }
-  .meta-box {
+}
+.meta-box {
   text-align: right;
   font-size: .92rem;
   color: #555;
   font-family: Arial, sans-serif;
-  }
-  .meta-row {
+}
+.meta-row {
   margin-bottom: 4px;
   white-space: nowrap;
-  }
-  .hero-img {
+}
+.hero-img {
   margin: 0 0 30px;
   border-radius: 4px;
   overflow: hidden;
   page-break-inside: avoid;
-  }
-  .hero-img img {
+}
+.hero-img img {
   width: 100%;
   height: 320px;
   object-fit: cover;
   display: block;
-  }
-  .hero-divider {
+}
+.hero-divider {
   height: 2px;
   background: linear-gradient(90deg, transparent, #1e4d2b 30%, #1e4d2b 70%, transparent);
   margin: 0 0 30px;
-  }
-  .main-grid {
+}
+.main-grid {
   display: grid;
   grid-template-columns: 1fr 1px 1.6fr;
   gap: 28px;
   margin-bottom: 28px;
-  }
-  .divider {
+}
+.divider {
   background: #e0ddd5;
   width: 1px;
-  }
-  .col-title {
-  font-family: ‘Playfair Display’, Georgia, serif;
+}
+.col-title {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 1.5px;
   margin-bottom: 18px;
   color: #1a1a1a;
   text-align: center;
-  }
-  .ings-col {
+}
+.ings-col {
   background: #f5f1ea;
   padding: 22px 20px;
   border-radius: 6px;
-  }
-  .ings-list {
+}
+.ings-list {
   list-style: none;
-  }
-  .ings-list li {
+}
+.ings-list li {
   padding: 9px 0;
   border-bottom: 1px dotted #d4cfc3;
   display: flex;
   justify-content: space-between;
   gap: 10px;
   font-size: .95rem;
-  }
-  .ings-list li:last-child { border-bottom: none; }
-  .amt {
+}
+.ings-list li:last-child { border-bottom: none; }
+.amt {
   color: #1e4d2b;
   font-weight: 600;
   white-space: nowrap;
   font-family: Arial, sans-serif;
   font-size: .88rem;
-  }
-  .steps-list {
+}
+.steps-list {
   padding-left: 0;
   counter-reset: step-counter;
   list-style: none;
-  }
-  .steps-list li {
+}
+.steps-list li {
   padding: 6px 0 14px 32px;
   position: relative;
   font-size: .96rem;
   line-height: 1.7;
   counter-increment: step-counter;
-  }
-  .steps-list li::before {
-  content: counter(step-counter) “.”;
+}
+.steps-list li::before {
+  content: counter(step-counter) ".";
   position: absolute;
   left: 0;
   top: 6px;
-  font-family: ‘Playfair Display’, Georgia, serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-weight: 600;
   font-size: 1.15rem;
   color: #1e4d2b;
-  }
+}
 
 /* Multi-section recipes */
 .section-title {
-font-family: ‘Playfair Display’, Georgia, serif;
-font-size: 1.5rem;
-font-weight: 600;
-color: white;
-background: #1e4d2b;
-padding: 12px 22px;
-margin: 28px 0 18px;
-border-radius: 4px;
-letter-spacing: .5px;
-page-break-after: avoid;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  background: #1e4d2b;
+  padding: 12px 22px;
+  margin: 28px 0 18px;
+  border-radius: 4px;
+  letter-spacing: .5px;
+  page-break-after: avoid;
 }
 .section-title:first-child { margin-top: 8px; }
 .section-grid {
-display: grid;
-grid-template-columns: 1fr 1.6fr;
-gap: 24px;
-margin-bottom: 8px;
-page-break-inside: avoid;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 24px;
+  margin-bottom: 8px;
+  page-break-inside: avoid;
 }
 .section-ings, .section-steps { font-size: .92rem; }
 .section-ings h3, .section-steps h3 {
-font-family: Arial, sans-serif;
-font-size: .68rem;
-font-weight: 700;
-letter-spacing: 1.5px;
-color: #888;
-margin-bottom: 10px;
-text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-bottom: 10px;
+  text-transform: uppercase;
 }
 .section-ings ul {
-list-style: none;
-background: #f5f1ea;
-padding: 14px 16px;
-border-radius: 4px;
+  list-style: none;
+  background: #f5f1ea;
+  padding: 14px 16px;
+  border-radius: 4px;
 }
 .section-ings li {
-padding: 6px 0;
-border-bottom: 1px dotted #d4cfc3;
-display: flex;
-justify-content: space-between;
-gap: 10px;
-font-size: .9rem;
+  padding: 6px 0;
+  border-bottom: 1px dotted #d4cfc3;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: .9rem;
 }
 .section-ings li:last-child { border-bottom: none; }
 .section-steps ol {
-list-style: none;
-counter-reset: sub-step;
+  list-style: none;
+  counter-reset: sub-step;
 }
 .section-steps li {
-padding: 4px 0 10px 26px;
-position: relative;
-counter-increment: sub-step;
-font-size: .92rem;
-line-height: 1.65;
+  padding: 4px 0 10px 26px;
+  position: relative;
+  counter-increment: sub-step;
+  font-size: .92rem;
+  line-height: 1.65;
 }
 .section-steps li::before {
-content: counter(sub-step) “.”;
-position: absolute;
-left: 0;
-top: 4px;
-font-family: ‘Playfair Display’, Georgia, serif;
-font-weight: 600;
-color: #1e4d2b;
+  content: counter(sub-step) ".";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: #1e4d2b;
 }
 
 .recipe-footer {
-margin-top: 30px;
-padding-top: 18px;
-border-top: 1px solid #e0ddd5;
-font-size: .78rem;
-color: #888;
-font-style: italic;
-text-align: center;
-font-family: Arial, sans-serif;
+  margin-top: 30px;
+  padding-top: 18px;
+  border-top: 1px solid #e0ddd5;
+  font-size: .78rem;
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  font-family: Arial, sans-serif;
 }
 
 @media print {
-.topbar { display: none !important; }
-body { background: white; padding: 0; }
-.page { box-shadow: none; padding: 0; max-width: none; }
+  .topbar { display: none !important; }
+  body { background: white; padding: 0; }
+  .page { box-shadow: none; padding: 0; max-width: none; }
 }
 `;
 
-const fullHTML=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>${m.name}</title>
-
+  const fullHTML=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>${m.name}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
 <style>${css}</style></head><body>
 <div class="topbar"><span style="font-weight:600">${m.name}</span><button onclick="window.print()">🖨️ Print</button></div>
 ${designedHTML}
 </body></html>`;
 
-openPrintWindow(fullHTML, m.name);
+  openPrintWindow(fullHTML, m.name);
 }
 
 function openPrintWindow(fullHTML, title){
-// Try to open in new tab. If blocked, download as file.
-try{
-const blob=new Blob([fullHTML],{type:‘text/html’});
-const url=URL.createObjectURL(blob);
-const w=window.open(url,’_blank’);
-if(w){
-toast(‘Åbnet i ny fane — tryk 🖨️ Print der’);
-setTimeout(()=>URL.revokeObjectURL(url),60000);
-return;
-}
-}catch(e){}
-try{
-const blob=new Blob([fullHTML],{type:‘text/html’});
-const url=URL.createObjectURL(blob);
-const a=document.createElement(‘a’);
-a.href=url;
-a.download=(title.toLowerCase().replace(/[^a-z0-9æøå]+/gi,’-’).slice(0,40))+’.html’;
-document.body.appendChild(a);a.click();
-setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
-toast(‘📥 Fil downloadet — åbn den og tryk Ctrl+P’);
-}catch(e){toast(’Print ikke tilgængeligt: ’+e.message);}
+  // Try to open in new tab. If blocked, download as file.
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(w){
+      toast('Åbnet i ny fane — tryk 🖨️ Print der');
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return;
+    }
+  }catch(e){}
+  try{
+    const blob=new Blob([fullHTML],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=(title.toLowerCase().replace(/[^a-z0-9æøå]+/gi,'-').slice(0,40))+'.html';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
+    toast('📥 Fil downloadet — åbn den og tryk Ctrl+P');
+  }catch(e){toast('Print ikke tilgængeligt: '+e.message);}
 }
 
 // ── SHOPPING ACTIONS ─────────────────────────────────────────────
 function toggleCheck(key,checked){S.checked[key]=checked;save();renderShopList();}
 function clearChecked(){
-uiConfirm(‘Tøm indkøbskurven?’,‘Alle varer fjernes fra indkøbslisten — både manuelt tilføjede og dem fra opskrifter. Ugens madplan bevares.’,()=>{
-S.checked={};
-S.manual=[];
-S.dismissed=[];
-S.amountOverrides={};
-// Mark all aggregated items as dismissed so they don’t come back
-if(S.aggregated){
-S.aggregated.forEach(item=>{S.dismissed.push(item.key);});
-}
-save();
-renderShopList();
-toast(‘Indkøbskurven er tømt ✓’);
-},‘🗑️ Tøm’);
+  uiConfirm('Tøm indkøbskurven?','Alle varer fjernes fra indkøbslisten — både manuelt tilføjede og dem fra opskrifter. Ugens madplan bevares.',()=>{
+    S.checked={};
+    S.manual=[];
+    S.dismissed=[];
+    S.amountOverrides={};
+    // Mark all aggregated items as dismissed so they don't come back
+    if(S.aggregated){
+      S.aggregated.forEach(item=>{S.dismissed.push(item.key);});
+    }
+    save();
+    renderShopList();
+    toast('Indkøbskurven er tømt ✓');
+  },'🗑️ Tøm');
 }
 function addItem(){
-const name=document.getElementById(‘addName’).value.trim();if(!name)return;
-S.manual.push({id:Date.now(),name,amount:document.getElementById(‘addAmt’).value.trim(),category:document.getElementById(‘addCat’).value});
-S.frequentItems[name]=(S.frequentItems[name]||0)+1;
-document.getElementById(‘addName’).value=’’;document.getElementById(‘addAmt’).value=’’;
-renderShopList();renderQuickAdd();save();toast(`"${name}" ✓`);
+  const name=document.getElementById('addName').value.trim();if(!name)return;
+  S.manual.push({id:Date.now(),name,amount:document.getElementById('addAmt').value.trim(),category:document.getElementById('addCat').value});
+  S.frequentItems[name]=(S.frequentItems[name]||0)+1;
+  document.getElementById('addName').value='';document.getElementById('addAmt').value='';
+  renderShopList();renderQuickAdd();save();toast(`"${name}" ✓`);
 }
 function removeManual(id){S.manual=S.manual.filter(i=>i.id!==Number(id));delete S.checked[`man-${id}`];renderShopList();save();}
 
 function setItemAmount(key,value,isManual,manualId){
-if(isManual){
-const id=Number(manualId);
-const item=S.manual.find(i=>i.id===id);
-if(item){item.amount=value;save();}
-} else {
-// Aggregated item — use override map
-if(!S.amountOverrides)S.amountOverrides={};
-S.amountOverrides[key]=value;
-save();
-}
+  if(isManual){
+    const id=Number(manualId);
+    const item=S.manual.find(i=>i.id===id);
+    if(item){item.amount=value;save();}
+  } else {
+    // Aggregated item — use override map
+    if(!S.amountOverrides)S.amountOverrides={};
+    S.amountOverrides[key]=value;
+    save();
+  }
 }
 
 // ── RENDER ALL ───────────────────────────────────────────────────
 function renderAll(){
-document.getElementById(‘weekLabel’).textContent=`Uge ${getWeekNumber(new Date())}`;
-renderMealCards();renderShopList();renderRecipe();
+  document.getElementById('weekLabel').textContent=`Uge ${getWeekNumber(new Date())}`;
+  renderMealCards();renderShopList();renderRecipe();
 }
 
 // ── OVERLAY CLOSE ────────────────────────────────────────────────
 // Modals can ONLY be closed via X button, Cancel, or Save buttons.
 // Clicking outside the modal does nothing.
-document.querySelectorAll(’.overlay’).forEach(o=>o.addEventListener(‘click’,e=>{
-// Intentionally do nothing — must use buttons
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
+  // Intentionally do nothing — must use buttons
 }));
 
 // ── INIT ─────────────────────────────────────────────────────────
 load();
 </script>
-
 </body>
 </html>
