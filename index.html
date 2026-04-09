@@ -1154,6 +1154,8 @@ body {
   padding: 30px 16px;
   overflow-y: auto;
 }
+#confirmOverlay { z-index: 2000; }
+#ingBankEditOverlay { z-index: 1500; }
 .overlay.center { align-items: center; }
 .overlay.open { display: flex; }
 .modal {
@@ -1332,10 +1334,11 @@ body {
     border-top: 1px solid var(--border);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0;
     z-index: 101;
     box-shadow: 0 -2px 10px rgba(0,0,0,.04);
+    width: 100%;
   }
   .tab {
     flex-direction: column;
@@ -1511,6 +1514,7 @@ body {
         </div>
       </div>
       <div style="display:flex;gap:6px">
+        <button class="btn-sm btn-sm-muted" onclick="openIngBank()" title="Ingrediens-bank">📚 Ingrediens-bank</button>
         <button class="btn-sm btn-sm-muted" onclick="openTagManager()" title="Administrér tags">🏷️ Tags</button>
         <button class="btn btn-primary" onclick="openAddRecipeModal()">➕ Tilføj opskrift</button>
       </div>
@@ -1886,6 +1890,90 @@ body {
   </div>
 </div>
 
+<!-- INGREDIENT BANK MODAL -->
+<div class="overlay" id="ingBankOverlay">
+  <div class="modal" style="max-width:720px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--c-shop-soft);color:var(--c-shop);display:flex;align-items:center;justify-content:center;border:1px solid var(--c-shop-border);font-size:18px">📚</div>
+        <div>
+          <div class="modal-title" style="margin-bottom:0">Min ingrediens-bank</div>
+          <div class="modal-sub" style="margin-bottom:0"><span id="ingBankCount">0</span> gemte ingredienser med næringsværdier</div>
+        </div>
+      </div>
+      <button onclick="closeOverlay('ingBankOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--text-mute);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
+
+    <div style="background:var(--c-book-soft);border:1px solid var(--c-book-border);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--c-book);line-height:1.5">
+      💡 Når du finder næringsstoffer for en ingrediens i en opskrift, gemmes den automatisk her. Næste gang appen møder samme ingrediens, bruger den den gemte version uden at søge.
+    </div>
+
+    <!-- Search + Add new -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div style="flex:1;position:relative">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none">🔍</span>
+        <input class="form-input" id="ingBankSearch" placeholder="Søg i din bank…" style="padding-left:40px" oninput="renderIngBankList()">
+      </div>
+      <button class="btn btn-primary" onclick="openIngBankAdd()">➕ Tilføj manuelt</button>
+    </div>
+
+    <div id="ingBankList" style="max-height:55vh;overflow-y:auto;margin-bottom:8px"></div>
+
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('ingBankOverlay')">Luk</button>
+    </div>
+  </div>
+</div>
+
+<!-- INGREDIENT BANK ADD/EDIT MODAL -->
+<div class="overlay center" id="ingBankEditOverlay">
+  <div class="modal floating" style="max-width:520px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--c-shop-soft);color:var(--c-shop);display:flex;align-items:center;justify-content:center;border:1px solid var(--c-shop-border);font-size:18px">📝</div>
+        <div>
+          <div class="modal-title" style="margin-bottom:0" id="ingBankEditTitle">Tilføj ingrediens</div>
+          <div class="modal-sub" style="margin-bottom:0">Næringsværdier per 100 g</div>
+        </div>
+      </div>
+      <button onclick="closeOverlay('ingBankEditOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--text-mute);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Ingrediens-navn *</label>
+      <input class="form-input" id="ibeName" placeholder="fx kyllingebryst">
+      <div style="font-size:11px;color:var(--text-mute);margin-top:4px">Bruges til at matche ingredienser i opskrifter — skriv et generisk navn uden mængder</div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Beskrivelse / variant (valgfrit)</label>
+      <input class="form-input" id="ibeDesc" placeholder="fx Rema ovnbagt, naturel">
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="form-label">🔥 Kalorier (kcal/100g) *</label>
+        <input class="form-input" id="ibeKcal" type="number" step="0.1" placeholder="165">
+      </div>
+      <div>
+        <label class="form-label">🥩 Protein (g/100g)</label>
+        <input class="form-input" id="ibeProtein" type="number" step="0.1" placeholder="31">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="form-label">🌾 Kulhydrat (g/100g)</label>
+        <input class="form-input" id="ibeCarbs" type="number" step="0.1" placeholder="0">
+      </div>
+      <div>
+        <label class="form-label">🥑 Fedt (g/100g)</label>
+        <input class="form-input" id="ibeFat" type="number" step="0.1" placeholder="3.6">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('ingBankEditOverlay')">Annuller</button>
+      <button class="btn btn-primary" onclick="saveIngBankEntry()">Gem ✓</button>
+    </div>
+  </div>
+</div>
+
 <!-- TAG MANAGER MODAL -->
 <div class="overlay" id="tagManagerOverlay">
   <div class="modal" style="max-width:620px">
@@ -2064,7 +2152,7 @@ let nwCuisFilter = 'alle';
 let nwSelected = new Array(7).fill(null);
 let nwLocked = [false,false,false,false,false,false,false];
 let bookCuisFilter = 'alle';
-let bookIngFilter = 'alle';
+let bookIngFilter = new Set(); // empty = "all"
 let expandedBookId = null;
 let recipeScale = 1;
 let currentViewedRecipe = null; // The recipe currently shown in opskrift view (could be from meal plan OR cookbook)
@@ -2854,10 +2942,12 @@ function renderBookChips(){
     ${cuisChips.map(c=>`<button class="chip ${c.k===bookCuisFilter?'active':''}" onclick="setBookCuis('${c.k}')">${c.l}</button>`).join('')}
   </div>`;
   if(ING_GROUPS.length){
+    const allActive=bookIngFilter.size===0;
     chips+=`<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-right:4px">Ingrediens:</span>
-      <button class="chip ${bookIngFilter==='alle'?'active':''}" onclick="setBookIng('alle')">🥘 Alle</button>
-      ${ING_GROUPS.map(g=>`<button class="chip ${g.k===bookIngFilter?'active':''}" onclick="setBookIng('${g.k}')">${g.l}</button>`).join('')}
+      <span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-right:4px">Tags:</span>
+      <button class="chip ${allActive?'active':''}" onclick="clearBookIngFilter()">🥘 Alle</button>
+      ${ING_GROUPS.map(g=>`<button class="chip ${bookIngFilter.has(g.k)?'active':''}" onclick="toggleBookIng('${g.k.replace(/'/g,"\\'")}')">${g.l}</button>`).join('')}
+      ${bookIngFilter.size>1?`<span style="font-size:10px;color:var(--text-mute);margin-left:4px">${bookIngFilter.size} valgt — viser opskrifter med <strong>alle</strong></span>`:''}
     </div>`;
   }
   document.getElementById('bookChips').innerHTML=chips;
@@ -2868,11 +2958,12 @@ function renderBookCards(){
   const search=(document.getElementById('bookSearch')?.value||'').toLowerCase().trim();
   const pool=S.cookbook.filter(r=>{
     const cuisOk=bookCuisFilter==='alle'||r.cuisine===bookCuisFilter;
-    const ingOk=bookIngFilter==='alle'||(()=>{
-      const group=ING_GROUPS.find(g=>g.k===bookIngFilter);
+    // Multi-tag filter: AND logic — recipe must match ALL selected tags
+    const ingOk=bookIngFilter.size===0||[...bookIngFilter].every(filterKey=>{
+      const group=ING_GROUPS.find(g=>g.k===filterKey);
       if(!group)return true;
       return (r.mainIngredients||[]).some(ing=>group.re.test(ing));
-    })();
+    });
     const qOk=!search||r.name.toLowerCase().includes(search)||(r.cuisine||'').toLowerCase().includes(search)||(r.source?.name||'').toLowerCase().includes(search)||(r.mainIngredients||[]).some(i=>i.toLowerCase().includes(search));
     return cuisOk&&ingOk&&qOk;
   });
@@ -2950,14 +3041,19 @@ function renderBookCards(){
   }
 
   if(!pool.length&&S.cookbook.length){
-    html+=`<div style="text-align:center;padding:40px;color:var(--text-mute);font-size:14px">Ingen match — <button onclick="setBookCuis('alle');setBookIng('alle')" style="background:none;border:none;color:var(--c-book);cursor:pointer;font-size:14px;text-decoration:underline;font-family:inherit;font-weight:600">nulstil filter</button></div>`;
+    html+=`<div style="text-align:center;padding:40px;color:var(--text-mute);font-size:14px">Ingen match — <button onclick="setBookCuis('alle');clearBookIngFilter()" style="background:none;border:none;color:var(--c-book);cursor:pointer;font-size:14px;text-decoration:underline;font-family:inherit;font-weight:600">nulstil filter</button></div>`;
   }
 
   document.getElementById('bookContent').innerHTML=html;
 }
 
 function setBookCuis(c){bookCuisFilter=c;renderBookChips();renderBookCards();}
-function setBookIng(k){bookIngFilter=k;renderBookChips();renderBookCards();}
+function toggleBookIng(k){
+  if(bookIngFilter.has(k))bookIngFilter.delete(k);
+  else bookIngFilter.add(k);
+  renderBookChips();renderBookCards();
+}
+function clearBookIngFilter(){bookIngFilter.clear();renderBookChips();renderBookCards();}
 function toggleBook(id){expandedBookId=expandedBookId===id?null:id;renderBookCards();}
 function deleteBook(e,id){
   e.stopPropagation();e.preventDefault();
@@ -3273,6 +3369,24 @@ Hver section: 2-12 ingredienser, 1-8 trin.`;
 // Cache strategy: synced via Supabase as S.offCache (works across devices),
 // fallback to localStorage for offline.
 
+// Normalize ingredient name for cache lookup. Strips amounts, qualifiers, brands.
+// "200 g kyllingebryst, frisk" → "kyllingebryst"
+function normalizeIngName(name){
+  if(!name)return '';
+  let n=name.toLowerCase().trim();
+  // Remove leading amounts: "200 g", "1 stk", "2 spsk", "1/2 dl", "½ tsk", etc.
+  n=n.replace(/^[\d½¼¾⅓⅔.,/\s]*(g|kg|dl|l|ml|tsk|spsk|stk|fed|bundt|håndfuld|pose|dåse|pk\.?|cm)?\s*/i,'');
+  // Remove parentheses content: "kyllingebryst (frisk)" → "kyllingebryst"
+  n=n.replace(/\s*\([^)]*\)/g,'');
+  // Remove common qualifiers
+  n=n.replace(/,?\s*(frisk|frosset|røget|saltet|usaltet|økologisk|øko|ca\.?|cirka|ekstra|let|fed|mager|fuld)\b/gi,'');
+  // Collapse multiple spaces
+  n=n.replace(/\s+/g,' ').trim();
+  // Trim trailing punctuation
+  n=n.replace(/[,.;:]+$/,'');
+  return n;
+}
+
 function getOffCache(){
   // Primary: synced cache in state (works across devices)
   if(S.offCache&&typeof S.offCache==='object')return S.offCache;
@@ -3282,7 +3396,9 @@ function getOffCache(){
 }
 function rememberMatch(ingName,product){
   if(!S.offCache)S.offCache={};
-  S.offCache[ingName.toLowerCase().trim()]={
+  const key=normalizeIngName(ingName);
+  if(!key)return;
+  S.offCache[key]={
     code:product.code,
     name:product.product_name||product.product_name_da||'',
     brand:product.brands||'',
@@ -3290,10 +3406,141 @@ function rememberMatch(ingName,product){
     protein100:product.nutriments?.['proteins_100g']||0,
     carbs100:product.nutriments?.['carbohydrates_100g']||0,
     fat100:product.nutriments?.['fat_100g']||0,
+    source:product._source||'off',
+    savedAt:Date.now()
   };
   // Also store in localStorage as fallback
   try{localStorage.setItem('mp-off-cache',JSON.stringify(S.offCache));}catch{}
   save(); // Triggers Supabase sync
+}
+
+// ── INGREDIENT BANK ──────────────────────────────────────────────
+let _ingBankEditKey = null; // null = adding new, else = editing existing
+
+function openIngBank(){
+  document.getElementById('ingBankSearch').value='';
+  renderIngBankList();
+  document.getElementById('ingBankOverlay').classList.add('open');
+}
+
+function renderIngBankList(){
+  const cache=getOffCache();
+  const search=(document.getElementById('ingBankSearch')?.value||'').toLowerCase().trim();
+  const entries=Object.entries(cache)
+    .filter(([key,val])=>{
+      if(!search)return true;
+      return key.includes(search)||(val.name||'').toLowerCase().includes(search)||(val.brand||'').toLowerCase().includes(search);
+    })
+    .sort(([a],[b])=>a.localeCompare(b,'da'));
+
+  document.getElementById('ingBankCount').textContent=Object.keys(cache).length;
+
+  const el=document.getElementById('ingBankList');
+  if(!entries.length){
+    if(!Object.keys(cache).length){
+      el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--text-mute);font-size:14px">
+        <div style="font-size:42px;margin-bottom:12px;opacity:.5">📚</div>
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">Banken er tom</div>
+        <div>Den fyldes automatisk når du finder næringsstoffer for ingredienser i opskrifter, eller du kan tilføje manuelt.</div>
+      </div>`;
+    } else {
+      el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text-mute);font-size:13px">Ingen match</div>`;
+    }
+    return;
+  }
+
+  el.innerHTML=entries.map(([key,val])=>{
+    const safeKey=key.replace(/'/g,"\\'");
+    const sourceBadge=val.source==='usda'?'🇺🇸 USDA':val.source==='manual'?'✏️ Manuel':'🌍 OFF';
+    const sourceColor=val.source==='manual'?'var(--c-archive)':val.source==='usda'?'var(--c-book)':'var(--c-shop)';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--bg-card)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          📦 ${key}
+          <span style="font-size:10px;background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:${sourceColor};font-weight:600">${sourceBadge}</span>
+        </div>
+        ${val.name||val.brand?`<div style="font-size:11px;color:var(--text-mute);margin-top:2px">${val.name||''}${val.brand?` · ${val.brand}`:''}</div>`:''}
+        <div style="font-size:11px;color:var(--text-soft);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+          <span>🔥 <strong>${(val.kcal100||0).toFixed(0)}</strong> kcal</span>
+          <span>🥩 ${(val.protein100||0).toFixed(1)}g</span>
+          <span>🌾 ${(val.carbs100||0).toFixed(1)}g</span>
+          <span>🥑 ${(val.fat100||0).toFixed(1)}g</span>
+          <span style="color:var(--text-mute)">/ 100g</span>
+        </div>
+      </div>
+      <button onclick="openIngBankEdit('${safeKey}')" title="Rediger" style="background:var(--c-book-soft);border:1px solid var(--c-book-border);color:var(--c-book);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✏️</button>
+      <button onclick="deleteIngBankEntry('${safeKey}')" title="Slet" style="background:var(--c-fav-soft);border:1px solid var(--c-fav-border);color:var(--c-fav);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function openIngBankAdd(){
+  _ingBankEditKey=null;
+  document.getElementById('ingBankEditTitle').textContent='Tilføj ingrediens manuelt';
+  ['ibeName','ibeDesc','ibeKcal','ibeProtein','ibeCarbs','ibeFat'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('ingBankEditOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('ibeName').focus(),100);
+}
+
+function openIngBankEdit(key){
+  const cache=getOffCache();
+  const val=cache[key];
+  if(!val)return;
+  _ingBankEditKey=key;
+  document.getElementById('ingBankEditTitle').textContent='Rediger ingrediens';
+  document.getElementById('ibeName').value=key;
+  document.getElementById('ibeDesc').value=val.name||val.brand||'';
+  document.getElementById('ibeKcal').value=val.kcal100||'';
+  document.getElementById('ibeProtein').value=val.protein100||'';
+  document.getElementById('ibeCarbs').value=val.carbs100||'';
+  document.getElementById('ibeFat').value=val.fat100||'';
+  document.getElementById('ingBankEditOverlay').classList.add('open');
+}
+
+function saveIngBankEntry(){
+  const name=document.getElementById('ibeName').value.trim();
+  if(!name){toast('Navn er påkrævet');return;}
+  const kcal=parseFloat(document.getElementById('ibeKcal').value);
+  if(isNaN(kcal)||kcal<0){toast('Kalorier skal være et tal');return;}
+
+  const newKey=normalizeIngName(name);
+  if(!newKey){toast('Ugyldigt navn');return;}
+
+  if(!S.offCache)S.offCache={};
+
+  // If renaming (key changed), remove old key
+  if(_ingBankEditKey&&_ingBankEditKey!==newKey){
+    delete S.offCache[_ingBankEditKey];
+  }
+
+  S.offCache[newKey]={
+    code:'manual-'+Date.now(),
+    name:document.getElementById('ibeDesc').value.trim()||'',
+    brand:'',
+    kcal100:kcal,
+    protein100:parseFloat(document.getElementById('ibeProtein').value)||0,
+    carbs100:parseFloat(document.getElementById('ibeCarbs').value)||0,
+    fat100:parseFloat(document.getElementById('ibeFat').value)||0,
+    source:'manual',
+    savedAt:Date.now()
+  };
+  try{localStorage.setItem('mp-off-cache',JSON.stringify(S.offCache));}catch{}
+  save();
+  closeOverlay('ingBankEditOverlay');
+  renderIngBankList();
+  toast(`"${newKey}" gemt i banken ✓`);
+}
+
+function deleteIngBankEntry(key){
+  uiConfirm(`Slet "${key}" fra banken?`,'Næste gang appen møder denne ingrediens vil den søge på OFF/USDA igen.',()=>{
+    if(S.offCache&&S.offCache[key]){
+      delete S.offCache[key];
+      try{localStorage.setItem('mp-off-cache',JSON.stringify(S.offCache));}catch{}
+      save();
+      renderIngBankList();
+      toast(`"${key}" slettet`);
+    }
+  },'🗑️ Slet');
 }
 
 // Ingredient type detection (decides which size selector to show)
@@ -3669,7 +3916,7 @@ async function openNutritionRefinement(recipeId){
   (recipe.ingredients||[]).forEach((ing,i)=>{
     const parsed=parseIngAmount(ing.amount||'');
     const ingType=detectIngType(ing.name);
-    const cached=cache[ing.name.toLowerCase().trim()];
+    const cached=cache[normalizeIngName(ing.name)];
     let match=null,optionIdx=null;
     if(ingType.type==='meat-fat'){
       optionIdx=ingType.default||0;
