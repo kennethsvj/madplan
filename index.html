@@ -1691,35 +1691,52 @@ body {
 
 <!-- PICKER MODAL -->
 <div class="overlay" id="pickerOverlay">
-  <div class="modal">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-      <div class="modal-title">Vælg opskrift til <span id="pickerDay">–</span></div>
-      <button onclick="closeOverlay('pickerOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+  <div class="modal" style="max-width:680px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--c-plan-soft);color:var(--c-plan);display:flex;align-items:center;justify-content:center;border:1px solid var(--c-plan-border);font-size:18px">📅</div>
+        <div>
+          <div class="modal-title" style="margin-bottom:0">Vælg opskrift</div>
+          <div class="modal-sub" style="margin-bottom:0">til <strong id="pickerDay">–</strong></div>
+        </div>
+      </div>
+      <button onclick="closeOverlay('pickerOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--text-mute);cursor:pointer;padding:2px 4px">✕</button>
     </div>
-    <div style="position:relative;margin-bottom:8px"><span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.45;font-size:.85rem;pointer-events:none">🔍</span><input class="form-input" id="pickerSearch" placeholder="Søg…" style="padding-left:34px" oninput="renderPickerList()"></div>
-    <div class="cuis-chips" id="pickerCuisChips" style="margin-bottom:6px"></div>
-    <div class="cuis-chips" id="pickerIngChips" style="margin-bottom:8px"></div>
-    <div id="pickerList" style="max-height:42vh;overflow-y:auto;"></div>
+    <div style="position:relative;margin-bottom:12px">
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none">🔍</span>
+      <input class="form-input" id="pickerSearch" placeholder="Søg efter opskrift…" style="padding-left:40px" oninput="renderPickerList()">
+    </div>
+    <div id="pickerCuisChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>
+    <div id="pickerIngChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
+    <div id="pickerList" style="max-height:50vh;overflow-y:auto;margin-bottom:8px"></div>
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="closeOverlay('pickerOverlay')">Annuller</button>
-      <button class="btn btn-rema" onclick="openAddFromPicker()">➕ Tilføj ny opskrift</button>
+      <button class="btn btn-primary" onclick="openAddFromPicker()">➕ Tilføj ny opskrift</button>
     </div>
   </div>
 </div>
 
 <!-- NEW WEEK MODAL -->
 <div class="overlay center" id="newWeekOverlay">
-  <div class="modal floating">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
-      <div class="modal-title">✨ Auto-generér madplan</div>
-      <button onclick="closeOverlay('newWeekOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+  <div class="modal floating" style="max-width:600px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--c-plan-soft);color:var(--c-plan);display:flex;align-items:center;justify-content:center;border:1px solid var(--c-plan-border);font-size:18px">✨</div>
+        <div>
+          <div class="modal-title" style="margin-bottom:0">Auto-generér madplan</div>
+          <div class="modal-sub" style="margin-bottom:0" id="nwSub">Lås dage med 🔒 — de beholdes ved blanding</div>
+        </div>
+      </div>
+      <button onclick="closeOverlay('newWeekOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--text-mute);cursor:pointer;padding:2px 4px">✕</button>
     </div>
-    <div class="modal-sub" id="nwSub">Lås dage med 🔒 — de beholdes ved blanding. Filtrér efter køkken hvis du vil.</div>
-    <div class="cuis-chips" id="nwCuisChips"></div>
+    <div style="background:var(--c-book-soft);border:1px solid var(--c-book-border);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--c-book);line-height:1.5">
+      💡 Vælg køkken for at filtrere, lås dage med 🔒, og tryk <strong>🔀 Bland</strong> for at få nye forslag.
+    </div>
+    <div id="nwCuisChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
     <div class="nw-grid" id="nwGrid"></div>
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="closeOverlay('newWeekOverlay')">Annuller</button>
-      <button class="btn btn-secondary" onclick="shuffleNewWeek()" style="flex:none;padding:9px 14px">🔀 Bland</button>
+      <button class="btn btn-secondary" onclick="shuffleNewWeek()">🔀 Bland</button>
       <button class="btn btn-primary" onclick="confirmNewWeek()">Brug disse ✓</button>
     </div>
   </div>
@@ -2977,7 +2994,8 @@ function viewBookRecipe(e,id){
 }
 
 function buildIngGroups(){
-  return[
+  // Built-in groups (regex-based)
+  const builtin=[
     {k:'kylling',l:'🍗 Kylling',re:/kylling/i},
     {k:'oksekød',l:'🥩 Oksekød',re:/okse|hakket oksekød/i},
     {k:'svinekød',l:'🐷 Svinekød',re:/svin|svine|kotelet|medister|flæsk|ribbensteg/i},
@@ -2988,6 +3006,31 @@ function buildIngGroups(){
     {k:'pasta',l:'🍝 Pasta',re:/pasta|spaghetti|penne|lasagne|tagliatelle/i},
     {k:'ris',l:'🍚 Ris',re:/ris/i},
   ].filter(g=>S.cookbook.some(r=>(r.mainIngredients||[]).some(ing=>g.re.test(ing))));
+
+  // User-created tags (exact-match based)
+  // Get all unique tags from cookbook
+  const allTags=new Set();
+  S.cookbook.forEach(r=>(r.mainIngredients||[]).forEach(t=>allTags.add(t)));
+
+  // Filter out tags already covered by built-in groups (avoid duplicates)
+  const coveredByBuiltin=new Set();
+  builtin.forEach(g=>{
+    S.cookbook.forEach(r=>(r.mainIngredients||[]).forEach(ing=>{
+      if(g.re.test(ing))coveredByBuiltin.add(ing);
+    }));
+  });
+
+  const customGroups=[...allTags]
+    .filter(t=>!coveredByBuiltin.has(t))
+    .sort((a,b)=>a.localeCompare(b,'da'))
+    .map(t=>({
+      k:'tag:'+t,
+      l:`🏷️ ${t}`,
+      re:new RegExp('^'+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i'),
+      isCustom:true
+    }));
+
+  return [...builtin,...customGroups];
 }
 
 // ── ADD RECIPE MODAL ─────────────────────────────────────────────
@@ -3506,7 +3549,7 @@ async function searchOFF(query){
   const tryQuery=async(q)=>{
     const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=10&fields=code,product_name,product_name_da,brands,nutriments,quantity,countries`;
     const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(),8000);
+    const timer=setTimeout(()=>ctrl.abort(),6000);
     try{
       const res=await fetch(url,{signal:ctrl.signal});
       clearTimeout(timer);
@@ -3518,34 +3561,36 @@ async function searchOFF(query){
       });
     }catch(e){
       clearTimeout(timer);
-      if(e.name==='AbortError')throw new Error('Open Food Facts svarer ikke (timeout)');
-      throw e;
+      console.warn('OFF query failed:',q,e.message);
+      return [];  // Return empty instead of throwing — fallback to next attempt
     }
   };
 
-  // Try original query first
-  let products=await tryQuery(cleaned);
+  // Try OFF with multiple variants — each isolated in try/catch
+  let products=[];
+  try{products=await tryQuery(cleaned);}catch(e){}
 
-  // If no results, try lowercase
   if(!products.length&&cleaned!==cleaned.toLowerCase()){
-    products=await tryQuery(cleaned.toLowerCase());
+    try{products=await tryQuery(cleaned.toLowerCase());}catch(e){}
   }
-  // If still no results, try with capitalized first letter
   if(!products.length){
     const cap=cleaned.charAt(0).toUpperCase()+cleaned.slice(1).toLowerCase();
-    if(cap!==cleaned)products=await tryQuery(cap);
+    if(cap!==cleaned){try{products=await tryQuery(cap);}catch(e){}}
   }
-  // Try first word only as last resort (e.g. "Tomat dåse" → "Tomat")
   if(!products.length&&cleaned.includes(' ')){
-    products=await tryQuery(cleaned.split(/\s+/)[0]);
+    try{products=await tryQuery(cleaned.split(/\s+/)[0]);}catch(e){}
   }
 
-  // FINAL FALLBACK: Try USDA FoodData Central (English translation)
+  // FALLBACK: Try USDA FoodData Central (always tried if OFF returned nothing)
   if(!products.length){
     try{
+      console.log('OFF returned no results, trying USDA for:',cleaned);
       const usdaResults=await searchUSDA(cleaned);
-      if(usdaResults.length)products=usdaResults;
-    }catch(e){/* silent fallback fail */}
+      if(usdaResults.length){
+        products=usdaResults;
+        console.log('USDA found',usdaResults.length,'results');
+      }
+    }catch(e){console.warn('USDA fallback also failed:',e.message);}
   }
 
   // Sort: Danish products first
@@ -3872,7 +3917,7 @@ function debounceIngSearch(){
 }
 async function doIngSearch(query){
   const el=document.getElementById('ingSearchResults');
-  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--hint)"><span class="spinner" style="border-color:var(--border);border-top-color:var(--green-mid)"></span> Søger på Open Food Facts…</div>';
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--hint)"><span class="spinner" style="border-color:var(--border);border-top-color:var(--green-mid)"></span> Søger på Open Food Facts og USDA…</div>';
   try{
     const results=await searchOFF(query);
     if(!results.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--hint)">Ingen resultater</div>';return;}
@@ -4292,12 +4337,15 @@ function openPickerModal(idx){
 function buildPickerChips(){
   const usedCuisines=new Set(S.cookbook.map(r=>r.cuisine).filter(Boolean));
   const cuisChips=CUISINE_LIST.filter(c=>c.k==='alle'||usedCuisines.has(c.k));
-  document.getElementById('pickerCuisChips').innerHTML=cuisChips.map(c=>`<button class="cuis-chip ${c.k===pickerCuisFilter?'active':''}" onclick="setPickerCuis('${c.k}')">${c.l}</button>`).join('');
+  document.getElementById('pickerCuisChips').innerHTML=
+    `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Køkken:</span>`+
+    cuisChips.map(c=>`<button class="chip ${c.k===pickerCuisFilter?'active':''}" onclick="setPickerCuis('${c.k}')">${c.l}</button>`).join('');
   const ING_GROUPS=buildIngGroups();
   if(!ING_GROUPS.length){document.getElementById('pickerIngChips').innerHTML='';return;}
   document.getElementById('pickerIngChips').innerHTML=
-    `<button class="cuis-chip ${pickerIngFilter==='alle'?'active':''}" onclick="setPickerIng('alle')">🥘 Alle</button>`+
-    ING_GROUPS.map(g=>`<button class="cuis-chip ${g.k===pickerIngFilter?'active':''}" onclick="setPickerIng('${g.k}')">${g.l}</button>`).join('');
+    `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Tags:</span>`+
+    `<button class="chip ${pickerIngFilter==='alle'?'active':''}" onclick="setPickerIng('alle')">🥘 Alle</button>`+
+    ING_GROUPS.map(g=>`<button class="chip ${g.k===pickerIngFilter?'active':''}" onclick="setPickerIng('${g.k}')">${g.l}</button>`).join('');
 }
 function setPickerCuis(c){pickerCuisFilter=c;buildPickerChips();renderPickerList();}
 function setPickerIng(k){pickerIngFilter=k;buildPickerChips();renderPickerList();}
@@ -4348,7 +4396,9 @@ function openNewWeekModal(){
 function buildNwCuisChips(){
   const usedCuisines=new Set(S.cookbook.map(r=>r.cuisine).filter(Boolean));
   const chips=CUISINE_LIST.filter(c=>c.k==='alle'||usedCuisines.has(c.k));
-  document.getElementById('nwCuisChips').innerHTML=chips.map(c=>`<button class="cuis-chip ${c.k===nwCuisFilter?'active':''}" onclick="setNwCuis('${c.k}')">${c.l}</button>`).join('');
+  document.getElementById('nwCuisChips').innerHTML=
+    `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Køkken:</span>`+
+    chips.map(c=>`<button class="chip ${c.k===nwCuisFilter?'active':''}" onclick="setNwCuis('${c.k}')">${c.l}</button>`).join('');
 }
 function setNwCuis(c){nwCuisFilter=c;buildNwCuisChips();shuffleNewWeek();}
 function toggleNwLock(idx){nwLocked[idx]=!nwLocked[idx];renderNwGrid();}
@@ -4849,8 +4899,14 @@ body {
 }
 
 function printRecipe(){
-  const idx=S.selectedMeal;
-  const m=(idx!=null&&S.meals[idx]?.name)?S.meals[idx]:null;
+  // Use currentViewedRecipe if set (cookbook view), else fall back to meal plan
+  let m=null;
+  if(currentViewedRecipe){
+    m=currentViewedRecipe;
+  } else {
+    const idx=S.selectedMeal;
+    m=(idx!=null&&S.meals[idx]?.name)?S.meals[idx]:null;
+  }
   if(!m){toast('Vælg en opskrift først');return;}
   normalizeRecipe(m);
   const scale=recipeScale;
