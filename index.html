@@ -581,12 +581,12 @@ body {
 
 /* Legacy recipe view classes */
 .slabel {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   color: var(--c-book);
-  margin: 16px 0 8px;
+  margin: 12px 0 6px;
 }
 .ing-row {
   display: flex;
@@ -598,6 +598,75 @@ body {
   border-radius: 10px;
   margin-bottom: 5px;
   font-size: 14px;
+}
+
+/* Compact recipe layout (for opskrifter med mange delretter) */
+.recipe-section-title-bar {
+  margin-top: 18px;
+  padding: 8px 14px;
+  background: var(--c-book-soft);
+  color: var(--c-book);
+  border: 1px solid var(--c-book-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.recipe-section-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 2fr);
+  gap: 18px;
+  margin-bottom: 14px;
+  align-items: start;
+}
+.recipe-section-col { min-width: 0; }
+.ing-row-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 10px;
+  font-size: 13px;
+  border-bottom: 1px dotted var(--border);
+  gap: 8px;
+}
+.ing-row-compact:last-child { border-bottom: none; }
+.ing-name {
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+.step-row-compact {
+  display: flex;
+  gap: 9px;
+  padding: 6px 0;
+  align-items: flex-start;
+}
+.step-num-sm {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c-book);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.step-txt-sm {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+@media (max-width: 700px) {
+  .recipe-section-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 .ing-qty {
   font-weight: 700;
@@ -1441,7 +1510,10 @@ body {
           <div style="font-size:13px;color:var(--text-mute)"><span id="bookCount">0 opskrifter</span></div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="openAddRecipeModal()">➕ Tilføj opskrift</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm btn-sm-muted" onclick="openTagManager()" title="Administrér tags">🏷️ Tags</button>
+        <button class="btn btn-primary" onclick="openAddRecipeModal()">➕ Tilføj opskrift</button>
+      </div>
     </div>
     <div class="book-search-row">
       <div class="book-search">
@@ -1797,6 +1869,36 @@ body {
   </div>
 </div>
 
+<!-- TAG MANAGER MODAL -->
+<div class="overlay" id="tagManagerOverlay">
+  <div class="modal" style="max-width:620px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+      <div>
+        <div class="modal-title">🏷️ Administrér ingredienstags</div>
+        <div class="modal-sub" style="margin-bottom:0">Tilføj, omdøb eller slet tags. Ændringer opdaterer alle opskrifter.</div>
+      </div>
+      <button onclick="closeOverlay('tagManagerOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--hint);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
+
+    <div style="background:var(--c-book-soft);border:1px solid var(--c-book-border);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--c-book);line-height:1.5">
+      💡 Tags bruges til at filtrere opskrifter i kogebogen. Omdøber du et tag her, opdateres alle opskrifter der bruger det.
+    </div>
+
+    <!-- Add new tag -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input class="form-input" id="newTagInput" placeholder="Nyt tag (fx kylling, grøntsager...)" onkeydown="if(event.key==='Enter')addNewTag()" style="flex:1">
+      <button class="btn btn-primary" onclick="addNewTag()">➕ Tilføj</button>
+    </div>
+
+    <!-- Tag list -->
+    <div id="tagManagerList" style="max-height:50vh;overflow-y:auto;margin-bottom:8px"></div>
+
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('tagManagerOverlay')">Luk</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD COMMON ITEM MODAL -->
 <div class="overlay center" id="addCommonOverlay">
   <div class="modal floating" style="max-width:420px">
@@ -1948,6 +2050,7 @@ let bookCuisFilter = 'alle';
 let bookIngFilter = 'alle';
 let expandedBookId = null;
 let recipeScale = 1;
+let currentViewedRecipe = null; // The recipe currently shown in opskrift view (could be from meal plan OR cookbook)
 let nutritionViewMode = 'portion'; // 'portion' | 'total' | 'plate'
 let plateWeight = 250; // grams, for 'plate' mode
 
@@ -2042,6 +2145,9 @@ function switchTab(id,btn){
   if(id==='indkoeb'){if(!S.aggregated)runAggregation();renderQuickAdd();}
   if(id==='opskriftbog')renderBook();
   if(id==='bank')renderBank();
+  // Clear viewed recipe state when leaving opskrift tab
+  if(id!=='opskrift')currentViewedRecipe=null;
+  pushNavState({type:'tab',id});
 }
 
 // ── STORAGE (IndexedDB + localStorage fallback) ──────────────────
@@ -2579,9 +2685,68 @@ function scaleAmount(amtStr, factor){
 }
 
 function renderRecipe(){
-  const el=document.getElementById('recipeContent');const idx=S.selectedMeal;
+  const el=document.getElementById('recipeContent');
+  // Prefer currentViewedRecipe if set (from cookbook), else fall back to meal plan
+  if(currentViewedRecipe){
+    renderRecipeContent(el, currentViewedRecipe, currentViewedRecipe._dayLabel||'Kogebog');
+    return;
+  }
+  const idx=S.selectedMeal;
   if(idx===null||idx===undefined||!S.meals[idx]?.name){el.innerHTML=`<div class="empty-state"><div class="eicon">📖</div><p>Vælg en ret fra <strong>Madplanen</strong></p></div>`;return;}
   renderRecipeContent(el, S.meals[idx], S.meals[idx].day);
+}
+
+function setRecipeScale(n){
+  recipeScale=n;
+  renderRecipe();
+}
+
+// ── BROWSER NAVIGATION (back/forward) ────────────────────────────
+let _navInternal = false;
+function pushNavState(state){
+  if(_navInternal)return; // Don't push during a popstate handler
+  try{history.pushState(state,'',location.href);}catch(e){}
+}
+window.addEventListener('popstate',function(e){
+  _navInternal=true;
+  try{
+    const s=e.state;
+    if(!s){
+      // No state — go to default tab (madplan)
+      navigateToTab('madplan');
+    } else if(s.type==='tab'){
+      navigateToTab(s.id);
+    } else if(s.type==='recipe'){
+      // Show meal plan recipe
+      currentViewedRecipe=null;
+      S.selectedMeal=s.idx;
+      renderRecipe();
+      navigateToTab('opskrift',true);
+    } else if(s.type==='bookRecipe'){
+      // Show cookbook recipe
+      const r=S.cookbook.find(x=>x.id===s.id);
+      if(r){
+        currentViewedRecipe={...r,_dayLabel:'Kogebog'};
+        renderRecipeContent(document.getElementById('recipeContent'),currentViewedRecipe,'Kogebog');
+        navigateToTab('opskrift',true);
+      }
+    }
+  }finally{_navInternal=false;}
+});
+
+function navigateToTab(id,skipPush){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const sec=document.getElementById(id);
+  if(sec)sec.classList.add('active');
+  // Find matching tab button
+  document.querySelectorAll('.tab').forEach(t=>{
+    if(t.getAttribute('onclick')?.includes(`'${id}'`))t.classList.add('active');
+  });
+  if(id==='indkoeb'){if(!S.aggregated)runAggregation();renderQuickAdd();}
+  if(id==='opskriftbog')renderBook();
+  if(id==='bank')renderBank();
+  if(!skipPush)pushNavState({type:'tab',id});
 }
 
 function renderRecipeContent(el, m, dayLabel){
@@ -2626,25 +2791,33 @@ function renderRecipeContent(el, m, dayLabel){
     <div class="slabel" style="margin:0">${hasMultipleSections?'Opskriften har flere delretter':'Ingredienser & fremgangsmåde'}</div>
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:.72rem;color:var(--muted)">Skaler:</span>
-      ${[1,2,3,4].map(n=>`<button onclick="recipeScale=${n};renderRecipe()" style="padding:3px 9px;border-radius:20px;border:1.5px solid ${scale===n?'var(--green)':'var(--border)'};background:${scale===n?'var(--green)':'var(--cream)'};color:${scale===n?'white':'var(--muted)'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${n}×</button>`).join('')}
+      ${[1,2,3,4].map(n=>`<button onclick="setRecipeScale(${n})" style="padding:3px 9px;border-radius:20px;border:1.5px solid ${scale===n?'var(--green)':'var(--border)'};background:${scale===n?'var(--green)':'var(--cream)'};color:${scale===n?'white':'var(--muted)'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${n}×</button>`).join('')}
     </div>
   </div>
   ${sections.map((sec,si)=>`
-    ${sec.title?`<div style="margin-top:${si>0?'22px':'14px'};padding:10px 14px;background:var(--green);color:white;border-radius:var(--radius-sm);font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:500">${sec.title}</div>`:''}
-    ${(sec.ingredients||[]).length?`<div class="slabel" style="margin-top:12px">Ingredienser</div>`:''}
-    ${(sec.ingredients||[]).map(ing=>`<div class="ing-row"><span>${ing.name}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
-    ${(sec.steps||[]).length?`<div class="slabel" style="margin-top:12px">Fremgangsmåde</div>`:''}
-    ${(sec.steps||[]).map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`).join('')}
+    ${sec.title?`<div class="recipe-section-title-bar">${sec.title}</div>`:''}
+    <div class="recipe-section-grid">
+      ${(sec.ingredients||[]).length?`<div class="recipe-section-col">
+        <div class="slabel">Ingredienser</div>
+        ${(sec.ingredients||[]).map(ing=>`<div class="ing-row-compact"><span class="ing-name">${ing.name}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
+      </div>`:''}
+      ${(sec.steps||[]).length?`<div class="recipe-section-col">
+        <div class="slabel">Fremgangsmåde</div>
+        ${(sec.steps||[]).map((s,i)=>`<div class="step-row-compact"><div class="step-num-sm">${i+1}</div><div class="step-txt-sm">${s}</div></div>`).join('')}
+      </div>`:''}
+    </div>
   `).join('')}`;
 }
 
 function showRecipe(idx){
+  currentViewedRecipe=null; // Clear cookbook view, use meal plan
   S.selectedMeal=idx; recipeScale=1; renderRecipe();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('opskrift').classList.add('active');
   document.querySelectorAll('.tab')[2].classList.add('active');
   save();
+  pushNavState({type:'recipe',idx});
 }
 
 // ── COOKBOOK ─────────────────────────────────────────────────────
@@ -2688,24 +2861,7 @@ function renderBookCards(){
   });
   document.getElementById('bookCount').textContent=`${pool.length} / ${S.cookbook.length} opskrifter`;
 
-  // Build stats bar
-  const totalCount=S.cookbook.length;
-  const favCount=S.cookbook.filter(r=>r.favorite).length;
-  const weekCount=(S.meals||[]).filter(m=>m?.id).length;
-  const statsHtml=totalCount>0?`<div class="stats-grid">
-    <div class="stat-card book" onclick="setBookCuis('alle');setBookIng('alle')">
-      <div><div class="stat-label">I alt</div><div class="stat-value">${totalCount}</div></div>
-      <span class="stat-icon">📖</span>
-    </div>
-    <div class="stat-card fav">
-      <div><div class="stat-label">Favoritter</div><div class="stat-value">${favCount}</div></div>
-      <span class="stat-icon">❤️</span>
-    </div>
-    <div class="stat-card week">
-      <div><div class="stat-label">Denne uge</div><div class="stat-value">${weekCount}</div></div>
-      <span class="stat-icon">📅</span>
-    </div>
-  </div>`:'';
+  const statsHtml='';
 
   if(!S.cookbook.length){
     document.getElementById('bookContent').innerHTML=`<div class="book-empty">
@@ -2811,11 +2967,13 @@ function viewBookRecipe(e,id){
   e.stopPropagation();
   const r=S.cookbook.find(r=>r.id===id);if(!r)return;
   recipeScale=1;
-  renderRecipeContent(document.getElementById('recipeContent'),r,'Kogebog');
+  currentViewedRecipe={...r,_dayLabel:'Kogebog'};
+  renderRecipeContent(document.getElementById('recipeContent'),currentViewedRecipe,'Kogebog');
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('opskrift').classList.add('active');
   document.querySelectorAll('.tab')[2].classList.add('active');
+  pushNavState({type:'bookRecipe',id});
 }
 
 function buildIngGroups(){
@@ -3251,6 +3409,95 @@ function parseIngAmount(amtStr){
 }
 
 // Open Food Facts API search with timeout and case-fallback
+// Danish → English translation for USDA fallback search
+const DA_EN_INGS = {
+  'kylling': 'chicken', 'kyllingefilet': 'chicken breast', 'kyllingebryst': 'chicken breast',
+  'kyllingelår': 'chicken thigh', 'oksekød': 'beef', 'hakket oksekød': 'ground beef',
+  'svinekød': 'pork', 'hakket svinekød': 'ground pork', 'svinemørbrad': 'pork tenderloin',
+  'lam': 'lamb', 'kalv': 'veal', 'bacon': 'bacon', 'skinke': 'ham', 'pølse': 'sausage',
+  'laks': 'salmon', 'torsk': 'cod', 'tun': 'tuna', 'rejer': 'shrimp', 'fisk': 'fish',
+  'løg': 'onion', 'hvidløg': 'garlic', 'kartoffel': 'potato', 'kartofler': 'potato',
+  'gulerod': 'carrot', 'gulerødder': 'carrot', 'tomat': 'tomato', 'tomater': 'tomato',
+  'agurk': 'cucumber', 'salat': 'lettuce', 'spinat': 'spinach', 'kål': 'cabbage',
+  'broccoli': 'broccoli', 'blomkål': 'cauliflower', 'squash': 'zucchini',
+  'aubergine': 'eggplant', 'peberfrugt': 'bell pepper', 'champignon': 'mushroom',
+  'porrer': 'leek', 'selleri': 'celery', 'forårsløg': 'spring onion',
+  'æble': 'apple', 'æbler': 'apple', 'banan': 'banana', 'citron': 'lemon', 'lime': 'lime',
+  'avocado': 'avocado', 'mango': 'mango', 'bær': 'berries', 'jordbær': 'strawberry',
+  'mælk': 'milk', 'sødmælk': 'whole milk', 'letmælk': 'skim milk', 'fløde': 'cream',
+  'piskefløde': 'heavy cream', 'smør': 'butter', 'ost': 'cheese', 'parmesan': 'parmesan',
+  'mozzarella': 'mozzarella', 'feta': 'feta', 'cheddar': 'cheddar', 'yoghurt': 'yogurt',
+  'skyr': 'skyr', 'æg': 'egg', 'æggehvide': 'egg white', 'æggeblomme': 'egg yolk',
+  'brød': 'bread', 'rugbrød': 'rye bread', 'toastbrød': 'white bread', 'franskbrød': 'white bread',
+  'pasta': 'pasta', 'spaghetti': 'spaghetti', 'penne': 'penne', 'lasagne': 'lasagna',
+  'ris': 'rice', 'basmati': 'basmati rice', 'quinoa': 'quinoa', 'havregryn': 'oats',
+  'mel': 'flour', 'hvedemel': 'wheat flour', 'sukker': 'sugar', 'honning': 'honey',
+  'olie': 'oil', 'olivenolie': 'olive oil', 'rapsolie': 'canola oil', 'sesamolie': 'sesame oil',
+  'salt': 'salt', 'peber': 'pepper', 'sojasauce': 'soy sauce', 'eddike': 'vinegar',
+  'balsamico': 'balsamic vinegar', 'sennep': 'mustard', 'ketchup': 'ketchup',
+  'mayonnaise': 'mayonnaise', 'kokosmælk': 'coconut milk', 'kokosolie': 'coconut oil',
+  'kikærter': 'chickpeas', 'linser': 'lentils', 'sorte bønner': 'black beans',
+  'kidneybønner': 'kidney beans', 'mandler': 'almonds', 'valnødder': 'walnuts',
+  'cashewnødder': 'cashews', 'chokolade': 'chocolate', 'kakao': 'cocoa',
+};
+
+function translateToEnglish(danish){
+  const n=danish.toLowerCase().trim();
+  if(DA_EN_INGS[n])return DA_EN_INGS[n];
+  // Try matching individual words
+  const words=n.split(/\s+/);
+  for(const w of words){
+    if(DA_EN_INGS[w])return DA_EN_INGS[w];
+  }
+  // Fallback: return original
+  return danish;
+}
+
+// USDA FoodData Central search (fallback for Open Food Facts)
+// Uses DEMO_KEY — limited but no signup required
+async function searchUSDA(query){
+  const translated=translateToEnglish(query);
+  const url=`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(translated)}&pageSize=8&dataType=Foundation,SR%20Legacy`;
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),8000);
+  try{
+    const res=await fetch(url,{signal:ctrl.signal});
+    clearTimeout(timer);
+    if(!res.ok)throw new Error('USDA API '+res.status);
+    const data=await res.json();
+    const foods=data.foods||[];
+    // Transform to OFF-compatible format
+    return foods.map(f=>{
+      const n={};
+      (f.foodNutrients||[]).forEach(nut=>{
+        const id=nut.nutrientId||nut.nutrientNumber;
+        const val=nut.value||nut.amount||0;
+        // USDA nutrient IDs: 1008=energy(kcal), 1003=protein, 1005=carbs, 1004=fat
+        if(id===1008||nut.nutrientNumber==='208'||nut.nutrientName?.includes('Energy'))n['energy-kcal_100g']=val;
+        if(id===1003||nut.nutrientNumber==='203')n['proteins_100g']=val;
+        if(id===1005||nut.nutrientNumber==='205')n['carbohydrates_100g']=val;
+        if(id===1004||nut.nutrientNumber==='204')n['fat_100g']=val;
+      });
+      return {
+        code:'usda-'+f.fdcId,
+        product_name:f.description,
+        product_name_da:null,
+        brands:f.brandOwner||f.brandName||'USDA',
+        nutriments:n,
+        countries:'USA',
+        _source:'usda',
+      };
+    }).filter(p=>{
+      const n=p.nutriments;
+      return n['energy-kcal_100g']!=null&&n['energy-kcal_100g']>0;
+    });
+  }catch(e){
+    clearTimeout(timer);
+    console.error('USDA search failed:',e);
+    return [];
+  }
+}
+
 async function searchOFF(query){
   // Normalize: trim, remove brand parens, capitalize first letter as common variant
   const cleaned=query.trim().replace(/\([^)]*\)/g,'').trim();
@@ -3291,6 +3538,14 @@ async function searchOFF(query){
   // Try first word only as last resort (e.g. "Tomat dåse" → "Tomat")
   if(!products.length&&cleaned.includes(' ')){
     products=await tryQuery(cleaned.split(/\s+/)[0]);
+  }
+
+  // FINAL FALLBACK: Try USDA FoodData Central (English translation)
+  if(!products.length){
+    try{
+      const usdaResults=await searchUSDA(cleaned);
+      if(usdaResults.length)products=usdaResults;
+    }catch(e){/* silent fallback fail */}
   }
 
   // Sort: Danish products first
@@ -3768,11 +4023,108 @@ function fillManualForm(r){
 function renderExistingTags(){
   const el=document.getElementById('arExistingTags');
   if(!el)return;
-  const allTags=new Set();
-  S.cookbook.forEach(r=>(r.mainIngredients||[]).forEach(t=>allTags.add(t)));
-  const tags=[...allTags].sort();
-  if(!tags.length){el.innerHTML='<em style="color:var(--text-hint)">ingen endnu</em>';return;}
-  el.innerHTML=tags.slice(0,15).map(t=>`<button type="button" onclick="addTagToField('${t.replace(/'/g,"\\'")}')"  style="background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 9px;font-size:11px;color:var(--text-soft);cursor:pointer;margin:2px;font-family:inherit">+ ${t}</button>`).join('');
+  const allTags=getAllTags();
+  if(!allTags.length){el.innerHTML='<em style="color:var(--text-hint)">ingen endnu</em>';return;}
+  el.innerHTML=allTags.slice(0,15).map(t=>`<button type="button" onclick="addTagToField('${t.replace(/'/g,"\\'")}')"  style="background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 9px;font-size:11px;color:var(--text-soft);cursor:pointer;margin:2px;font-family:inherit">+ ${t}</button>`).join('');
+}
+
+// ── TAG MANAGEMENT ───────────────────────────────────────────────
+function getAllTags(){
+  const tagSet=new Set();
+  S.cookbook.forEach(r=>(r.mainIngredients||[]).forEach(t=>tagSet.add(t)));
+  return [...tagSet].sort((a,b)=>a.localeCompare(b,'da'));
+}
+
+function openTagManager(){
+  renderTagManagerList();
+  document.getElementById('newTagInput').value='';
+  document.getElementById('tagManagerOverlay').classList.add('open');
+}
+
+function renderTagManagerList(){
+  const el=document.getElementById('tagManagerList');
+  if(!el)return;
+  const tags=getAllTags();
+  if(!tags.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-mute);font-size:13px">Ingen tags endnu — tilføj dit første ovenfor eller via opskriftsredigering.</div>';
+    return;
+  }
+  el.innerHTML=tags.map(t=>{
+    const count=S.cookbook.filter(r=>(r.mainIngredients||[]).includes(t)).length;
+    const safe=t.replace(/'/g,"\\'");
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--bg-card)">
+      <span style="flex:1;font-size:14px;font-weight:500">🏷️ ${t}</span>
+      <span style="font-size:11px;color:var(--text-mute);background:var(--bg-soft);padding:2px 8px;border-radius:999px">${count} opskrift${count!==1?'er':''}</span>
+      <button onclick="renameTag('${safe}')" title="Omdøb" style="background:var(--c-book-soft);border:1px solid var(--c-book-border);color:var(--c-book);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✏️</button>
+      <button onclick="deleteTag('${safe}')" title="Slet" style="background:var(--c-fav-soft);border:1px solid var(--c-fav-border);color:var(--c-fav);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function addNewTag(){
+  const input=document.getElementById('newTagInput');
+  const name=input.value.trim();
+  if(!name){toast('Skriv et tag-navn');return;}
+  const existing=getAllTags();
+  if(existing.some(t=>t.toLowerCase()===name.toLowerCase())){
+    toast('Tagget findes allerede');return;
+  }
+  // A tag only "exists" if it's on a recipe — so we can't really "create" one in isolation.
+  // We inform the user they need to attach it to at least one recipe.
+  uiConfirm(`Tilføj "${name}" som nyt tag?`,'Da tags er knyttet til opskrifter, oprettes tagget først når du bruger det på mindst én opskrift. Vil du åbne den første opskrift og tilføje tagget der?',()=>{
+    if(!S.cookbook.length){
+      toast('Du har ingen opskrifter endnu');
+      closeOverlay('tagManagerOverlay');
+      return;
+    }
+    // Add tag to first recipe to "create" it globally
+    const first=S.cookbook[0];
+    if(!first.mainIngredients)first.mainIngredients=[];
+    if(!first.mainIngredients.includes(name))first.mainIngredients.push(name);
+    save();
+    input.value='';
+    renderTagManagerList();
+    renderBook();
+    toast(`Tagget "${name}" tilføjet på "${first.name}"`);
+  },'➕ Tilføj');
+}
+
+function renameTag(oldTag){
+  // Show inline prompt using confirm modal pattern
+  const newName=window.prompt(`Omdøb "${oldTag}" til:`, oldTag);
+  if(newName===null)return;
+  const trimmed=newName.trim();
+  if(!trimmed||trimmed===oldTag)return;
+  const existing=getAllTags();
+  if(existing.some(t=>t.toLowerCase()===trimmed.toLowerCase()&&t!==oldTag)){
+    toast('Det nye navn findes allerede');return;
+  }
+  let count=0;
+  S.cookbook.forEach(r=>{
+    if(r.mainIngredients&&r.mainIngredients.includes(oldTag)){
+      r.mainIngredients=r.mainIngredients.map(t=>t===oldTag?trimmed:t);
+      count++;
+    }
+  });
+  save();
+  renderTagManagerList();
+  renderBook();
+  toast(`"${oldTag}" → "${trimmed}" (${count} opskrift${count!==1?'er':''})`);
+}
+
+function deleteTag(tag){
+  const count=S.cookbook.filter(r=>(r.mainIngredients||[]).includes(tag)).length;
+  uiConfirm(`Slet tag "${tag}"?`,`Tagget fjernes fra ${count} opskrift${count!==1?'er':''}. Opskrifterne selv slettes IKKE.`,()=>{
+    S.cookbook.forEach(r=>{
+      if(r.mainIngredients){
+        r.mainIngredients=r.mainIngredients.filter(t=>t!==tag);
+      }
+    });
+    save();
+    renderTagManagerList();
+    renderBook();
+    toast(`"${tag}" slettet`);
+  },'🗑️ Slet');
 }
 
 function addTagToField(tag){
