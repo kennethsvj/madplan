@@ -4162,6 +4162,101 @@ function computeIngNutrition(ingState){
   };
 }
 
+// Build a unified list of units for an ingredient based on its type.
+// Each unit has: {key, label, gramsPerUnit, isVariant}
+// "Variant" means it changes the kind of food (eg. "8% fedt" for hakket kød) — these have their own kcal100 values
+function buildUnitsForIng(ingType){
+  const units=[];
+  // Always offer raw weight units
+  units.push({key:'g',label:'g',gramsPerUnit:1});
+  units.push({key:'kg',label:'kg',gramsPerUnit:1000});
+
+  if(ingType.type==='spice'){
+    // 0-kcal items — only show "efter smag"
+    units.unshift({key:'taste',label:'efter smag',gramsPerUnit:0});
+    return units;
+  }
+
+  if(ingType.type==='fixed'){
+    // Hvidløg (3g/fed), ingefær (5g/cm)
+    units.unshift({key:ingType.unitName,label:ingType.unitName,gramsPerUnit:ingType.gPerUnit});
+  }
+
+  if(ingType.type==='spoon'){
+    // Olie, smør, honning etc.
+    units.unshift({key:'spsk',label:'spsk',gramsPerUnit:ingType.gPerSpsk||14});
+    units.unshift({key:'tsk',label:'tsk',gramsPerUnit:ingType.gPerTsk||5});
+    // Also offer dl/ml for liquids
+    units.push({key:'dl',label:'dl',gramsPerUnit:100});
+    units.push({key:'ml',label:'ml',gramsPerUnit:1});
+  }
+
+  if(ingType.type==='fixed-density'){
+    // Pasta, ris, mel, dåsemad — typically measured in g but sometimes dl
+    units.unshift({key:'dl',label:'dl',gramsPerUnit:80}); // approximate density
+    units.unshift({key:'spsk',label:'spsk',gramsPerUnit:12});
+    units.unshift({key:'tsk',label:'tsk',gramsPerUnit:4});
+  }
+
+  if(ingType.type==='piece'||ingType.type==='slice'){
+    // Æg (S/M/L), løg (lille/mellem/stor), kartoffel etc.
+    const sizes=ingType.sizes||[];
+    sizes.forEach((s,si)=>{
+      units.unshift({
+        key:`size-${si}`,
+        label:s.label,
+        gramsPerUnit:s.g,
+        isPieceSize:true,
+        sizeIdx:si
+      });
+    });
+  }
+
+  if(ingType.type==='meat-fat'){
+    // Hakket kød, fløde, mælk, yoghurt — variants change nutrition
+    // These get a separate "variant" dropdown, and units stay just [g, kg]
+    return units; // variants are handled separately via ing.optionIdx
+  }
+
+  return units;
+}
+
+// Get default unit for an ingredient based on its parsed amount
+function defaultUnitForIng(parsed,ingType,units){
+  // Prefer the unit from parsed amount if it matches
+  if(parsed.kind==='weight')return units.find(u=>u.key==='g');
+  if(parsed.kind==='volume'){
+    if(parsed.unit==='ml')return units.find(u=>u.key==='ml')||units.find(u=>u.key==='dl');
+    return units.find(u=>u.key==='dl');
+  }
+  if(parsed.kind==='spoon')return units.find(u=>u.key===parsed.unit);
+  if(parsed.kind==='piece'){
+    // Look for a piece-size with default flag
+    const sizes=ingType.sizes||[];
+    const defaultSizeIdx=sizes.findIndex(s=>s.default);
+    if(defaultSizeIdx>=0){
+      return units.find(u=>u.sizeIdx===defaultSizeIdx)||units.find(u=>u.isPieceSize);
+    }
+    // Or fixed unit (fed, cm)
+    if(ingType.type==='fixed')return units.find(u=>u.key===ingType.unitName);
+  }
+  // Default for spices: "efter smag"
+  if(ingType.type==='spice')return units.find(u=>u.key==='taste')||units[0];
+  return units[0];
+}
+
+// Recalculate grams for an ingredient based on current amount + unit
+function recalcIngGrams(ing){
+  const amt=parseFloat(ing.amount)||0;
+  if(!ing.selectedUnit){ing.grams=0;return;}
+  ing.grams=amt*(ing.selectedUnit.gramsPerUnit||0);
+  // For piece-size units, also update sizeIdx so older code works
+  if(ing.selectedUnit.isPieceSize){
+    ing.sizeIdx=ing.selectedUnit.sizeIdx;
+  }
+  ing.nutrition=computeIngNutrition(ing);
+}
+
 // Convert {amount, ingType} → grams
 function calculateGrams(parsed,ingType,sizeIdx,customGrams){
   if(parsed.kind==='weight')return parsed.value;
@@ -4252,10 +4347,26 @@ async function openNutritionRefinement(recipeId){
       match={...cached,source:'cache'};
     }
     const grams=calculateGrams(parsed,ingType);
+    const units=buildUnitsForIng(ingType);
+    const selectedUnit=defaultUnitForIng(parsed,ingType,units);
+    // Determine initial amount in selected unit
+    let amount=parsed.value||1;
+    if(parsed.kind==='weight'&&selectedUnit?.key==='g')amount=parsed.value;
+    else if(parsed.kind==='volume'&&parsed.unit==='ml'&&selectedUnit?.key==='ml')amount=parsed.value;
+    else if(parsed.kind==='volume'&&parsed.unit==='ml'&&selectedUnit?.key==='dl')amount=parsed.value/100;
+    else if(parsed.kind==='spoon')amount=parsed.value;
+    else if(parsed.kind==='piece')amount=parsed.value;
+    else if(parsed.kind==='taste')amount=0;
     nutSession.ingredients.push({
       idx:i,raw:ing,parsed,ingType,sizeIdx:null,customGrams:null,
-      match,optionIdx,grams,nutrition:null,searching:false
+      match,optionIdx,grams,nutrition:null,searching:false,
+      amount,units,selectedUnit
     });
+    // Recalculate grams using new unit-based system
+    if(selectedUnit){
+      nutSession.ingredients[i].grams=amount*(selectedUnit.gramsPerUnit||0);
+      if(selectedUnit.isPieceSize)nutSession.ingredients[i].sizeIdx=selectedUnit.sizeIdx;
+    }
     nutSession.ingredients[i].nutrition=computeIngNutrition(nutSession.ingredients[i]);
   });
 
@@ -4292,8 +4403,12 @@ async function autoMatchIng(i){
         fat100:p.nutriments?.['fat_100g']||0,
         source:'auto'
       };
-      ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
-      ing.nutrition=computeIngNutrition(ing);
+      if(ing.selectedUnit){
+        recalcIngGrams(ing);
+      } else {
+        ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
+        ing.nutrition=computeIngNutrition(ing);
+      }
     }
   }catch(e){console.error('OFF search failed for',ing.raw.name,e);}
   ing.searching=false;
@@ -4312,77 +4427,162 @@ function renderNutritionList(){
     }
   });
   const portions=nutSession.portions||4;
-  const hasUncached=nutSession.ingredients.some(ing=>!ing.match&&!['spice','fixed','fixed-density','meat-fat'].includes(ing.ingType.type)&&!(ing.ingType.type==='spoon'&&ing.ingType.kcal100!=null));
+  const viewMode=nutSession.viewMode||'portion'; // 'portion' or 'total'
+  const divisor=viewMode==='portion'?portions:1;
+  const viewLabel=viewMode==='portion'?'Per portion':'Hele opskriften';
+  const hasUncached=nutSession.ingredients.some(ing=>!ing.match&&ing.ingType.type!=='spice');
 
   document.getElementById('nutLiveTotal').innerHTML=`
     <div style="flex:1;min-width:200px">
-      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:2px">Per portion</div>
-      <div style="font-size:1.4rem;font-weight:700;font-family:'Playfair Display',serif">🔥 ${Math.round(totalKcal/portions)} kcal</div>
-      <div style="display:flex;gap:10px;font-size:.74rem;margin-top:4px;flex-wrap:wrap">
-        <span>🥩 <strong>${Math.round(totalP/portions*10)/10}g</strong></span>
-        <span>🌾 <strong>${Math.round(totalC/portions*10)/10}g</strong></span>
-        <span>🥑 <strong>${Math.round(totalF/portions*10)/10}g</strong></span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <button onclick="setNutritionView('portion')" style="background:${viewMode==='portion'?'rgba(255,255,255,.35)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Per portion</button>
+        <button onclick="setNutritionView('total')" style="background:${viewMode==='total'?'rgba(255,255,255,.35)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Hele opskriften</button>
+      </div>
+      <div id="nutTotalKcal" style="font-size:1.5rem;font-weight:700">🔥 ${Math.round(totalKcal/divisor)} kcal</div>
+      <div id="nutTotalMacros" style="display:flex;gap:12px;font-size:13px;margin-top:4px;flex-wrap:wrap">
+        <span>🥩 <strong>${Math.round(totalP/divisor*10)/10}g</strong></span>
+        <span>🌾 <strong>${Math.round(totalC/divisor*10)/10}g</strong></span>
+        <span>🥑 <strong>${Math.round(totalF/divisor*10)/10}g</strong></span>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
       <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:.7rem;opacity:.8">Portioner:</span>
-        <button onclick="setPortions(${Math.max(1,portions-1)})" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;font-weight:700">−</button>
-        <span style="font-size:.95rem;font-weight:700;min-width:18px;text-align:center">${portions}</span>
-        <button onclick="setPortions(${portions+1})" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;width:24px;height:24px;border-radius:50%;cursor:pointer;font-weight:700">+</button>
+        <span style="font-size:11px;opacity:.85">Portioner:</span>
+        <button onclick="setPortions(${Math.max(1,portions-1)})" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700">−</button>
+        <span style="font-size:14px;font-weight:700;min-width:18px;text-align:center">${portions}</span>
+        <button onclick="setPortions(${portions+1})" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700">+</button>
       </div>
-      ${hasUncached?`<button onclick="autoMatchAllRemaining()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:4px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">🔄 Auto-match resterende</button>`:''}
+      ${hasUncached?`<button onclick="autoMatchAllRemaining()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:5px 12px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🔄 Auto-match resterende</button>`:''}
+      <button onclick="openPlateModeModal()" title="Indstil portion baseret på vægt på tallerken" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:5px 12px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">⚖️ Min tallerken</button>
     </div>`;
 
   document.getElementById('nutIngList').innerHTML=nutSession.ingredients.map((ing,i)=>{
     const isSpice=ing.ingType.type==='spice';
-    const isFixed=ing.ingType.type==='fixed';
-    let matchHtml='';
+    const hasMatch=!!ing.match;
+    const isVariantType=ing.ingType.type==='meat-fat'; // has variant selector
+
+    // Match status indicator
+    let statusBorder='var(--border)';
+    let statusBg='var(--bg-card)';
+    let matchInfo='';
     if(ing.searching){
-      matchHtml=`<div style="font-size:.74rem;color:var(--muted);font-style:italic"><span class="spinner" style="width:10px;height:10px;border-color:var(--border);border-top-color:var(--green-mid);vertical-align:middle"></span> Søger…</div>`;
+      matchInfo=`<span style="font-size:11px;color:var(--text-mute);font-style:italic"><span class="spinner" style="width:10px;height:10px;border-color:var(--border);border-top-color:var(--c-shop);vertical-align:middle"></span> Søger…</span>`;
     } else if(isSpice){
-      matchHtml=`<div style="font-size:.74rem;color:var(--hint)">Krydderi — udelades fra beregning</div>`;
-    } else if(isFixed){
-      matchHtml=`<div style="font-size:.74rem;color:var(--hint)">Fast: ${ing.ingType.gPerUnit}g per ${ing.ingType.unitName}</div>`;
-    } else if(ing.match){
-      const srcLabel=ing.match.source==='cache'?'💾 Cached':(ing.match.source==='preset'?'⚙️ Forindstillet':(ing.match.source==='manual'?'✓ Valgt':'🤖 Auto'));
-      matchHtml=`<div style="font-size:.74rem;color:var(--green-mid)"><strong>${srcLabel}:</strong> ${ing.match.name}${ing.match.brand?' · '+ing.match.brand:''} <span style="color:var(--muted)">(${ing.match.kcal100} kcal/100g)</span></div>`;
+      statusBorder='var(--border)';
+      statusBg='var(--bg-soft)';
+      matchInfo=`<span style="font-size:11px;color:var(--text-mute);font-style:italic">(efter smag — 0 kcal)</span>`;
+    } else if(hasMatch){
+      statusBorder='var(--c-shop-border)';
+      const srcLabel=ing.match.source==='cache'?'💾 Bank':(ing.match.source==='preset'?'⚙️ Preset':(ing.match.source==='manual'?'✓ Valgt':(ing.match.source==='usda'?'🇺🇸 USDA':'🌍 OFF')));
+      matchInfo=`<span style="font-size:11px;color:var(--c-shop);font-weight:600">${srcLabel}: ${ing.match.name||ing.raw.name}${ing.match.brand?` · ${ing.match.brand}`:''}</span>`;
     } else {
-      matchHtml=`<div style="font-size:.74rem;color:var(--offer)">⚠️ Intet match — tryk søg</div>`;
+      statusBorder='var(--c-plan-border)';
+      statusBg='var(--c-plan-soft)';
+      matchInfo=`<span style="font-size:11px;color:var(--c-plan);font-weight:600">⚠️ Intet match — tryk søg</span>`;
     }
 
-    // Size selector based on type
-    let sizeHtml='';
-    if(ing.ingType.type==='meat-fat'){
-      sizeHtml=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
-        ${ing.ingType.options.map((opt,oi)=>`<button onclick="setMeatFat(${i},${oi})" style="padding:3px 9px;border-radius:14px;border:1px solid ${ing.optionIdx===oi?'var(--green)':'var(--border)'};background:${ing.optionIdx===oi?'var(--green)':'var(--cream)'};color:${ing.optionIdx===oi?'white':'var(--muted)'};font-size:.68rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${opt.label}</button>`).join('')}
-      </div>`;
-    } else if((ing.ingType.type==='piece'||ing.ingType.type==='slice')&&ing.parsed.kind!=='weight'){
-      const sizes=ing.ingType.sizes||[];
-      const currentIdx=ing.sizeIdx!=null?ing.sizeIdx:sizes.findIndex(s=>s.default);
-      sizeHtml=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;align-items:center">
-        ${sizes.map((s,si)=>`<button onclick="setSizeIdx(${i},${si})" style="padding:3px 9px;border-radius:14px;border:1px solid ${currentIdx===si?'var(--green)':'var(--border)'};background:${currentIdx===si?'var(--green)':'var(--cream)'};color:${currentIdx===si?'white':'var(--muted)'};font-size:.68rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${s.label}</button>`).join('')}
-        <input type="number" placeholder="Egen vægt (g)" value="${ing.customGrams||''}" oninput="setCustomGrams(${i},this.value)" style="width:110px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;font-size:.7rem;font-family:'DM Sans',sans-serif;background:var(--cream)">
-      </div>`;
-    } else if(ing.parsed.kind!=='weight'&&ing.ingType.type!=='spice'&&ing.ingType.type!=='fixed'){
-      sizeHtml=`<div style="margin-top:6px"><input type="number" placeholder="Vægt i gram" value="${ing.customGrams||Math.round(ing.grams)||''}" oninput="setCustomGrams(${i},this.value)" style="width:130px;padding:3px 8px;border:1px solid var(--border);border-radius:14px;font-size:.7rem;font-family:'DM Sans',sans-serif;background:var(--cream)"></div>`;
+    // Variant selector for meat-fat type (hakket kød variants etc.)
+    let variantHtml='';
+    if(isVariantType&&ing.ingType.options){
+      variantHtml=`<select onchange="setMeatFatFromSelect(${i},this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;background:var(--bg);color:var(--text);cursor:pointer;max-width:100%">
+        ${ing.ingType.options.map((opt,oi)=>`<option value="${oi}" ${ing.optionIdx===oi?'selected':''}>${opt.label}</option>`).join('')}
+      </select>`;
     }
 
-    const nutLabel=ing.nutrition&&!isSpice?`<div style="font-size:.7rem;color:var(--green-mid);font-weight:600;text-align:right;white-space:nowrap">${ing.nutrition.kcal} kcal<br><span style="color:var(--muted);font-weight:400">${Math.round(ing.grams)}g</span></div>`:'';
+    // Amount + unit row — the consistent input pattern
+    const units=ing.units||[];
+    const selUnitKey=ing.selectedUnit?.key||'g';
+    const amountInput=`<input type="number" step="0.1" min="0" value="${ing.amount||''}" oninput="setIngAmount(${i},this.value)" onfocus="this.select()" style="width:70px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);text-align:right;outline:none">`;
+    const unitSelect=`<select onchange="setIngUnit(${i},this.value)" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:var(--bg);cursor:pointer">
+      ${units.map(u=>`<option value="${u.key}" ${u.key===selUnitKey?'selected':''}>${u.label}</option>`).join('')}
+    </select>`;
 
-    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:6px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+    const nutLabel=ing.nutrition&&!isSpice?`<div style="text-align:right;white-space:nowrap">
+      <div style="font-size:14px;font-weight:700;color:var(--c-plan)">🔥 ${ing.nutrition.kcal}</div>
+      <div style="font-size:10px;color:var(--text-mute)">${Math.round(ing.grams)}g · ${ing.nutrition.protein}p</div>
+    </div>`:`<div style="text-align:right;white-space:nowrap">
+      <div style="font-size:12px;color:var(--text-mute)">—</div>
+    </div>`;
+
+    return`<div style="background:${statusBg};border:1px solid ${statusBorder};border-radius:11px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
         <div style="flex:1;min-width:0">
-          <div style="font-size:.85rem;font-weight:500">${ing.raw.name}</div>
-          <div style="font-size:.7rem;color:var(--hint);margin-bottom:4px">Original: ${ing.raw.amount||'(ingen mængde)'}</div>
-          ${matchHtml}
-          ${sizeHtml}
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${ing.raw.name}</div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:2px">Original: ${ing.raw.amount||'(ingen mængde)'}</div>
         </div>
         ${nutLabel}
       </div>
-      ${!isSpice&&!isFixed?`<div style="margin-top:6px;display:flex;gap:4px"><button onclick="openIngSearch(${i})" style="font-size:.68rem;padding:3px 10px;border-radius:14px;border:1px solid var(--rema);background:var(--rema-bg);color:var(--rema);font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">🔍 Søg andet</button></div>`:''}
+      ${!isSpice?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        ${amountInput}
+        <span style="color:var(--text-mute);font-size:11px">×</span>
+        ${unitSelect}
+        ${variantHtml}
+      </div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">${matchInfo}</div>
+        ${!isSpice?`<button onclick="openIngSearch(${i})" style="font-size:11px;padding:5px 12px;border-radius:14px;border:1px solid var(--c-book-border);background:var(--c-book-soft);color:var(--c-book);font-weight:600;cursor:pointer;font-family:inherit">🔍 Søg andet</button>`:''}
+      </div>
     </div>`;
   }).join('');
+}
+
+// Set amount on an ingredient — preserves focus during input
+function setIngAmount(i,val){
+  const ing=nutSession.ingredients[i];
+  const v=parseFloat(val);
+  ing.amount=isNaN(v)?0:v;
+  recalcIngGrams(ing);
+  // Update only the live totals + this row's nutrition label, not the whole list
+  updateLiveTotal();
+  // Update this row's nutrition display
+  const list=document.getElementById('nutIngList');
+  if(list){
+    const rows=list.children;
+    if(rows[i]){
+      const labelDiv=rows[i].querySelector('div[style*="text-align:right"]');
+      if(labelDiv&&ing.nutrition){
+        labelDiv.innerHTML=`<div style="font-size:14px;font-weight:700;color:var(--c-plan)">🔥 ${ing.nutrition.kcal}</div><div style="font-size:10px;color:var(--text-mute)">${Math.round(ing.grams)}g · ${ing.nutrition.protein}p</div>`;
+      }
+    }
+  }
+}
+
+function setIngUnit(i,unitKey){
+  const ing=nutSession.ingredients[i];
+  const newUnit=ing.units.find(u=>u.key===unitKey);
+  if(!newUnit)return;
+  ing.selectedUnit=newUnit;
+  recalcIngGrams(ing);
+  renderNutritionList();
+}
+
+function setMeatFatFromSelect(i,oiStr){
+  const oi=parseInt(oiStr,10);
+  setMeatFat(i,oi);
+}
+
+function setNutritionView(mode){
+  nutSession.viewMode=mode;
+  renderNutritionList();
+}
+
+function openPlateModeModal(){
+  // Simple inline prompt for plate weight
+  const cur=nutSession.plateWeight||'';
+  const v=window.prompt('Indtast vægt på tallerken (g) — appen skalerer per-portion makroer baseret på det:',cur);
+  if(v===null)return;
+  const num=parseFloat(v);
+  if(isNaN(num)||num<=0){
+    nutSession.plateWeight=null;
+    nutSession.viewMode='portion';
+  } else {
+    nutSession.plateWeight=num;
+    nutSession.viewMode='plate';
+  }
+  // Note: plate mode is computed in renderNutritionList — for now we just toggle back to portion
+  // The Min tallerken feature works in the recipe view, this is a quick access
+  toast(num>0?`Tallerken-vægt sat til ${num}g`:'Tallerken-tilstand fjernet');
+  renderNutritionList();
 }
 
 function setMeatFat(i,oi){
@@ -4390,8 +4590,13 @@ function setMeatFat(i,oi){
   ing.optionIdx=oi;
   const opt=ing.ingType.options[oi];
   ing.match={...opt,source:'preset',name:ing.raw.name+' ('+opt.label+')'};
-  ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
-  ing.nutrition=computeIngNutrition(ing);
+  // Use new amount/unit system if available, fall back to old
+  if(ing.selectedUnit){
+    recalcIngGrams(ing);
+  } else {
+    ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
+    ing.nutrition=computeIngNutrition(ing);
+  }
   renderNutritionList();
 }
 function setSizeIdx(i,si){
@@ -4417,17 +4622,15 @@ function updateLiveTotal(){
     if(ing.nutrition){totalKcal+=ing.nutrition.kcal;totalP+=ing.nutrition.protein;totalC+=ing.nutrition.carbs;totalF+=ing.nutrition.fat;}
   });
   const portions=nutSession.portions||4;
-  // Update only the kcal/macro numbers — don't replace the whole element to preserve buttons
-  const totalEl=document.getElementById('nutLiveTotal');
-  if(!totalEl)return;
-  // Find and update the kcal display
-  const kcalEl=totalEl.querySelector('div[style*="font-size:1.4rem"]');
-  if(kcalEl)kcalEl.innerHTML=`🔥 ${Math.round(totalKcal/portions)} kcal`;
-  // Update macros
-  const macroEl=totalEl.querySelectorAll('div[style*="font-size:.74rem"] span');
-  if(macroEl[0])macroEl[0].innerHTML=`🥩 <strong>${Math.round(totalP/portions*10)/10}g</strong>`;
-  if(macroEl[1])macroEl[1].innerHTML=`🌾 <strong>${Math.round(totalC/portions*10)/10}g</strong>`;
-  if(macroEl[2])macroEl[2].innerHTML=`🥑 <strong>${Math.round(totalF/portions*10)/10}g</strong>`;
+  const viewMode=nutSession.viewMode||'portion';
+  const divisor=viewMode==='portion'?portions:1;
+  const kcalEl=document.getElementById('nutTotalKcal');
+  if(kcalEl)kcalEl.innerHTML=`🔥 ${Math.round(totalKcal/divisor)} kcal`;
+  const macroEl=document.getElementById('nutTotalMacros');
+  if(macroEl)macroEl.innerHTML=`
+    <span>🥩 <strong>${Math.round(totalP/divisor*10)/10}g</strong></span>
+    <span>🌾 <strong>${Math.round(totalC/divisor*10)/10}g</strong></span>
+    <span>🥑 <strong>${Math.round(totalF/divisor*10)/10}g</strong></span>`;
 }
 
 function setPortions(n){
@@ -4508,8 +4711,12 @@ function selectIngMatch(idx){
   };
   // Remember this match in cache for next time
   rememberMatch(ing.raw.name,p);
-  ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
-  ing.nutrition=computeIngNutrition(ing);
+  if(ing.selectedUnit){
+    recalcIngGrams(ing);
+  } else {
+    ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
+    ing.nutrition=computeIngNutrition(ing);
+  }
   closeOverlay('ingSearchOverlay');
   renderNutritionList();
 }
