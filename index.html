@@ -2734,12 +2734,22 @@ function renderMealCards(){
       const cEmoji=CUISINE_LIST.find(c=>c.k===dish.cuisine)?.l.split(' ')[0]||'🍴';
       const slot=slotInfo(dish.slot);
       return`<div class="dish-card ${cuisClass}">
-        <div class="dish-slot-label">${slot.icon} ${slot.l.toUpperCase()}</div>
+        <div class="dish-slot-label" onclick="toggleSlotMenu(${dayIdx},${dishIdx})" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px" title="Klik for at ændre type">
+          ${slot.icon} ${slot.l.toUpperCase()} <span style="font-size:9px;opacity:.5">▼</span>
+        </div>
+        <div id="slotMenu-${dayIdx}-${dishIdx}" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:6px;box-shadow:var(--shadow-md)">
+          ${SLOTS.map(s=>`<button onclick="changeDishSlot(${dayIdx},${dishIdx},'${s.k}')" style="display:block;width:100%;text-align:left;background:${s.k===dish.slot?'var(--c-plan-soft)':'none'};border:none;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer;border-radius:5px;color:${s.k===dish.slot?'var(--c-plan)':'var(--text)'};font-weight:${s.k===dish.slot?'600':'400'}">${s.icon} ${s.l}</button>`).join('')}
+        </div>
         <div class="dish-name">${dish.name}</div>
         <div class="dish-meta">
           ${dish.cuisine?`<span class="mbadge mb-cuisine">${cEmoji} ${dish.cuisine}</span>`:''}
           ${dish.cookTime?`<span class="mbadge mb-time">⏱ ${dish.cookTime}</span>`:''}
-          ${dish.nutrition?`<span class="mbadge" style="background:var(--c-plan-soft);color:var(--c-plan);border-color:var(--c-plan-border)">🔥 ${dish.nutrition.kcal} kcal</span>`:''}
+          ${dish.nutrition?`<span class="mbadge" style="background:var(--c-plan-soft);color:var(--c-plan);border-color:var(--c-plan-border)">🔥 ${Math.round((dish.nutrition.kcal||0)*(dish.scale||1))} kcal</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin:8px 0;padding:6px 10px;background:var(--bg-soft);border-radius:8px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text-mute);font-weight:600">Skaler:</span>
+          ${[1,1.5,2,3,4].map(n=>`<button onclick="setDishScale(${dayIdx},${dishIdx},${n})" style="padding:3px 9px;border-radius:14px;border:1px solid ${(dish.scale||1)===n?'var(--c-plan)':'var(--border)'};background:${(dish.scale||1)===n?'var(--c-plan)':'var(--bg)'};color:${(dish.scale||1)===n?'white':'var(--text)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${n}×</button>`).join('')}
+          <span style="margin-left:auto;font-size:10px;color:var(--text-mute)">${4*(dish.scale||1)} pers.</span>
         </div>
         ${dish.source?.url&&dish.source.url!=='#'?`<div class="meal-src">↗ <a href="${dish.source.url}" target="_blank">${dish.source.name||dish.source.url}</a></div>`:''}
         <div class="dish-actions">
@@ -2775,6 +2785,50 @@ function removeDish(dayIdx,dishIdx){
   if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx&&S.selectedMeal.dishIdx===dishIdx)S.selectedMeal=null;
   S.aggregated=null;save();renderAll();runAggregation();
   toast(`${day.day}: "${removed.name}" fjernet`);
+}
+
+function toggleSlotMenu(dayIdx,dishIdx){
+  const el=document.getElementById(`slotMenu-${dayIdx}-${dishIdx}`);
+  if(!el)return;
+  // Close all other menus first
+  document.querySelectorAll('[id^="slotMenu-"]').forEach(m=>{if(m!==el)m.style.display='none';});
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function changeDishSlot(dayIdx,dishIdx,newSlot){
+  const day=S.meals[dayIdx];
+  if(!day||!day.dishes||!day.dishes[dishIdx])return;
+  day.dishes[dishIdx].slot=newSlot;
+  save();renderAll();
+  toast(`Type ændret til ${slotInfo(newSlot).l}`);
+}
+
+function setDishScale(dayIdx,dishIdx,scale){
+  const day=S.meals[dayIdx];
+  if(!day||!day.dishes||!day.dishes[dishIdx])return;
+  day.dishes[dishIdx].scale=scale;
+  S.aggregated=null;
+  save();renderAll();runAggregation();
+  toast(`${day.dishes[dishIdx].name}: ${scale}× portioner`);
+}
+
+// Multiply an amount string by a scale factor (returns scaled string)
+function multiplyAmount(amtStr,factor){
+  if(!amtStr||factor===1)return amtStr;
+  const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};
+  let s=amtStr.trim();let fv=0;
+  for(const[f,v]of Object.entries(FRAC2)){if(s.includes(f)){fv=v;s=s.replace(f,'').trim();}}
+  s=s.replace(',','.');
+  const m=s.match(/^([\d.]+)?\s*([a-zæøåA-ZÆØÅ]*.*)?$/);
+  if(!m)return amtStr;
+  const num=(parseFloat(m[1]||'0')||0)+fv;
+  if(!num)return amtStr;
+  const unit=(m[2]||'').trim();
+  let scaled=num*factor;
+  if(unit==='g'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} kg`;
+  if(unit==='ml'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} l`;
+  const pretty=scaled%1===0?scaled:parseFloat(scaled.toFixed(2));
+  return `${pretty}${unit?' '+unit:''}`.trim();
 }
 
 // Backward-compatible alias for any leftover callers
@@ -2922,12 +2976,13 @@ function getRawItems(){
     if(!day?.dishes)return;
     day.dishes.forEach((dish,dishIdx)=>{
       if(!dish?.ingredients)return;
+      const scale=dish.scale||1;
       dish.ingredients.forEach((ing,ii)=>items.push({
         key:`m${dayIdx}-${dishIdx}-${ii}`,
         name:ing.name,
-        amount:ing.amount,
+        amount:multiplyAmount(ing.amount,scale),
         category:ing.category||'andet',
-        tag:`${day.day} · ${dish.name}`
+        tag:`${day.day} · ${dish.name}${scale!==1?` (${scale}×)`:''}`
       }));
     });
   });
@@ -2973,17 +3028,32 @@ function mergeAmounts(amounts){
 function invalidateAndAggregate(){S.aggregated=null;S.dismissed=[];runAggregation();save();}
 function runAggregation(){
   const groups=new Map();
+  // Regex to strip leading numbers + unit (g, gr, kg, dl, l, ml, stk, spsk, tsk, fed, bundt, håndfuld, pose, dåse, pk)
+  const STRIP_LEADING_AMT=/^[\d½¼¾⅓⅔,./\s]*\s*(?:g|gr|kg|dl|l|ml|stk|spsk|tsk|tskf|fed|bundt|håndfuld|pose|poser|dåse|dåser|pk\.?|cm|knsp)\s+/i;
   (S.meals||[]).forEach(day=>{
     if(!day?.dishes)return;
     day.dishes.forEach(dish=>{
       if(!dish?.ingredients)return;
+      const scale=dish.scale||1;
       dish.ingredients.forEach(ing=>{
         const norm=normalizeIng(ing.name);if(!norm)return;
         if(!groups.has(norm)){
-          const d=ing.name.replace(BRAND_RE,'').replace(/\(REMA tilbud\)/gi,'').replace(/[–-]\s*tilbud[^,)]*/gi,'').replace(/\([^)]{0,40}\)/g,'').replace(/,.*$/,'').replace(/\s+/g,' ').trim();
+          let d=ing.name
+            .replace(BRAND_RE,'')
+            .replace(/\(REMA tilbud\)/gi,'')
+            .replace(/[–-]\s*tilbud[^,)]*/gi,'')
+            .replace(/\([^)]{0,40}\)/g,'')
+            .replace(/,.*$/,'')
+            .replace(STRIP_LEADING_AMT,'') // Strip leading amounts/units
+            .replace(/^[\d½¼¾⅓⅔,./\s]+/,'') // Strip remaining leading numbers
+            .replace(/\s+/g,' ')
+            .trim();
+          if(!d)d=norm; // Fallback if everything got stripped
           groups.set(norm,{displayName:d.charAt(0).toUpperCase()+d.slice(1),amounts:[],category:ing.category||'andet',meals:new Set()});
         }
-        const g=groups.get(norm);g.amounts.push(ing.amount||'');g.meals.add(`${day.day} · ${dish.name}`);
+        const g=groups.get(norm);
+        g.amounts.push(multiplyAmount(ing.amount||'',scale));
+        g.meals.add(`${day.day} · ${dish.name}`);
       });
     });
   });
@@ -3222,7 +3292,6 @@ function renderBookCards(){
   const regular=pool.filter(r=>!r.favorite);
 
   const renderCard=(r)=>{
-    const isExp=expandedBookId===r.id;
     const cEmoji=CUISINE_LIST.find(c=>c.k===r.cuisine)?.l.split(' ')[0]||'🍴';
     const cuisClass=`cu-${(r.cuisine||'').toLowerCase()}`;
     const tagLabel=r.cuisine?`${cEmoji} ${r.cuisine.charAt(0).toUpperCase()+r.cuisine.slice(1)}`:'🍴 Opskrift';
@@ -3241,16 +3310,15 @@ function renderBookCards(){
             <span>👥 4 pers.</span>
           </div>
           <div class="book-actions">
-            <button class="book-btn" onclick="event.stopPropagation();toggleBook('${r.id}')" title="Tildel dag">📅</button>
             <button class="book-btn" onclick="event.stopPropagation();editBook(event,'${r.id}')" title="Rediger">✏️</button>
             <button class="book-btn" onclick="event.stopPropagation();openNutritionRefinement('${r.id}')" title="Makronæringsstoffer">📊</button>
             <button class="book-btn" onclick="event.stopPropagation();deleteBook(event,'${r.id}')" title="Slet" style="color:var(--c-fav)">🗑️</button>
           </div>
         </div>
-        ${isExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px">
-          <div style="color:var(--text-mute);margin-bottom:5px;font-weight:600">Tildel til dag:</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap">${mealDays.map((d,i)=>`<button style="padding:4px 9px;border:1px solid var(--border);background:var(--bg);border-radius:999px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500" onclick="event.stopPropagation();assignToDay(event,'${r.id}',${i})">${d.slice(0,3)}</button>`).join('')}</div>
-        </div>`:''}
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:11px">
+          <div style="color:var(--text-mute);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px">📅 Tilføj til dag:</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">${mealDays.map((d,i)=>`<button style="padding:5px 10px;border:1px solid var(--c-plan-border);background:var(--c-plan-soft);color:var(--c-plan);border-radius:999px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600" onclick="event.stopPropagation();assignToDay(event,'${r.id}',${i})">${d.slice(0,3)}</button>`).join('')}</div>
+        </div>
       </div>
     </div>`;
   };
@@ -4882,15 +4950,15 @@ function renderPickerList(){
   document.getElementById('pickerList').innerHTML=pool.map(r=>{
     const cEmoji=CUISINE_LIST.find(c=>c.k===r.cuisine)?.l.split(' ')[0]||'🍴';
     const mainIngs=(r.mainIngredients||[]).slice(0,3);
-    return`<div class="book-card" onclick="selectFromPicker('${r.id}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      ${r.photo?`<img src="${r.photo}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0">`:`<div style="width:40px;height:40px;border-radius:8px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${cEmoji}</div>`}
+    return`<div class="book-card" onclick="selectFromPicker('${r.id}')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 14px;margin-bottom:8px">
+      ${r.photo?`<img src="${r.photo}" style="width:120px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0">`:`<div style="width:120px;height:90px;border-radius:10px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0">${cEmoji}</div>`}
       <div style="flex:1;min-width:0">
-        <div class="bc-name" style="padding-right:0;font-size:.92rem">${r.name}</div>
-        <div class="bc-meta">
-          <span class="mbadge mb-cuisine" style="font-size:.62rem">${cEmoji} ${r.cuisine||'–'}</span>
-          ${r.cookTime?`<span class="mbadge mb-time" style="font-size:.62rem">⏱ ${r.cookTime}</span>`:''}
+        <div class="bc-name" style="padding-right:0;font-size:15px;font-weight:700;margin-bottom:4px">${r.name}</div>
+        <div class="bc-meta" style="margin-bottom:4px">
+          <span class="mbadge mb-cuisine" style="font-size:11px">${cEmoji} ${r.cuisine||'–'}</span>
+          ${r.cookTime?`<span class="mbadge mb-time" style="font-size:11px">⏱ ${r.cookTime}</span>`:''}
         </div>
-        ${mainIngs.length?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">${mainIngs.map(i=>`<span style="font-size:.62rem;background:var(--warm);border:1px solid var(--border);border-radius:20px;padding:1px 6px;color:var(--muted)">${i}</span>`).join('')}</div>`:''}
+        ${mainIngs.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${mainIngs.map(i=>`<span style="font-size:10px;background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--text-mute);font-weight:500">${i}</span>`).join('')}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -4951,13 +5019,13 @@ function buildNwTagChips(){
     ING_GROUPS.map(g=>`<button class="chip ${nwTagFilter.has(g.k)?'active':''}" onclick="toggleNwTag('${g.k.replace(/'/g,"\\'")}')">${g.l}</button>`).join('')+
     (nwTagFilter.size>1?`<span style="font-size:10px;color:var(--text-mute);margin-left:4px">${nwTagFilter.size} valgt — opskrifter med <strong>alle</strong></span>`:'');
 }
-function setNwCuis(c){nwCuisFilter=c;buildNwCuisChips();shuffleNewWeek();}
+function setNwCuis(c){nwCuisFilter=c;buildNwCuisChips();}
 function toggleNwTag(k){
   if(nwTagFilter.has(k))nwTagFilter.delete(k);
   else nwTagFilter.add(k);
-  buildNwTagChips();shuffleNewWeek();
+  buildNwTagChips();
 }
-function clearNwTags(){nwTagFilter.clear();buildNwTagChips();shuffleNewWeek();}
+function clearNwTags(){nwTagFilter.clear();buildNwTagChips();}
 function toggleNwLock(idx){nwLocked[idx]=!nwLocked[idx];renderNwGrid();}
 function shuffleNewWeek(){
   if(!S.cookbook.length){
