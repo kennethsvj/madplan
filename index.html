@@ -405,6 +405,99 @@ body {
   #mealCards .day-block { margin-bottom: 0; }
 }
 
+/* ── COMPACT MOBILE LAYOUT (iOS friendly) ───────────────── */
+@media (max-width: 768px) {
+  /* Day blocks: tighter padding, smaller header */
+  .day-block {
+    padding: 12px 13px;
+    margin-bottom: 10px;
+  }
+  .day-block-header {
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+  }
+  .day-block-label {
+    font-size: 12px;
+  }
+
+  /* Dish cards: much more compact */
+  .dish-card {
+    padding: 9px 11px;
+    margin-bottom: 6px;
+  }
+  .dish-slot-label {
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+  .dish-name {
+    font-size: 13px;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .dish-meta {
+    gap: 4px;
+    margin-bottom: 5px;
+  }
+  .dish-meta .mbadge {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+  .dish-actions {
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .dish-actions .btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  /* Shopping list: tighter rows */
+  .shop-row {
+    padding: 8px 11px !important;
+    gap: 8px;
+  }
+  .iname-main {
+    font-size: 13px;
+  }
+  .iname-meals {
+    font-size: 10px;
+  }
+  .cat-hdr {
+    font-size: 11px;
+    padding: 5px 10px;
+    margin-bottom: 4px;
+  }
+  .cat-block {
+    margin-bottom: 8px;
+  }
+
+  /* Add-dish button smaller */
+  .btn-add-dish {
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  /* Scale row smaller on mobile */
+  .dish-scale-row {
+    margin: 6px 0 !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+  .dish-scale-row button {
+    padding: 2px 7px !important;
+    font-size: 10px !important;
+  }
+  .dish-scale-row span {
+    font-size: 10px !important;
+  }
+
+  /* Quick add chips smaller */
+  #quickAddChips button {
+    font-size: 12px !important;
+    padding: 5px 4px 5px 10px !important;
+  }
+}
+
 /* Old meal-card class — kept for compatibility but not used in main render */
 .meal-card {
   background: var(--bg-card);
@@ -419,26 +512,6 @@ body {
   border-color: var(--text-mute);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
-}
-.day-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-.day-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--c-plan);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.meal-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
-  line-height: 1.3;
 }
 .meal-meta {
   display: flex;
@@ -467,12 +540,6 @@ body {
 }
 .meal-src a { color: var(--c-book); text-decoration: none; }
 .meal-src a:hover { text-decoration: underline; }
-.card-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 10px;
-}
-.card-actions .btn { flex: 1; justify-content: center; padding: 9px 12px; font-size: 12px; }
 
 /* Meal grid on wide screens */
 @media (min-width: 1000px) {
@@ -671,33 +738,6 @@ body {
 }
 .hero-source a { color: white; text-decoration: underline; }
 
-.scale-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 12px 16px;
-  background: var(--bg-soft);
-  border-radius: 10px;
-}
-.scale-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-soft);
-}
-.scale-btns { display: flex; gap: 4px; margin-left: auto; }
-.scale-btn {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.scale-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
 .recipe-section {
   background: var(--bg-card);
@@ -715,17 +755,6 @@ body {
   letter-spacing: 0.5px;
   color: var(--c-book);
   margin: 12px 0 6px;
-}
-.ing-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 9px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 5px;
-  font-size: 14px;
 }
 
 /* Compact recipe layout (for opskrifter med mange delretter) */
@@ -748,46 +777,10 @@ body {
   align-items: start;
 }
 .recipe-section-col { min-width: 0; }
-.ing-row-compact {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 5px 10px;
-  font-size: 13px;
-  border-bottom: 1px dotted var(--border);
-  gap: 8px;
-}
-.ing-row-compact:last-child { border-bottom: none; }
 .ing-name {
   color: var(--text);
   flex: 1;
   min-width: 0;
-}
-.step-row-compact {
-  display: flex;
-  gap: 9px;
-  padding: 6px 0;
-  align-items: flex-start;
-}
-.step-num-sm {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--c-book);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1px;
-}
-.step-txt-sm {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--text);
 }
 
 @media (max-width: 700px) {
@@ -803,13 +796,6 @@ body {
   white-space: nowrap;
   margin-left: 12px;
 }
-.step-txt {
-  flex: 1;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text);
-  padding-top: 2px;
-}
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -819,65 +805,6 @@ body {
 
 /* Legacy book classes still used */
 .bc-name, .bc-meta, .bc-src, .bc-del-btn, .bc-actions,
-.assign-row, .assign-label, .assign-days, .assign-day-btn,
-.cuis-chip, .cuis-chips, .book-toolbar, .book-search-wrap,
-.book-search-icon, .book-add-btn {
-  /* Deprecated — absorbed into new classes */
-}
-.recipe-section-title {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  color: var(--text);
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--c-book-soft);
-}
-.recipe-subsection {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed var(--border);
-}
-.recipe-subsection:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-.recipe-subsection-title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--c-book);
-  margin-bottom: 8px;
-}
-.ingredient-row {
-  display: flex;
-  gap: 8px;
-  padding: 6px 0;
-  font-size: 14px;
-  color: var(--text);
-}
-.ingredient-amount {
-  min-width: 90px;
-  font-weight: 600;
-  color: var(--text-soft);
-}
-.step-row {
-  display: flex;
-  gap: 12px;
-  padding: 8px 0;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.step-num {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--c-book);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* ── COOKBOOK (recipe grid) ──────────────────────────────── */
 .book-empty {
@@ -1107,41 +1034,6 @@ body {
 .chip.active { background: var(--text); color: white; border-color: var(--text); }
 
 /* ── BOOK SECTION STATS ──────────────────────────────── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.stat-card.book { background: var(--c-book-soft); border-color: var(--c-book-border); color: var(--c-book); }
-.stat-card.fav { background: var(--c-fav-soft); border-color: var(--c-fav-border); color: var(--c-fav); }
-.stat-card.week { background: var(--c-week-soft); border-color: var(--c-week-border); color: #a16207; }
-.stat-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  margin-bottom: 4px;
-}
-.stat-value {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
-.stat-icon { font-size: 22px; opacity: 0.7; }
 
 .book-section-header {
   display: flex;
@@ -1342,26 +1234,12 @@ body {
   border-color: var(--c-book);
   box-shadow: 0 0 0 3px var(--c-book-soft);
 }
-.form-textarea { min-height: 120px; resize: vertical; font-family: inherit; }
 .paste-area {
   min-height: 140px !important;
   font-family: 'Menlo', 'Monaco', monospace;
   font-size: 13px;
 }
 
-.img-upload-box {
-  border: 2px dashed var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .15s;
-  background: var(--bg-softer);
-  position: relative;
-}
-.img-upload-box:hover { border-color: var(--c-book); background: var(--c-book-soft); }
-.img-upload-box.has-img { padding: 6px; border-style: solid; }
-.img-upload-box img { max-width: 100%; max-height: 200px; border-radius: 8px; }
 .img-clear-btn {
   position: absolute;
   top: 8px;
@@ -1409,16 +1287,6 @@ body {
   animation: spin 1s linear infinite;
 }
 
-.status-msg {
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 8px;
-}
-.status-msg.ok { background: var(--c-shop-soft); color: var(--c-shop); border: 1px solid var(--c-shop-border); }
-.status-msg.err { background: var(--c-fav-soft); color: var(--c-fav); border: 1px solid var(--c-fav-border); }
-.status-msg.info { background: var(--c-book-soft); color: var(--c-book); border: 1px solid var(--c-book-border); }
 
 /* ── QUICK ADD CHIPS ──────────────────────────────── */
 #quickAddPanel {
@@ -1575,6 +1443,7 @@ body {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn-sm btn-sm-green" onclick="openNewWeekModal()" title="Generér madplan">✨ Auto-madplan</button>
+        <button class="btn-sm btn-sm-muted" onclick="toggleCollapseAll()" title="Skjul/vis dage" id="collapseAllBtn">📕 Skjul alle</button>
         <button class="btn-sm btn-sm-green" onclick="saveWeekToBank()" title="Gem i arkiv">💾 Arkivér</button>
         <button class="btn-sm btn-sm-muted" onclick="clearWeekPlan()" title="Tøm hele ugeplanen">🗑️ Tøm uge</button>
         <button class="btn-sm btn-sm-muted" onclick="printMealPlan()">🖨️</button>
@@ -1612,14 +1481,8 @@ body {
     <div class="add-panel" style="margin-bottom:14px;border-style:solid;border-color:var(--border)">
       <div class="add-title">➕ Tilføj vare manuelt</div>
       <div class="add-row">
-        <input class="add-input" id="addName" placeholder="Varenavn…" onkeydown="if(event.key==='Enter')addItem()">
+        <input class="add-input" id="addName" placeholder="Varenavn (kategori findes automatisk)…" onkeydown="if(event.key==='Enter')addItem()">
         <input class="add-input" id="addAmt" placeholder="Mængde" style="max-width:90px" onkeydown="if(event.key==='Enter')addItem()">
-        <select class="add-select" id="addCat">
-          <option value="kød">🥩 Kød</option><option value="grøntsager">🥦 Grønt</option>
-          <option value="mejeri">🧀 Mejeri</option><option value="kolonial" selected>🫙 Kolonial</option>
-          <option value="brød">🍞 Brød</option><option value="krydderier">🧂 Krydderier</option>
-          <option value="andet">🛒 Andet</option>
-        </select>
         <button class="btn-add" onclick="addItem()">Tilføj</button>
       </div>
     </div>
@@ -2260,7 +2123,6 @@ const DEFAULT_COMMON_ITEMS = [
   {name:'Opvaskemiddel',cat:'andet',icon:'🫧'},
 ];
 // Backwards compat
-const COMMON_ITEMS = DEFAULT_COMMON_ITEMS;
 
 // ── STATE ────────────────────────────────────────────────────────
 let S = {
@@ -2276,6 +2138,7 @@ let S = {
   shoppingArchive: [],
   frequentItems: {},
   offCache: {},
+  collapsedDays: [],
   updatedAt: 0
 };
 
@@ -2301,7 +2164,6 @@ let nwSelected = new Array(7).fill(null);
 let nwLocked = [false,false,false,false,false,false,false];
 let bookCuisFilter = 'alle';
 let bookIngFilter = new Set(); // empty = "all"
-let expandedBookId = null;
 let recipeScale = 1;
 let currentViewedRecipe = null; // The recipe currently shown in opskrift view (could be from meal plan OR cookbook)
 let nutritionViewMode = 'portion'; // 'portion' | 'total' | 'plate'
@@ -2472,6 +2334,7 @@ async function load(){
   if(!S.weekBank)S.weekBank=[];
   if(!S.dismissed)S.dismissed=[];
   if(!S.shoppingArchive)S.shoppingArchive=[];
+  if(!Array.isArray(S.collapsedDays))S.collapsedDays=[];
   if(!S.frequentItems)S.frequentItems={};
   if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
   if(!S.offCache){
@@ -2505,9 +2368,6 @@ async function load(){
     }
   }
 }
-function migrateMealsTo7(oldMeals){
-  return migrateMealsToNested(oldMeals);
-}
 
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────────
@@ -2516,7 +2376,6 @@ let currentUser = null;
 let realtimeChannel = null;
 let _isApplyingRemote = false;
 let _lastRemoteUpdatedAt = 0;
-let _pushTimer = null;
 
 function getSupabaseConfig(){
   // Hardcoded values take priority — same on all devices that download this file
@@ -2694,14 +2553,8 @@ function openSettingsModal(){
   }
   document.getElementById('settingsOverlay').classList.add('open');
 }
-// Stubs to avoid breaking references in old code
-function getApiKey(){return '';}
-function apiHeaders(){return{};}
 
 // ── API HELPERS ──────────────────────────────────────────────────
-function fetchWithTimeout(url,options,ms){
-  return Promise.race([fetch(url,options),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
-}
 function extractJSON(text){
   let c=text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
   const s=c.indexOf('{');if(s===-1){const a=c.indexOf('[');if(a!==-1)return c.slice(a);}
@@ -2746,7 +2599,7 @@ function renderMealCards(){
           ${dish.cookTime?`<span class="mbadge mb-time">⏱ ${dish.cookTime}</span>`:''}
           ${dish.nutrition?`<span class="mbadge" style="background:var(--c-plan-soft);color:var(--c-plan);border-color:var(--c-plan-border)">🔥 ${Math.round((dish.nutrition.kcal||0)*(dish.scale||1))} kcal</span>`:''}
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin:8px 0;padding:6px 10px;background:var(--bg-soft);border-radius:8px;flex-wrap:wrap">
+        <div class="dish-scale-row" style="display:flex;align-items:center;gap:6px;margin:8px 0;padding:6px 10px;background:var(--bg-soft);border-radius:8px;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--text-mute);font-weight:600">Skaler:</span>
           ${[1,1.5,2,3,4].map(n=>`<button onclick="setDishScale(${dayIdx},${dishIdx},${n})" style="padding:3px 9px;border-radius:14px;border:1px solid ${(dish.scale||1)===n?'var(--c-plan)':'var(--border)'};background:${(dish.scale||1)===n?'var(--c-plan)':'var(--bg)'};color:${(dish.scale||1)===n?'white':'var(--text)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${n}×</button>`).join('')}
           <span style="margin-left:auto;font-size:10px;color:var(--text-mute)">${4*(dish.scale||1)} pers.</span>
@@ -2760,18 +2613,48 @@ function renderMealCards(){
       </div>`;
     }).join('');
 
-    return`<div class="day-block">
-      <div class="day-block-header">
+    const isCollapsed=(S.collapsedDays||[]).includes(dayIdx);
+    return`<div class="day-block ${isCollapsed?'collapsed':''}">
+      <div class="day-block-header" onclick="toggleDayCollapse(${dayIdx})" style="cursor:pointer;user-select:none">
         <span class="day-block-label">${day.day}</span>
         <div style="display:flex;align-items:center;gap:10px">
           ${totalKcal>0?`<span style="font-size:11px;color:var(--c-plan);font-weight:700">🔥 ${Math.round(totalKcal)} kcal i alt</span>`:''}
           <span style="font-size:11px;color:var(--text-mute)">${dishes.length} ret${dishes.length!==1?'ter':''}</span>
+          <span style="font-size:12px;color:var(--text-mute);transition:transform .2s;display:inline-block;${isCollapsed?'':'transform:rotate(90deg)'}">▶</span>
         </div>
       </div>
-      ${dishCards}
-      <button class="btn-add-dish" onclick="openPickerModal(${dayIdx})">➕ Tilføj endnu en ret</button>
+      ${isCollapsed?'':`${dishCards}
+      <button class="btn-add-dish" onclick="openPickerModal(${dayIdx})">➕ Tilføj endnu en ret</button>`}
     </div>`;
   }).join('');
+}
+
+function toggleDayCollapse(dayIdx){
+  if(!Array.isArray(S.collapsedDays))S.collapsedDays=[];
+  const i=S.collapsedDays.indexOf(dayIdx);
+  if(i>=0)S.collapsedDays.splice(i,1);
+  else S.collapsedDays.push(dayIdx);
+  save();renderMealCards();updateCollapseBtn();
+}
+
+function collapseAllDays(){
+  S.collapsedDays=[0,1,2,3,4,5,6];
+  save();renderMealCards();updateCollapseBtn();
+}
+function expandAllDays(){
+  S.collapsedDays=[];
+  save();renderMealCards();updateCollapseBtn();
+}
+function toggleCollapseAll(){
+  const allCollapsed=(S.collapsedDays||[]).length===7;
+  if(allCollapsed)expandAllDays();
+  else collapseAllDays();
+}
+function updateCollapseBtn(){
+  const btn=document.getElementById('collapseAllBtn');
+  if(!btn)return;
+  const allCollapsed=(S.collapsedDays||[]).length===7;
+  btn.textContent=allCollapsed?'📖 Vis alle':'📕 Skjul alle';
 }
 
 function removeDish(dayIdx,dishIdx){
@@ -2831,8 +2714,6 @@ function multiplyAmount(amtStr,factor){
   return `${pretty}${unit?' '+unit:''}`.trim();
 }
 
-// Backward-compatible alias for any leftover callers
-function removeMeal(dayIdx){removeDish(dayIdx,0);}
 
 // ── SHOPPING ─────────────────────────────────────────────────────
 function renderQuickAdd(){
@@ -3141,6 +3022,33 @@ window.addEventListener('popstate',function(e){
   }finally{_navInternal=false;}
 });
 
+// ── WAKE LOCK (skærm tændt på opskrifter) ────────────────
+let _wakeLock=null;
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator))return false;
+  try{
+    _wakeLock=await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release',()=>{_wakeLock=null;});
+    return true;
+  }catch(e){
+    console.log('Wake lock failed:',e.message);
+    return false;
+  }
+}
+async function releaseWakeLock(){
+  if(_wakeLock){
+    try{await _wakeLock.release();}catch(e){}
+    _wakeLock=null;
+  }
+}
+// Re-acquire when tab becomes visible again (browser releases on hide)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    const recipeActive=document.getElementById('opskrift')?.classList.contains('active');
+    if(recipeActive&&!_wakeLock)requestWakeLock();
+  }
+});
+
 function navigateToTab(id,skipPush){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3153,6 +3061,9 @@ function navigateToTab(id,skipPush){
   if(id==='indkoeb'){if(!S.aggregated)runAggregation();renderQuickAdd();}
   if(id==='opskriftbog')renderBook();
   if(id==='bank')renderBank();
+  // Wake lock — only on recipe tab
+  if(id==='opskrift')requestWakeLock();
+  else releaseWakeLock();
   if(!skipPush)pushNavState({type:'tab',id});
 }
 
@@ -3226,6 +3137,7 @@ function showRecipe(dayIdx,dishIdx){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('opskrift').classList.add('active');
   document.querySelectorAll('.tab')[2].classList.add('active');
+  requestWakeLock();
   save();
   pushNavState({type:'recipe',dayIdx,dishIdx});
 }
@@ -3357,13 +3269,11 @@ function toggleBookIng(k){
   renderBookChips();renderBookCards();
 }
 function clearBookIngFilter(){bookIngFilter.clear();renderBookChips();renderBookCards();}
-function toggleBook(id){expandedBookId=expandedBookId===id?null:id;renderBookCards();}
 function deleteBook(e,id){
   e.stopPropagation();e.preventDefault();
   const r=S.cookbook.find(r=>r.id===id);if(!r)return;
   uiConfirm(`Slet "${r.name}"?`,'Opskriften fjernes fra kogebogen.',()=>{
     S.cookbook=S.cookbook.filter(r=>r.id!==id);
-    if(expandedBookId===id)expandedBookId=null;
     save();renderBook();toast(`"${r.name}" slettet`);
   },'🗑️ Slet');
 }
@@ -3371,7 +3281,6 @@ function assignToDay(e,id,dayIdx){
   e.stopPropagation();
   const recipe=S.cookbook.find(r=>r.id===id);if(!recipe)return;
   applyRecipeToDay(recipe,dayIdx,'hovedret',null);
-  expandedBookId=null;
   renderBook();
 }
 function editBook(e,id){e.stopPropagation();const r=S.cookbook.find(r=>r.id===id);if(!r)return;openAddRecipeModal(r);}
@@ -3385,6 +3294,7 @@ function viewBookRecipe(e,id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('opskrift').classList.add('active');
   document.querySelectorAll('.tab')[2].classList.add('active');
+  requestWakeLock();
   pushNavState({type:'bookRecipe',id});
 }
 
@@ -3650,16 +3560,6 @@ function loadImgToSlot(file,slotNum){
   reader.readAsDataURL(file);
 }
 
-const RECIPE_EXTRACT_PROMPT = (context)=>`Udtræk og TRANSSKRIBÉR opskriften ordret fra dette indhold. VIGTIGE REGLER:
-- Skriv trin PRÆCIS som de fremgår af kilden — ingen omskrivning
-- Behold originalens ordlyd
-- Tilpas til 4 portioner kun hvis nødvendigt
-- Hvis opskriften har FLERE DELRETTER eller SEKTIONER (fx "Vietnamesisk kylling", "Syltede gulerødder", "Ris", "Mayo", "Til servering"), så STRUKTURÉR dem som separate sections — bevar originalens opdeling og rækkefølge
-- Hvis det er én simpel ret uden underopskrifter, brug én section med tom titel ""
-${context}
-Returner KUN dette JSON:
-{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"string","sections":[{"title":"sektionsnavn eller tom streng","ingredients":[{"name":"string","amount":"string","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["ORDRET trin"]}]}
-Hver section: 2-12 ingredienser, 1-8 trin.`;
 
 // ── OPEN FOOD FACTS INTEGRATION ──────────────────────────────────
 // Hybrid niveau 2: auto-match against OFF, with smart size selectors
@@ -4429,7 +4329,6 @@ function renderNutritionList(){
   const portions=nutSession.portions||4;
   const viewMode=nutSession.viewMode||'portion'; // 'portion' or 'total'
   const divisor=viewMode==='portion'?portions:1;
-  const viewLabel=viewMode==='portion'?'Per portion':'Hele opskriften';
   const hasUncached=nutSession.ingredients.some(ing=>!ing.match&&ing.ingType.type!=='spice');
 
   document.getElementById('nutLiveTotal').innerHTML=`
@@ -4598,23 +4497,6 @@ function setMeatFat(i,oi){
     ing.nutrition=computeIngNutrition(ing);
   }
   renderNutritionList();
-}
-function setSizeIdx(i,si){
-  const ing=nutSession.ingredients[i];
-  ing.sizeIdx=si;
-  ing.customGrams=null;
-  ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,null);
-  ing.nutrition=computeIngNutrition(ing);
-  renderNutritionList();
-}
-function setCustomGrams(i,val){
-  const ing=nutSession.ingredients[i];
-  const v=parseFloat(val);
-  ing.customGrams=isNaN(v)?null:v;
-  ing.grams=calculateGrams(ing.parsed,ing.ingType,ing.sizeIdx,ing.customGrams);
-  ing.nutrition=computeIngNutrition(ing);
-  // Don't full-rerender — just update totals to preserve focus
-  updateLiveTotal();
 }
 function updateLiveTotal(){
   let totalKcal=0,totalP=0,totalC=0,totalF=0;
@@ -5005,15 +4887,24 @@ function clearManualForm(){
 }
 
 function guessCat(name){
-  const n=name.toLowerCase();
-  if(/kylling|okse|svin|laks|fisk|rejer|kød|torsk|tun|skinkek|bacon|pølse|medister/.test(n))return'kød';
-  if(/kartoffel|løg|hvidløg|tomat|gulerod|squash|broccoli|spinat|salat|kål|peberfrugt|svamp|champignon|porrer|selleri|forårsløg/.test(n))return'grøntsager';
-  if(/æble|citron|lime|mango|avocado|banan|jordbær|frugt/.test(n))return'frugt';
-  if(/mælk|fløde|smør|ost|parmesan|mozzarella|creme fraiche|yoghurt|æg/.test(n))return'mejeri';
-  if(/mel|pasta|ris|spaghetti|nudel|tortilla|brød|bolle/.test(n))return'brød';
-  if(/salt|peber|krydderi|oregano|basilikum|timian|rosmarin|spidskommen|ingefær|chili|karry/.test(n))return'krydderier';
-  if(/olie|fond|sauce|dåse|tomater|kokosmælk|soja|sukker/.test(n))return'kolonial';
-  return'kolonial';
+  const n=name.toLowerCase().trim();
+  // Kød & Fisk
+  if(/kylling|kalkun|and(?!risk)|hane|okse|kalv|svin|gris|lam|hak|fars|mørbrad|culotte|filet|steg|ribbe|spareribs|skinke|bacon|pølse|medister|frikadelle|nakke|kotelet|pancetta|chorizo|salami|leverpostej|leverpostej|laks|torsk|rødspætte|rødfisk|sild|makrel|tun|sardin|ansjos|ørred|kuller|kulmule|hellefisk|mørksej|sej|brisling|rejer|kammusling|musling|krabbe|hummer|blæksprutte|ål|fisk|kød/.test(n))return'kød';
+  // Grøntsager
+  if(/kartoffel|løg|skalotte|hvidløg|porre|forårsløg|tomat|cherrytomat|gulerod|squash|courgette|broccoli|blomkål|hvidkål|spidskål|rødkål|grønkål|spinat|salat|rucola|iceberg|romaine|peberfrugt|paprika(?!\s*pulver)|svamp|champignon|portobello|selleri|knoldselleri|bladselleri|fennikel|asparges|ærter|sukkerært|bønne(?!\s*spire)|kikært|linser|majs|aubergine|agurk|radise|rødbede|persillerod|pastinak|jordskok|græskar|hokkaido|butternut|zucchini|artiskok|rosenkål|grønts|salat/.test(n))return'grøntsager';
+  // Frugt & bær
+  if(/æble|pære|appelsin|citron|lime|mandarin|grape|banan|kiwi|mango|ananas|papaya|fersken|nektarin|blomme|abrikos|kirsebær|jordbær|hindbær|blåbær|brombær|stikkelsbær|ribs|melon|vandmelon|honningmelon|drue|granatæble|fig|dadel|frugt|bær/.test(n))return'frugt';
+  // Mejeri & Æg
+  if(/mælk|sødmælk|letmælk|minimælk|skummetmælk|fløde|piskefløde|madlavningsfløde|kærnemælk|tykmælk|a38|ymer|smør|margarine|kefir|yoghurt|skyr|creme\s*fraiche|crème\s*fraîche|hytteost|flødeost|ost|parmesan|mozzarella|cheddar|gouda|brie|camembert|feta|halloumi|ricotta|mascarpone|emmentaler|chèvre|blåskimmelost|gruyère|manchego|æg|cottage/.test(n))return'mejeri';
+  // Brød & Bagværk
+  if(/^brød|rugbrød|franskbrød|toastbrød|sandwichbrød|grovbrød|fuldkornsbrød|bagel|tortilla|wrap|pita|naan|focaccia|ciabatta|bolle|burgerbolle|hotdogbolle|kage|tærte|croissant|krydderbolle|knækbrød|baguette/.test(n))return'brød';
+  // Krydderier
+  if(/^salt|peber|sort\s+peber|hvid\s+peber|krydderi|paprika|spidskommen|oregano|basilikum|timian|rosmarin|kanel|kardemomme|laurbær|chiliflager|chilipulver|gurkemeje|muskat|kommen|nelliker|stjerneanis|safran|estragon|merian|salvie|dild|koriander|garam\s+masala|currypulver|ras\s+el|sumac|za'?atar|sennep(?!s)|allehånde|bouillon\s*tern|fennikelfrø|sesamfrø/.test(n))return'krydderier';
+  // Frysevarer
+  if(/^frosne|frossen|frost|is(?!\s*berg)|sorbet|frysepizza|spinatkugler|peruvianer/.test(n))return'frysevarer';
+  // Kolonial (default for tørvarer, dåser, sauce, olie etc.)
+  if(/mel|hvedemel|fuldkornsmel|rugmel|grahamsmel|durum|semulje|pasta|spaghetti|penne|fusilli|tagliatelle|lasagne|makaroni|farfalle|rigatoni|nudel|ramen|udon|^ris\b|basmati|jasmin|risotto|arborio|kornblanding|havregryn|havreflager|müsli|cornflakes|sukker|brun\s*sukker|rørsukker|honning|lønnesirup|ahornsirup|sirup|marmelade|syltet|olie|olivenolie|sesamolie|rapsolie|solsikkeolie|kokosolie|eddike|riseddike|balsamico|sojasauce|fishsauce|fiskesauce|worcestershire|ketchup|mayonnaise|remoulade|sennepsdressing|vinaigrette|kapers|oliven|tomatpuré|tomatpasta|tomatpassata|hakkede\s+tomater|flåede\s+tomater|kokosmælk|fond|bouillon|kraftbouillon|grøntsagsbouillon|hønsebouillon|oksebouillon|gær|bagepulver|natron|vaniljesukker|kakao|chokolade|nødder|mandler|valnødder|hasselnødder|cashew|peanut|jordnød|rosin|sesamfrø|chiafrø|hørfrø|gluten|tahini|miso|sake|mirin|wasabi|kimchi|sriracha|harissa/.test(n))return'kolonial';
+  return'andet';
 }
 
 const SKIP_INGS=/salt|peber|olie|smør|mel|sukker|vand|fond|bouillon|fløde|mælk|eddike|soja|sauce|krydderi|oregano|basilikum|timian|rosmarin|laurbær|dild|koriander|persille|ingefær|hvidløg|chili|paprika|spidskommen|karry|gurkemeje|muskat|kanel|kardemomme/i;
@@ -5092,7 +4983,6 @@ function saveRecipe(){
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.getElementById('opskriftbog').classList.add('active');
     document.querySelectorAll('.tab')[3].classList.add('active');
-    expandedBookId=recipe.id;
     renderBook();
   }
 }
@@ -5516,59 +5406,6 @@ function deleteBankWeek(id){
   },'🗑️ Slet');
 }
 
-// ── PRINT (download printable HTML — virker i alle sammenhænge) ──
-function printHTML(bodyHTML,title,filename){
-  const fullHTML=`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>${title}</title>
-<style>
-*{box-sizing:border-box}
-body{font-family:Georgia,'Times New Roman',serif;max-width:640px;margin:0 auto;padding:25px;color:#222;line-height:1.5}
-.topbar{background:#1e4d2b;color:white;padding:12px 20px;border-radius:8px;margin:-10px -10px 20px;display:flex;justify-content:space-between;align-items:center}
-.topbar button{background:white;color:#1e4d2b;border:none;padding:8px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.9rem}
-.topbar button:hover{background:#e6efe8}
-h1{font-size:1.7rem;border-bottom:2px solid #1e4d2b;padding-bottom:8px;color:#1e4d2b;margin-bottom:18px}
-h2{font-size:1.1rem;color:#1e4d2b;margin:20px 0 10px;border-bottom:1px solid #ddd;padding-bottom:4px}
-.meal{border-bottom:1px solid #ddd;padding:14px 0;page-break-inside:avoid}
-.meal:last-child{border-bottom:none}
-.day{font-size:.72rem;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#888}
-.name{font-size:1.25rem;margin:4px 0 6px;font-weight:600}
-.meta{font-size:.85rem;color:#666}
-.ing-list{list-style:none;padding:0;margin:0}
-.ing-list li{padding:5px 0;border-bottom:1px dotted #ddd;display:flex;justify-content:space-between;gap:12px}
-.ing-list li:last-child{border-bottom:none}
-.ing-amt{color:#1e4d2b;font-weight:600;white-space:nowrap}
-.step-list{padding-left:20px;margin:0}
-.step-list li{padding:5px 0;margin-bottom:4px}
-.src{font-size:.8rem;color:#888;margin-top:10px;font-style:italic}
-@media print{.topbar{display:none!important}body{margin:0;padding:15px;max-width:none}@page{margin:15mm}}
-</style></head><body>
-<div class="topbar"><span style="font-weight:600">${title}</span><button onclick="window.print()">🖨️ Print</button></div>
-${bodyHTML}
-</body></html>`;
-
-  // Strategy: open in a new browser tab. Works in deployed app, GitHub Pages, PWA.
-  // If popup is blocked (e.g. Claude.ai sandbox), falls through to download.
-  try{
-    const blob=new Blob([fullHTML],{type:'text/html'});
-    const url=URL.createObjectURL(blob);
-    const w=window.open(url,'_blank');
-    if(w){
-      toast('Åbnet i ny fane — tryk 🖨️ Print der');
-      setTimeout(()=>URL.revokeObjectURL(url),60000);
-      return;
-    }
-  }catch(e){}
-
-  // Fallback: download file. User opens it manually and prints.
-  try{
-    const blob=new Blob([fullHTML],{type:'text/html'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=(filename||'print')+'.html';
-    document.body.appendChild(a);a.click();
-    setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},1000);
-    toast('📥 Fil downloadet — åbn den og tryk Ctrl+P / Cmd+P');
-  }catch(e){toast('Print ikke tilgængeligt: '+e.message);}
-}
 
 function printShoppingList(){
   const overrides=S.amountOverrides||{};
@@ -6197,10 +6034,14 @@ function clearChecked(){
 }
 function addItem(){
   const name=document.getElementById('addName').value.trim();if(!name)return;
-  S.manual.push({id:Date.now(),name,amount:document.getElementById('addAmt').value.trim(),category:document.getElementById('addCat').value});
+  // Auto-detect category from name
+  const category=guessCat(name);
+  S.manual.push({id:Date.now(),name,amount:document.getElementById('addAmt').value.trim(),category});
   S.frequentItems[name]=(S.frequentItems[name]||0)+1;
   document.getElementById('addName').value='';document.getElementById('addAmt').value='';
-  renderShopList();renderQuickAdd();save();toast(`"${name}" ✓`);
+  renderShopList();renderQuickAdd();save();
+  const catLabel=CATS.find(c=>c.k===category)?.label||category;
+  toast(`"${name}" → ${catLabel} ✓`);
 }
 function removeManual(id){S.manual=S.manual.filter(i=>i.id!==Number(id));delete S.checked[`man-${id}`];renderShopList();save();}
 
