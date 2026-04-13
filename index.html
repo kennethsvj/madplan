@@ -664,9 +664,46 @@ body {
   border-radius: 10px;
   margin-bottom: 4px;
   transition: background .15s;
+  background: var(--bg-card, var(--cream));
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
 }
 .shop-row:hover { background: var(--bg-soft); }
 .shop-row.checked .iname-main { text-decoration: line-through; color: var(--text-mute); }
+
+/* ── Swipe wrapper: background action layers behind the row ── */
+.shop-swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+.shop-swipe-wrap .shop-row { margin-bottom: 0; }
+.swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  border-radius: 10px;
+  opacity: .55;
+  transition: opacity .15s;
+  pointer-events: none;
+}
+.swipe-bg-left {
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  justify-content: flex-start;
+}
+.swipe-bg-right {
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+  justify-content: flex-end;
+}
+.shop-swipe-wrap.swipe-right-active .swipe-bg-left { opacity: 1; }
+.shop-swipe-wrap.swipe-left-active  .swipe-bg-right { opacity: 1; }
 .shop-row input[type="checkbox"] {
   width: 18px;
   height: 18px;
@@ -795,6 +832,67 @@ body {
   font-size: 13px;
   white-space: nowrap;
   margin-left: 12px;
+}
+
+/* ── Goma-style recipe layout (bullet ingredients, numbered steps) ── */
+.recipe-goma {
+  background: #f5efe4;
+  border: 1px solid #e5dcc8;
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  margin-top: 8px;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #2e2a24;
+}
+.recipe-goma .goma-hdr {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #2e2a24;
+  border-bottom: 1.5px solid #2e2a24;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+  letter-spacing: -0.2px;
+}
+.recipe-goma .goma-ing-list {
+  list-style: disc;
+  padding-left: 22px;
+  margin: 0;
+}
+.recipe-goma .goma-ing-list li {
+  font-size: 14.5px;
+  line-height: 1.75;
+  margin-bottom: 2px;
+  color: #2e2a24;
+}
+.recipe-goma .goma-amt {
+  font-weight: 600;
+}
+.recipe-goma .goma-hint {
+  color: #7a7060;
+  font-style: italic;
+  font-size: 13.5px;
+}
+.recipe-goma .goma-steps {
+  list-style: decimal;
+  padding-left: 22px;
+  margin: 0;
+  counter-reset: step;
+}
+.recipe-goma .goma-steps li {
+  font-size: 14.5px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  padding-left: 4px;
+  color: #2e2a24;
+}
+.recipe-goma .goma-steps li::marker {
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .recipe-goma { padding: 16px 18px; }
+  .recipe-goma .goma-ing-list li,
+  .recipe-goma .goma-steps li { font-size: 14px; }
 }
 .empty-state {
   text-align: center;
@@ -2136,6 +2234,7 @@ let S = {
   cookbook: [],
   weekBank: [],
   shoppingArchive: [],
+  shopClearedAt: 0,
   frequentItems: {},
   offCache: {},
   collapsedDays: [],
@@ -2348,7 +2447,15 @@ async function load(){
   S.cookbook.forEach(normalizeRecipe);
   S.meals.forEach(day=>{
     if(day&&Array.isArray(day.dishes)){
-      day.dishes.forEach(d=>{if(d&&d.name)normalizeRecipe(d);if(!d.slot)d.slot='hovedret';});
+      day.dishes.forEach(d=>{
+        if(d&&d.name)normalizeRecipe(d);
+        if(!d.slot)d.slot='hovedret';
+        // Backfill addedAt for pre-existing dishes so they're not filtered out
+        // by shopClearedAt. We use a future-proof sentinel (1) that's always
+        // > 0 but <= any future shopClearedAt, meaning: "treat as legacy,
+        // include unless actively cleared".
+        if(d&&d.name&&!d.addedAt)d.addedAt=1;
+      });
     }
   });
   updateApiKeyStatus();
@@ -2806,11 +2913,16 @@ function renderShopList(){
     // Editable amount input — works for both manual and aggregated items
     const amtVal=item.amount||'';
     const editBtn=`<input type="text" value="${amtVal.replace(/"/g,'&quot;')}" placeholder="mængde" onclick="event.stopPropagation()" oninput="setItemAmount('${item.key}',this.value,${item.isManual?true:false},${item.isManual?`'${item.manualId}'`:'null'})" style="width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:.74rem;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);text-align:right;outline:none">`;
-    return`<div class="shop-row ${checked?'checked':''}">
-      <input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${item.key}',this.checked)">
-      <span class="iname"><span class="iname-main">${item.name}</span>${note}</span>
-      ${editBtn}
-      ${delBtn}
+    const manualAttr=item.isManual?` data-manualid="${item.manualId}"`:'';
+    return`<div class="shop-swipe-wrap">
+      <div class="swipe-bg swipe-bg-left"><span>✓ Købt</span></div>
+      <div class="swipe-bg swipe-bg-right"><span>✕ Slet</span></div>
+      <div class="shop-row ${checked?'checked':''}" data-key="${item.key}" data-ismanual="${item.isManual?1:0}"${manualAttr}>
+        <input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${item.key}',this.checked)">
+        <span class="iname"><span class="iname-main">${item.name}</span>${note}</span>
+        ${editBtn}
+        ${delBtn}
+      </div>
     </div>`;
   };
 
@@ -2843,6 +2955,7 @@ function renderShopList(){
   container.innerHTML=html;
   document.getElementById('statLabel').textContent=`${chk} / ${total} afkrydset`;
   document.getElementById('progressFill').style.width=(total?Math.round((chk/total)*100):0)+'%';
+  attachShopSwipe(container);
 }
 
 function getRawItems(){
@@ -2905,10 +3018,14 @@ function runAggregation(){
   const groups=new Map();
   // Regex to strip leading numbers + unit (g, gr, kg, dl, l, ml, stk, spsk, tsk, fed, bundt, håndfuld, pose, dåse, pk)
   const STRIP_LEADING_AMT=/^[\d½¼¾⅓⅔,./\s]*\s*(?:g|gr|kg|dl|l|ml|stk|spsk|tsk|tskf|fed|bundt|håndfuld|pose|poser|dåse|dåser|pk\.?|cm|knsp)\s+/i;
+  const clearedAt=S.shopClearedAt||0;
   (S.meals||[]).forEach(day=>{
     if(!day?.dishes)return;
     day.dishes.forEach(dish=>{
       if(!dish?.ingredients)return;
+      // Skip dishes that were on the plan when the shopping list was cleared.
+      // Dishes added (or re-assigned) after the clear get addedAt > clearedAt and flow through.
+      if(clearedAt && (dish.addedAt||0) <= clearedAt) return;
       const scale=dish.scale||1;
       dish.ingredients.forEach(ing=>{
         const norm=normalizeIng(ing.name);if(!norm)return;
@@ -2952,6 +3069,16 @@ function cleanIngName(name){
     .trim();
   if(!n)return name; // Fallback if everything got stripped
   return n.charAt(0).toUpperCase()+n.slice(1);
+}
+
+// Split ingredient name into main + parenthetical, e.g.
+// "svampe (fx kantareller, champignon)" → {main:"Svampe", hint:"fx kantareller, champignon"}
+function splitIngName(name){
+  const cleaned=cleanIngName(name);
+  const m=cleaned.match(/^([^(]+?)\s*\(([^)]+)\)\s*(.*)$/);
+  if(!m)return{main:cleaned,hint:''};
+  const main=(m[1]+(m[3]?' '+m[3]:'')).trim();
+  return{main:main.charAt(0).toUpperCase()+main.slice(1),hint:m[2].trim()};
 }
 
 function scaleAmount(amtStr, factor){
@@ -3123,14 +3250,18 @@ function renderRecipeContent(el, m, dayLabel){
   </div>
   ${sections.map((sec,si)=>`
     ${sec.title?`<div class="recipe-section-title-bar">${sec.title}</div>`:''}
-    <div class="recipe-section-grid">
+    <div class="recipe-section-grid recipe-goma">
       ${(sec.ingredients||[]).length?`<div class="recipe-section-col">
-        <div class="slabel">Ingredienser</div>
-        ${(sec.ingredients||[]).map(ing=>`<div class="ing-row-compact"><span class="ing-name">${cleanIngName(ing.name)}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
+        <div class="goma-hdr">Ingredienser</div>
+        <ul class="goma-ing-list">${(sec.ingredients||[]).map(ing=>{
+          const{main,hint}=splitIngName(ing.name);
+          const amt=scaleAmount(ing.amount,scale);
+          return `<li><span class="goma-amt">${amt||''}</span> <span class="goma-name">${main}</span>${hint?` <span class="goma-hint">(${hint})</span>`:''}</li>`;
+        }).join('')}</ul>
       </div>`:''}
       ${(sec.steps||[]).length?`<div class="recipe-section-col">
-        <div class="slabel">Fremgangsmåde</div>
-        ${(sec.steps||[]).map((s,i)=>`<div class="step-row-compact"><div class="step-num-sm">${i+1}</div><div class="step-txt-sm">${s}</div></div>`).join('')}
+        <div class="goma-hdr">Fremgangsmåde</div>
+        <ol class="goma-steps">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
       </div>`:''}
     </div>
   `).join('')}`;
@@ -3937,7 +4068,21 @@ const DA_EN_INGS = {
   'kikærter': 'chickpeas', 'linser': 'lentils', 'sorte bønner': 'black beans',
   'kidneybønner': 'kidney beans', 'mandler': 'almonds', 'valnødder': 'walnuts',
   'cashewnødder': 'cashews', 'chokolade': 'chocolate', 'kakao': 'cocoa',
+  'soja': 'soybeans', 'sojabønner': 'soybeans', 'sojamælk': 'soy milk',
+  'tofu': 'tofu', 'edamame': 'edamame', 'tempeh': 'tempeh',
+  'broccoli': 'broccoli raw', 'blomkål': 'cauliflower raw',
 };
+
+// Set of ingredients that are "raw" — for these we prefer USDA results over branded OFF products
+const RAW_INGS_PREFER_USDA = new Set([
+  'broccoli','blomkål','kartoffel','kartofler','løg','hvidløg','gulerod','gulerødder',
+  'tomat','tomater','agurk','salat','spinat','kål','squash','aubergine','peberfrugt',
+  'champignon','svamp','porrer','selleri','forårsløg','æble','æbler','banan','citron',
+  'lime','avocado','mango','jordbær','æg','ris','basmati','quinoa','havregryn','mel',
+  'hvedemel','sukker','soja','sojabønner','tofu','edamame','kikærter','linser',
+  'mandler','valnødder','cashewnødder','laks','torsk','tun','rejer','kylling',
+  'kyllingefilet','kyllingebryst','oksekød','svinekød','lam','ingefær',
+]);
 
 function translateToEnglish(danish){
   const n=danish.toLowerCase().trim();
@@ -3997,9 +4142,11 @@ async function searchUSDA(query){
 }
 
 async function searchOFF(query){
-  // Normalize: trim, remove brand parens, capitalize first letter as common variant
+  // Normalize: trim, remove brand parens
   const cleaned=query.trim().replace(/\([^)]*\)/g,'').trim();
   if(!cleaned)return[];
+  const lower=cleaned.toLowerCase();
+  const firstWord=lower.split(/\s+/)[0];
 
   const tryQuery=async(q)=>{
     const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=10&fields=code,product_name,product_name_da,brands,nutriments,quantity,countries`;
@@ -4013,48 +4160,42 @@ async function searchOFF(query){
       return(data.products||[]).filter(p=>{
         const n=p.nutriments||{};
         return n['energy-kcal_100g']!=null&&n['energy-kcal_100g']>0;
-      });
+      }).map(p=>({...p,_source:'off'}));
     }catch(e){
       clearTimeout(timer);
       console.warn('OFF query failed:',q,e.message);
-      return [];  // Return empty instead of throwing — fallback to next attempt
+      return [];
     }
   };
 
-  // Try OFF with multiple variants — each isolated in try/catch
-  let products=[];
-  try{products=await tryQuery(cleaned);}catch(e){}
+  // For raw ingredients (broccoli, soja, etc.), USDA gives much cleaner results
+  // than brand-heavy OFF. Run BOTH in parallel and merge, prioritising USDA for raw.
+  const isRaw = RAW_INGS_PREFER_USDA.has(lower) || RAW_INGS_PREFER_USDA.has(firstWord);
 
-  if(!products.length&&cleaned!==cleaned.toLowerCase()){
-    try{products=await tryQuery(cleaned.toLowerCase());}catch(e){}
-  }
-  if(!products.length){
-    const cap=cleaned.charAt(0).toUpperCase()+cleaned.slice(1).toLowerCase();
-    if(cap!==cleaned){try{products=await tryQuery(cap);}catch(e){}}
-  }
-  if(!products.length&&cleaned.includes(' ')){
-    try{products=await tryQuery(cleaned.split(/\s+/)[0]);}catch(e){}
-  }
+  const [offResults, usdaResults] = await Promise.all([
+    tryQuery(cleaned).then(r=>r.length?r:tryQuery(firstWord)).catch(()=>[]),
+    searchUSDA(cleaned).catch(()=>[]),
+  ]);
 
-  // FALLBACK: Try USDA FoodData Central (always tried if OFF returned nothing)
-  if(!products.length){
-    try{
-      console.log('OFF returned no results, trying USDA for:',cleaned);
-      const usdaResults=await searchUSDA(cleaned);
-      if(usdaResults.length){
-        products=usdaResults;
-        console.log('USDA found',usdaResults.length,'results');
-      }
-    }catch(e){console.warn('USDA fallback also failed:',e.message);}
-  }
+  // Merge order: raw ingredients → USDA first; otherwise → OFF first
+  let products = isRaw
+    ? [...usdaResults, ...offResults]
+    : [...offResults, ...usdaResults];
 
-  // Sort: Danish products first
+  // De-dupe by code
+  const seen=new Set();
+  products = products.filter(p=>{
+    if(!p.code||seen.has(p.code))return false;
+    seen.add(p.code);return true;
+  });
+
+  // Stable sort: Danish products rise to top
   products.sort((a,b)=>{
-    const ad=(a.countries||'').toLowerCase().includes('denmark')||(a.countries||'').toLowerCase().includes('danmark')?-1:0;
-    const bd=(b.countries||'').toLowerCase().includes('denmark')||(b.countries||'').toLowerCase().includes('danmark')?-1:0;
+    const ad=(a.countries||'').toLowerCase().match(/denmark|danmark/)?-1:0;
+    const bd=(b.countries||'').toLowerCase().match(/denmark|danmark/)?-1:0;
     return ad-bd;
   });
-  return products.slice(0,8);
+  return products.slice(0,10);
 }
 
 // Compute nutrition for a single ingredient based on its match + portion settings
@@ -4970,8 +5111,8 @@ function saveRecipe(){
     S.meals.forEach(day=>{
       (day.dishes||[]).forEach((dish,di)=>{
         if(dish?.id===arState.editId){
-          // Preserve the dish's slot when updating
-          day.dishes[di]={...recipe,slot:dish.slot||'hovedret'};
+          // Preserve the dish's slot and addedAt when updating
+          day.dishes[di]={...recipe,slot:dish.slot||'hovedret',addedAt:dish.addedAt||Date.now()};
         }
       });
     });
@@ -5079,7 +5220,7 @@ function applyRecipeToDay(recipe,dayIdx,slot,replaceDishIdx){
   if(!Array.isArray(S.meals[dayIdx].dishes))S.meals[dayIdx].dishes=[];
   // Strip the day field from recipe (it doesn't belong on a dish)
   const {day,...dishData}=recipe;
-  const newDish={...dishData,slot:slot||'hovedret'};
+  const newDish={...dishData,slot:slot||'hovedret',addedAt:Date.now()};
   if(replaceDishIdx!=null&&S.meals[dayIdx].dishes[replaceDishIdx]){
     S.meals[dayIdx].dishes[replaceDishIdx]=newDish;
   } else {
@@ -6026,18 +6167,105 @@ function openPrintWindow(fullHTML, title){
 
 // ── SHOPPING ACTIONS ─────────────────────────────────────────────
 function toggleCheck(key,checked){S.checked[key]=checked;save();renderShopList();}
+
+// ── SWIPE (iOS/touch): right = mark as bought, left = delete ────
+// Only active on touch devices. Desktop still uses checkbox + ✕ button.
+const SWIPE_THRESHOLD = 60;   // px to trigger action
+const SWIPE_MAX = 140;         // clamp
+function attachShopSwipe(container){
+  // Feature-detect: skip on devices without touch
+  if(!('ontouchstart' in window))return;
+  const wraps = container.querySelectorAll('.shop-swipe-wrap');
+  wraps.forEach(wrap=>{
+    const row = wrap.querySelector('.shop-row');
+    if(!row || row._swipeBound) return;
+    row._swipeBound = true;
+    let startX=0, startY=0, dx=0, dragging=false, decided=false, isSwipe=false;
+
+    row.addEventListener('touchstart',(e)=>{
+      if(e.touches.length!==1)return;
+      // Ignore touches that start on interactive children (checkbox, input, button)
+      const tgt=e.target;
+      if(tgt.closest('input,button'))return;
+      startX=e.touches[0].clientX;
+      startY=e.touches[0].clientY;
+      dx=0; dragging=true; decided=false; isSwipe=false;
+      row.style.transition='none';
+    },{passive:true});
+
+    row.addEventListener('touchmove',(e)=>{
+      if(!dragging)return;
+      const cx=e.touches[0].clientX, cy=e.touches[0].clientY;
+      const rawDx=cx-startX, rawDy=cy-startY;
+      if(!decided){
+        // Lock direction after ~8px: horizontal → swipe, vertical → scroll
+        if(Math.abs(rawDx)>8 || Math.abs(rawDy)>8){
+          decided=true;
+          isSwipe=Math.abs(rawDx)>Math.abs(rawDy);
+          if(!isSwipe){dragging=false;return;}
+        } else return;
+      }
+      if(!isSwipe)return;
+      // Prevent page scroll while swiping horizontally
+      if(e.cancelable)e.preventDefault();
+      dx=Math.max(-SWIPE_MAX,Math.min(SWIPE_MAX,rawDx));
+      row.style.transform=`translateX(${dx}px)`;
+      // Light up background based on direction + threshold
+      const passed=Math.abs(dx)>=SWIPE_THRESHOLD;
+      wrap.classList.toggle('swipe-right-active', dx>0 && passed);
+      wrap.classList.toggle('swipe-left-active',  dx<0 && passed);
+    },{passive:false});
+
+    const finish=(cancelled)=>{
+      if(!dragging && !isSwipe){dragging=false;return;}
+      dragging=false;
+      row.style.transition='transform .22s ease';
+      const passed = !cancelled && Math.abs(dx)>=SWIPE_THRESHOLD;
+      if(passed && dx>0){
+        // SWIPE RIGHT → mark as bought (or unmark if already checked)
+        const key=row.dataset.key;
+        row.style.transform=`translateX(100%)`;
+        setTimeout(()=>{
+          const cur=!!S.checked[key];
+          toggleCheck(key,!cur);
+        },180);
+      } else if(passed && dx<0){
+        // SWIPE LEFT → delete
+        const key=row.dataset.key;
+        const isManual=row.dataset.ismanual==='1';
+        row.style.transform=`translateX(-100%)`;
+        setTimeout(()=>{
+          if(isManual){
+            removeManual(row.dataset.manualid);
+          } else {
+            dismissItem(key);
+          }
+        },180);
+      } else {
+        // Snap back
+        row.style.transform='translateX(0)';
+      }
+      wrap.classList.remove('swipe-right-active','swipe-left-active');
+      isSwipe=false; dx=0;
+    };
+    row.addEventListener('touchend',()=>finish(false),{passive:true});
+    row.addEventListener('touchcancel',()=>finish(true),{passive:true});
+  });
+}
+
 function clearChecked(){
-  uiConfirm('Tøm indkøbskurven?','Alle varer fjernes fra indkøbslisten — både manuelt tilføjede og dem fra opskrifter. Ugens madplan bevares.',()=>{
+  uiConfirm('Tøm indkøbskurven?','Alle varer fjernes fra indkøbslisten — både manuelt tilføjede og dem fra opskrifter. Ugens madplan bevares, og nye retter du vælger fremover lægges automatisk på listen igen.',()=>{
     S.checked={};
     S.manual=[];
     S.dismissed=[];
     S.amountOverrides={};
-    // Mark all aggregated items as dismissed so they don't come back
-    if(S.aggregated){
-      S.aggregated.forEach(item=>{S.dismissed.push(item.key);});
-    }
+    // Timestamp-based clear: dishes already on the plan are marked as "cleared".
+    // runAggregation skips any dish where addedAt <= shopClearedAt, so picking
+    // a NEW dish after this (addedAt = now > shopClearedAt) flows through normally.
+    S.shopClearedAt=Date.now();
+    S.aggregated=null;
     save();
-    renderShopList();
+    runAggregation();
     toast('Indkøbskurven er tømt ✓');
   },'🗑️ Tøm');
 }
