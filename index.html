@@ -739,19 +739,20 @@ body {
 
 /* ── RECIPE VIEW ──────────────────────────────── */
 .recipe-hero {
-  background: linear-gradient(135deg, var(--c-book), #1e40af);
-  color: white;
-  padding: 28px 28px;
+  background: linear-gradient(135deg, #f7f5f0 0%, #efeae0 100%);
+  color: #2e2a24;
+  padding: 24px 26px;
   border-radius: var(--radius);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   position: relative;
+  border: 1px solid #e5dcc8;
 }
 .hero-day {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  opacity: 0.8;
+  color: #7a7060;
   margin-bottom: 6px;
 }
 .hero-name {
@@ -760,20 +761,35 @@ body {
   letter-spacing: -0.5px;
   margin-bottom: 12px;
   line-height: 1.15;
+  color: #2e2a24;
 }
 .hero-meta {
   display: flex;
   gap: 16px;
   font-size: 13px;
-  opacity: 0.9;
+  color: #5c5448;
 }
 .hero-meta span { display: flex; align-items: center; gap: 5px; }
 .hero-source {
   margin-top: 12px;
   font-size: 12px;
-  opacity: 0.8;
+  color: #7a7060;
 }
-.hero-source a { color: white; text-decoration: underline; }
+.hero-source a { color: #5c5448; text-decoration: underline; }
+/* Neutral "chip" style used inside the hero (replaces old white-on-blue pills) */
+.hero-chip {
+  background: rgba(255,255,255,.7);
+  border: 1px solid #d8ceb8;
+  color: #2e2a24;
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: .74rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.hero-chip.active { background: #2e2a24; color: #fff; border-color: #2e2a24; }
+.hero-chip.ghost { background: transparent; }
 
 
 .recipe-section {
@@ -790,26 +806,25 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--c-book);
+  color: #5c5448;
   margin: 12px 0 6px;
 }
 
 /* Compact recipe layout (for opskrifter med mange delretter) */
 .recipe-section-title-bar {
-  margin-top: 18px;
-  padding: 8px 14px;
-  background: var(--c-book-soft);
-  color: var(--c-book);
-  border: 1px solid var(--c-book-border);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  margin: 0 0 14px;
+  padding: 0 0 10px;
+  color: #2e2a24;
+  border-bottom: 1.5px solid #2e2a24;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  font-family: 'DM Sans', sans-serif;
 }
 .recipe-section-grid {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(280px, 2fr);
-  gap: 18px;
+  gap: 22px;
   margin-bottom: 14px;
   align-items: start;
 }
@@ -823,7 +838,7 @@ body {
 @media (max-width: 700px) {
   .recipe-section-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 14px;
   }
 }
 .ing-qty {
@@ -834,19 +849,20 @@ body {
   margin-left: 12px;
 }
 
-/* ── Goma-style recipe layout (bullet ingredients, numbered steps) ── */
+/* ── Goma-style recipe layout — unified per-section block ── */
 .recipe-goma {
-  background: #f5efe4;
+  background: #faf7f0;
   border: 1px solid #e5dcc8;
   border-radius: var(--radius);
-  padding: 22px 26px;
-  margin-top: 8px;
+  padding: 24px 28px;
+  margin-top: 12px;
+  margin-bottom: 14px;
   font-family: Georgia, 'Times New Roman', serif;
   color: #2e2a24;
 }
 .recipe-goma .goma-hdr {
   font-family: 'DM Sans', sans-serif;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #2e2a24;
   border-bottom: 1.5px solid #2e2a24;
@@ -890,9 +906,105 @@ body {
   font-weight: 700;
 }
 @media (max-width: 700px) {
-  .recipe-goma { padding: 16px 18px; }
+  .recipe-goma { padding: 18px 20px; }
   .recipe-goma .goma-ing-list li,
   .recipe-goma .goma-steps li { font-size: 14px; }
+}
+
+/* ── Recipe photo (hero above the recipe) ── */
+.recipe-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 420px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  display: block;
+  background: #f0ebdf;
+}
+
+/* ── Recipe picker: image-forward cards (≈75% image) ── */
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.picker-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.picker-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-color: var(--c-plan);
+}
+.picker-card-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-soft);
+  overflow: hidden;
+  position: relative;
+}
+.picker-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.picker-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+}
+.picker-card-body {
+  padding: 12px 14px 14px;
+}
+.picker-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.picker-card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-bottom: 8px;
+}
+.picker-card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.picker-card .picker-tag {
+  font-size: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--text-mute);
+  font-weight: 500;
+}
+@media (max-width: 500px) {
+  .picker-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .picker-card-body { padding: 10px 11px 12px; }
+  .picker-card-name { font-size: 13.5px; }
 }
 .empty-state {
   text-align: center;
@@ -2255,7 +2367,7 @@ let pickerMealIdx = null;
 let pickerReplaceDishIdx = null; // null = adding new, else = replacing existing dish at this index
 let pickerSlot = 'hovedret';
 let pickerCuisFilter = 'alle';
-let pickerIngFilter = 'alle';
+let pickerIngFilter = new Set(); // multi-select tags (empty = all)
 let pickerFromPicker = false;
 let nwCuisFilter = 'alle';
 let nwTagFilter = new Set(); // selected ingredient tags for filtering
@@ -2455,7 +2567,21 @@ async function load(){
         // > 0 but <= any future shopClearedAt, meaning: "treat as legacy,
         // include unless actively cleared".
         if(d&&d.name&&!d.addedAt)d.addedAt=1;
+        // Migration: clear nutrition data poisoned by the old "bare number × 100"
+        // grams bug. 4000+ kcal per portion is physically implausible for home
+        // cooking; strip it so the recipe shows "Beregn" and can be re-computed.
+        if(d?.nutrition && (d.nutrition.kcal||0) > 4000){
+          console.log('Clearing bogus nutrition for',d.name,'(',d.nutrition.kcal,'kcal/portion)');
+          delete d.nutrition;
+        }
       });
+    }
+  });
+  // Same cleanup on cookbook
+  (S.cookbook||[]).forEach(r=>{
+    if(r?.nutrition && (r.nutrition.kcal||0) > 4000){
+      console.log('Clearing bogus nutrition for cookbook recipe',r.name,'(',r.nutrition.kcal,'kcal/portion)');
+      delete r.nutrition;
     }
   });
   updateApiKeyStatus();
@@ -3210,9 +3336,9 @@ function renderRecipeContent(el, m, dayLabel){
   const hasMultipleSections=sections.length>1||(sections[0]?.title);
 
   el.innerHTML=`
-  ${m.photo?`<img src="${m.photo}" style="width:100%;max-height:220px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px;display:block">`:''}
+  ${m.photo?`<img class="recipe-photo" src="${m.photo}" alt="">`:''}
   <div class="recipe-hero">
-    <button onclick="printRecipe()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1" title="Print opskrift">🖨️ Print</button>
+    <button onclick="printRecipe()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.6);border:1px solid #d8ceb8;color:#2e2a24;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1" title="Print opskrift">🖨️ Print</button>
     <div class="hero-day">${dayLabel}</div><div class="hero-name">${m.name}</div>
     <div class="hero-meta">
       ${m.cuisine?`<span>🍴 ${m.cuisine}</span>`:''}
@@ -3221,48 +3347,50 @@ function renderRecipeContent(el, m, dayLabel){
     </div>
     ${m.nutrition?(()=>{
       const disp=getDisplayNutrition(m.nutrition,m.nutrition.totalWeight);
-      return `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem;font-weight:600">🔥 ${disp.kcal} kcal</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥩 ${disp.protein}g protein</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🌾 ${disp.carbs}g kulhydrat</span>
-      <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 11px;border-radius:20px;font-size:.74rem">🥑 ${disp.fat}g fedt</span>
-      <span style="font-size:.65rem;opacity:.6">${disp.label}</span>
-      <button onclick="openNutritionRefinement('${m.id||''}')" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;padding:4px 11px;border-radius:20px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📊 Redigér</button>
+      return `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span class="hero-chip" style="cursor:default">🔥 ${disp.kcal} kcal</span>
+      <span class="hero-chip" style="cursor:default">🥩 ${disp.protein}g protein</span>
+      <span class="hero-chip" style="cursor:default">🌾 ${disp.carbs}g kulhydrat</span>
+      <span class="hero-chip" style="cursor:default">🥑 ${disp.fat}g fedt</span>
+      <span style="font-size:.65rem;color:#7a7060">${disp.label}</span>
+      <button class="hero-chip" onclick="openNutritionRefinement('${m.id||''}')" style="margin-left:auto">📊 Redigér</button>
     </div>
     <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:.65rem;opacity:.7;text-transform:uppercase;letter-spacing:1px">Vis:</span>
-      <button onclick="setNutritionViewMode('portion')" style="background:${nutritionViewMode==='portion'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Per portion</button>
-      <button onclick="setNutritionViewMode('total')" style="background:${nutritionViewMode==='total'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Hele retten</button>
-      ${m.nutrition.totalWeight?`<button onclick="setNutritionViewMode('plate')" style="background:${nutritionViewMode==='plate'?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)'};border:1px solid rgba(255,255,255,.35);color:white;padding:3px 11px;border-radius:14px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">⚖️ Min tallerken</button>`:''}
-      ${nutritionViewMode==='plate'?`<input type="number" value="${plateWeight}" oninput="setPlateWeight(this.value)" style="width:80px;padding:3px 9px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:white;font-size:.72rem;font-family:'DM Sans',sans-serif" placeholder="g"><span style="font-size:.7rem;opacity:.7">g på vægt</span>`:''}
+      <span style="font-size:.65rem;color:#7a7060;text-transform:uppercase;letter-spacing:1px">Vis:</span>
+      <button class="hero-chip ${nutritionViewMode==='portion'?'active':''}" onclick="setNutritionViewMode('portion')">Per portion</button>
+      <button class="hero-chip ${nutritionViewMode==='total'?'active':''}" onclick="setNutritionViewMode('total')">Hele retten</button>
+      ${m.nutrition.totalWeight?`<button class="hero-chip ${nutritionViewMode==='plate'?'active':''}" onclick="setNutritionViewMode('plate')">⚖️ Min tallerken</button>`:''}
+      ${nutritionViewMode==='plate'?`<input type="number" value="${plateWeight}" oninput="setPlateWeight(this.value)" style="width:80px;padding:3px 9px;border-radius:14px;border:1px solid #d8ceb8;background:rgba(255,255,255,.6);color:#2e2a24;font-size:.72rem;font-family:'DM Sans',sans-serif" placeholder="g"><span style="font-size:.7rem;color:#7a7060">g på vægt</span>`:''}
     </div>`;
-    })():`<div style="margin-top:10px">
-      <button onclick="openNutritionRefinement('${m.id||''}')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📊 Beregn makronæringsstoffer</button>
+    })():`<div style="margin-top:12px">
+      <button class="hero-chip" onclick="openNutritionRefinement('${m.id||''}')">📊 Beregn makronæringsstoffer</button>
     </div>`}
     ${m.source?.url&&m.source.url!=='#'?`<div class="hero-source">Kilde: <a href="${m.source.url}" target="_blank">↗ ${m.source.name||m.source.url}</a></div>`:''}
   </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px">
     <div class="slabel" style="margin:0">${hasMultipleSections?'Opskriften har flere delretter':'Ingredienser & fremgangsmåde'}</div>
     <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:.72rem;color:var(--muted)">Skaler:</span>
-      ${[1,2,3,4].map(n=>`<button onclick="setRecipeScale(${n})" style="padding:3px 9px;border-radius:20px;border:1.5px solid ${scale===n?'var(--green)':'var(--border)'};background:${scale===n?'var(--green)':'var(--cream)'};color:${scale===n?'white':'var(--muted)'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${n}×</button>`).join('')}
+      ${[1,2,3,4].map(n=>`<button onclick="setRecipeScale(${n})" style="padding:3px 9px;border-radius:20px;border:1.5px solid ${scale===n?'#2e2a24':'#d8ceb8'};background:${scale===n?'#2e2a24':'#faf7f0'};color:${scale===n?'#faf7f0':'#2e2a24'};font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${n}×</button>`).join('')}
     </div>
   </div>
   ${sections.map((sec,si)=>`
-    ${sec.title?`<div class="recipe-section-title-bar">${sec.title}</div>`:''}
-    <div class="recipe-section-grid recipe-goma">
-      ${(sec.ingredients||[]).length?`<div class="recipe-section-col">
-        <div class="goma-hdr">Ingredienser</div>
-        <ul class="goma-ing-list">${(sec.ingredients||[]).map(ing=>{
-          const{main,hint}=splitIngName(ing.name);
-          const amt=scaleAmount(ing.amount,scale);
-          return `<li><span class="goma-amt">${amt||''}</span> <span class="goma-name">${main}</span>${hint?` <span class="goma-hint">(${hint})</span>`:''}</li>`;
-        }).join('')}</ul>
-      </div>`:''}
-      ${(sec.steps||[]).length?`<div class="recipe-section-col">
-        <div class="goma-hdr">Fremgangsmåde</div>
-        <ol class="goma-steps">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
-      </div>`:''}
+    <div class="recipe-goma">
+      ${sec.title?`<div class="recipe-section-title-bar">${sec.title}</div>`:''}
+      <div class="recipe-section-grid">
+        ${(sec.ingredients||[]).length?`<div class="recipe-section-col">
+          <div class="goma-hdr">Ingredienser</div>
+          <ul class="goma-ing-list">${(sec.ingredients||[]).map(ing=>{
+            const{main,hint}=splitIngName(ing.name);
+            const amt=scaleAmount(ing.amount,scale);
+            return `<li><span class="goma-amt">${amt||''}</span> <span class="goma-name">${main}</span>${hint?` <span class="goma-hint">(${hint})</span>`:''}</li>`;
+          }).join('')}</ul>
+        </div>`:''}
+        ${(sec.steps||[]).length?`<div class="recipe-section-col">
+          <div class="goma-hdr">Fremgangsmåde</div>
+          <ol class="goma-steps">${(sec.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+        </div>`:''}
+      </div>
     </div>
   `).join('')}`;
 }
@@ -4313,6 +4441,14 @@ function calculateGrams(parsed,ingType,sizeIdx,customGrams){
   if(parsed.kind==='taste')return 0;
   if(customGrams!=null)return customGrams;
 
+  // Smart bare-number detection: if the user wrote "500 svinekød" or "800 kartofler"
+  // without a unit (parser returned kind='piece' with empty unit), a value >= 50 is
+  // almost certainly grams — nobody cooks with 50+ of anything literal. Treat as grams.
+  const isBareNumber = parsed.kind==='piece' && (!parsed.unit || parsed.unit==='');
+  if(isBareNumber && parsed.value >= 50){
+    return parsed.value; // interpret as grams directly
+  }
+
   if(ingType.type==='fixed'){
     return parsed.value*ingType.gPerUnit;
   }
@@ -5141,7 +5277,7 @@ function saveRecipe(){
 function openPickerModal(dayIdx, replaceDishIdx){
   pickerMealIdx=dayIdx;
   pickerReplaceDishIdx=(replaceDishIdx==null)?null:replaceDishIdx;
-  pickerCuisFilter='alle';pickerIngFilter='alle';pickerFromPicker=false;
+  pickerCuisFilter='alle';pickerIngFilter=new Set();pickerFromPicker=false;
   // If replacing, use the existing dish's slot. Otherwise default to hovedret.
   if(pickerReplaceDishIdx!=null){
     const existing=S.meals[dayIdx]?.dishes?.[pickerReplaceDishIdx];
@@ -5176,39 +5312,53 @@ function buildPickerChips(){
     cuisChips.map(c=>`<button class="chip ${c.k===pickerCuisFilter?'active':''}" onclick="setPickerCuis('${c.k}')">${c.l}</button>`).join('');
   const ING_GROUPS=buildIngGroups();
   if(!ING_GROUPS.length){document.getElementById('pickerIngChips').innerHTML='';return;}
+  const allActive=pickerIngFilter.size===0;
   document.getElementById('pickerIngChips').innerHTML=
     `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Tags:</span>`+
-    `<button class="chip ${pickerIngFilter==='alle'?'active':''}" onclick="setPickerIng('alle')">🥘 Alle</button>`+
-    ING_GROUPS.map(g=>`<button class="chip ${g.k===pickerIngFilter?'active':''}" onclick="setPickerIng('${g.k}')">${g.l}</button>`).join('');
+    `<button class="chip ${allActive?'active':''}" onclick="clearPickerTags()">🥘 Alle</button>`+
+    ING_GROUPS.map(g=>`<button class="chip ${pickerIngFilter.has(g.k)?'active':''}" onclick="togglePickerTag('${g.k.replace(/'/g,"\\'")}')">${g.l}</button>`).join('')+
+    (pickerIngFilter.size>1?`<span style="font-size:10px;color:var(--text-mute);margin-left:4px">${pickerIngFilter.size} valgt — opskrifter med <strong>alle</strong></span>`:'');
 }
 function setPickerCuis(c){pickerCuisFilter=c;buildPickerChips();renderPickerList();}
-function setPickerIng(k){pickerIngFilter=k;buildPickerChips();renderPickerList();}
+function togglePickerTag(k){
+  if(pickerIngFilter.has(k))pickerIngFilter.delete(k);
+  else pickerIngFilter.add(k);
+  buildPickerChips();renderPickerList();
+}
+function clearPickerTags(){pickerIngFilter.clear();buildPickerChips();renderPickerList();}
 function renderPickerList(){
   const q=(document.getElementById('pickerSearch')?.value||'').toLowerCase();
   const ING_GROUPS=buildIngGroups();
   const pool=S.cookbook.filter(r=>{
     const cOk=pickerCuisFilter==='alle'||r.cuisine===pickerCuisFilter;
-    const iOk=pickerIngFilter==='alle'||(()=>{const g=ING_GROUPS.find(g=>g.k===pickerIngFilter);return g?(r.mainIngredients||[]).some(ing=>g.re.test(ing)):true;})();
+    // Multi-select tags: AND logic — recipe must match every selected tag
+    const iOk=pickerIngFilter.size===0||[...pickerIngFilter].every(filterKey=>{
+      const group=ING_GROUPS.find(g=>g.k===filterKey);
+      if(!group)return true;
+      return (r.mainIngredients||[]).some(ing=>group.re.test(ing));
+    });
     const qOk=!q||r.name.toLowerCase().includes(q)||(r.cuisine||'').toLowerCase().includes(q)||(r.mainIngredients||[]).some(i=>i.toLowerCase().includes(q));
     return cOk&&iOk&&qOk;
   });
   if(!S.cookbook.length){document.getElementById('pickerList').innerHTML=`<div style="text-align:center;padding:30px;color:var(--hint);font-size:.85rem">Kogebogen er tom — tilføj opskrifter først.</div>`;return;}
   if(!pool.length){document.getElementById('pickerList').innerHTML=`<div style="text-align:center;padding:20px;color:var(--hint);font-size:.85rem">Ingen match</div>`;return;}
-  document.getElementById('pickerList').innerHTML=pool.map(r=>{
+  document.getElementById('pickerList').innerHTML=`<div class="picker-grid">${pool.map(r=>{
     const cEmoji=CUISINE_LIST.find(c=>c.k===r.cuisine)?.l.split(' ')[0]||'🍴';
     const mainIngs=(r.mainIngredients||[]).slice(0,3);
-    return`<div class="book-card" onclick="selectFromPicker('${r.id}')" style="cursor:pointer;display:flex;align-items:center;gap:14px;padding:12px 14px;margin-bottom:8px">
-      ${r.photo?`<img src="${r.photo}" style="width:120px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0">`:`<div style="width:120px;height:90px;border-radius:10px;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0">${cEmoji}</div>`}
-      <div style="flex:1;min-width:0">
-        <div class="bc-name" style="padding-right:0;font-size:15px;font-weight:700;margin-bottom:4px">${r.name}</div>
-        <div class="bc-meta" style="margin-bottom:4px">
-          <span class="mbadge mb-cuisine" style="font-size:11px">${cEmoji} ${r.cuisine||'–'}</span>
-          ${r.cookTime?`<span class="mbadge mb-time" style="font-size:11px">⏱ ${r.cookTime}</span>`:''}
+    return`<div class="picker-card" onclick="selectFromPicker('${r.id}')">
+      <div class="picker-card-img">
+        ${r.photo?`<img src="${r.photo}" alt="">`:`<div class="picker-card-placeholder">${cEmoji}</div>`}
+      </div>
+      <div class="picker-card-body">
+        <div class="picker-card-name">${r.name}</div>
+        <div class="picker-card-meta">
+          <span>${cEmoji} ${r.cuisine||'–'}</span>
+          ${r.cookTime?`<span>⏱ ${r.cookTime}</span>`:''}
         </div>
-        ${mainIngs.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${mainIngs.map(i=>`<span style="font-size:10px;background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--text-mute);font-weight:500">${i}</span>`).join('')}</div>`:''}
+        ${mainIngs.length?`<div class="picker-card-tags">${mainIngs.map(i=>`<span class="picker-tag">${i}</span>`).join('')}</div>`:''}
       </div>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
 }
 function selectFromPicker(id){
   const recipe=S.cookbook.find(r=>r.id===id);if(!recipe)return;
@@ -5297,7 +5447,19 @@ function shuffleNewWeek(){
   }
 
   if(!pool.length){
-    document.getElementById('nwGrid').innerHTML=`<div style="text-align:center;padding:30px;color:var(--text-mute);font-size:13px">Ingen opskrifter matcher dine filtre — fjern et filter for at fortsætte</div>`;
+    // Don't wipe the whole grid — preserve locked slots, only clear unlocked ones
+    for(let i=0;i<7;i++){
+      if(!nwLocked[i])nwSelected[i]=null;
+    }
+    renderNwGrid();
+    const lockedCount=nwLocked.filter(Boolean).length;
+    const note=document.getElementById('nwGrid');
+    if(note){
+      const msg=document.createElement('div');
+      msg.style.cssText='text-align:center;padding:14px;color:var(--text-mute);font-size:12px;margin-top:8px;background:var(--c-week-soft);border:1px dashed var(--c-week-border);border-radius:10px';
+      msg.textContent=lockedCount?`Ingen opskrifter matcher filtrene — ${lockedCount} låst${lockedCount===1?'':'e'} dag${lockedCount===1?'':'e'} bevaret, øvrige tømt.`:'Ingen opskrifter matcher dine filtre — fjern et filter for at fortsætte.';
+      note.appendChild(msg);
+    }
     return;
   }
 
@@ -5306,17 +5468,10 @@ function shuffleNewWeek(){
     nwSelected=new Array(7).fill(null);
   }
 
-  // Get names of currently-locked recipes — we won't pick these again
-  const lockedNames=new Set();
-  for(let i=0;i<7;i++){
-    if(nwLocked[i]&&nwSelected[i]?.name)lockedNames.add(nwSelected[i].name);
-  }
-
-  // Available pool excludes locked
-  const avail=pool.filter(r=>!lockedNames.has(r.name));
-
+  // NOTE: Locked recipes REMAIN in the available pool — the user wants to be
+  // able to lock a recipe to Monday and still see it repeat on e.g. Thursday.
   // Proper Fisher-Yates shuffle (unbiased)
-  const shuffled=[...avail];
+  const shuffled=[...pool];
   for(let i=shuffled.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
