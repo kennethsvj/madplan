@@ -409,30 +409,30 @@ body {
 @media (max-width: 768px) {
   /* Day blocks: tighter padding, smaller header */
   .day-block {
-    padding: 12px 13px;
-    margin-bottom: 10px;
+    padding: 8px 11px;
+    margin-bottom: 7px;
   }
   .day-block-header {
-    margin-bottom: 8px;
-    padding-bottom: 7px;
+    margin-bottom: 6px;
+    padding-bottom: 5px;
   }
   .day-block-label {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   /* Dish cards: much more compact */
   .dish-card {
-    padding: 9px 11px;
-    margin-bottom: 6px;
+    padding: 7px 9px;
+    margin-bottom: 5px;
   }
   .dish-slot-label {
     font-size: 9px;
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
   .dish-name {
-    font-size: 13px;
-    margin-bottom: 4px;
-    line-height: 1.25;
+    font-size: 12px;
+    margin-bottom: 2px;
+    line-height: 1.2;
   }
   .dish-meta {
     gap: 4px;
@@ -2567,62 +2567,56 @@ function extractJSON(text){
 function renderMealCards(){
   document.getElementById('mealCards').innerHTML=(S.meals||[]).map((day,dayIdx)=>{
     const dishes=sortDishes(day.dishes||[]);
-    const totalKcal=dishes.reduce((sum,d)=>sum+(d.nutrition?.kcal||0),0);
+    const totalKcal=dishes.reduce((sum,d)=>sum+(d.nutrition?.kcal||0)*(d.scale||1),0);
+    const isCollapsed=(S.collapsedDays||[]).includes(dayIdx);
+    const isEmpty=!dishes.length;
 
-    if(!dishes.length){
-      return`<div class="day-block empty">
-        <div class="day-block-header">
-          <span class="day-block-label">${day.day}</span>
-        </div>
-        <div class="day-block-empty">
-          <div style="font-size:13px;color:var(--text-mute);margin-bottom:10px">Ingen retter valgt</div>
-          <button class="btn btn-primary" onclick="openPickerModal(${dayIdx})">➕ Tilføj ret</button>
-        </div>
+    // Header — same for empty and filled days now
+    const header=`<div class="day-block-header" onclick="toggleDayCollapse(${dayIdx})" style="cursor:pointer;user-select:none">
+      <span class="day-block-label">${day.day}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${totalKcal>0?`<span style="font-size:10px;color:var(--c-plan);font-weight:700">🔥 ${Math.round(totalKcal)}</span>`:''}
+        <span style="font-size:10px;color:var(--text-mute)">${isEmpty?'tom':dishes.length+' ret'+(dishes.length!==1?'ter':'')}</span>
+        <span style="font-size:11px;color:var(--text-mute);display:inline-block;${isCollapsed?'':'transform:rotate(90deg)'}">▶</span>
+      </div>
+    </div>`;
+
+    if(isEmpty){
+      return`<div class="day-block empty ${isCollapsed?'collapsed':''}">
+        ${header}
+        ${isCollapsed?'':`<div class="day-block-empty">
+          <button class="btn btn-primary" onclick="event.stopPropagation();openPickerModal(${dayIdx})" style="padding:7px 14px;font-size:12px">➕ Tilføj ret</button>
+        </div>`}
       </div>`;
     }
 
     const dishCards=dishes.map(dish=>{
-      const dishIdx=day.dishes.indexOf(dish); // original index for actions
+      const dishIdx=day.dishes.indexOf(dish);
       const cuisClass=`cu-${(dish.cuisine||'').toLowerCase()}`;
       const cEmoji=CUISINE_LIST.find(c=>c.k===dish.cuisine)?.l.split(' ')[0]||'🍴';
       const slot=slotInfo(dish.slot);
+      const scale=dish.scale||1;
       return`<div class="dish-card ${cuisClass}">
-        <div class="dish-slot-label" onclick="toggleSlotMenu(${dayIdx},${dishIdx})" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px" title="Klik for at ændre type">
-          ${slot.icon} ${slot.l.toUpperCase()} <span style="font-size:9px;opacity:.5">▼</span>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span class="dish-slot-label" onclick="toggleSlotMenu(${dayIdx},${dishIdx})" style="cursor:pointer" title="Skift type">${slot.icon} ${slot.l.toUpperCase()} ▼</span>
+          ${dish.cookTime?`<span style="font-size:9px;color:var(--text-mute)">⏱ ${dish.cookTime}</span>`:''}
+          ${dish.nutrition?`<span style="font-size:9px;color:var(--c-plan);font-weight:700">🔥 ${Math.round((dish.nutrition.kcal||0)*scale)}</span>`:''}
+          <span style="margin-left:auto;font-size:9px;color:var(--text-mute)">${4*scale}p</span>
         </div>
         <div id="slotMenu-${dayIdx}-${dishIdx}" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:6px;box-shadow:var(--shadow-md)">
-          ${SLOTS.map(s=>`<button onclick="changeDishSlot(${dayIdx},${dishIdx},'${s.k}')" style="display:block;width:100%;text-align:left;background:${s.k===dish.slot?'var(--c-plan-soft)':'none'};border:none;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer;border-radius:5px;color:${s.k===dish.slot?'var(--c-plan)':'var(--text)'};font-weight:${s.k===dish.slot?'600':'400'}">${s.icon} ${s.l}</button>`).join('')}
+          ${SLOTS.map(s=>`<button onclick="changeDishSlot(${dayIdx},${dishIdx},'${s.k}')" style="display:block;width:100%;text-align:left;background:${s.k===dish.slot?'var(--c-plan-soft)':'none'};border:none;padding:5px 10px;font-size:11px;font-family:inherit;cursor:pointer;border-radius:5px;color:${s.k===dish.slot?'var(--c-plan)':'var(--text)'};font-weight:${s.k===dish.slot?'600':'400'}">${s.icon} ${s.l}</button>`).join('')}
         </div>
-        <div class="dish-name">${dish.name}</div>
-        <div class="dish-meta">
-          ${dish.cuisine?`<span class="mbadge mb-cuisine">${cEmoji} ${dish.cuisine}</span>`:''}
-          ${dish.cookTime?`<span class="mbadge mb-time">⏱ ${dish.cookTime}</span>`:''}
-          ${dish.nutrition?`<span class="mbadge" style="background:var(--c-plan-soft);color:var(--c-plan);border-color:var(--c-plan-border)">🔥 ${Math.round((dish.nutrition.kcal||0)*(dish.scale||1))} kcal</span>`:''}
-        </div>
-        <div class="dish-scale-row" style="display:flex;align-items:center;gap:6px;margin:8px 0;padding:6px 10px;background:var(--bg-soft);border-radius:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--text-mute);font-weight:600">Skaler:</span>
-          ${[1,1.5,2,3,4].map(n=>`<button onclick="setDishScale(${dayIdx},${dishIdx},${n})" style="padding:3px 9px;border-radius:14px;border:1px solid ${(dish.scale||1)===n?'var(--c-plan)':'var(--border)'};background:${(dish.scale||1)===n?'var(--c-plan)':'var(--bg)'};color:${(dish.scale||1)===n?'white':'var(--text)'};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">${n}×</button>`).join('')}
-          <span style="margin-left:auto;font-size:10px;color:var(--text-mute)">${4*(dish.scale||1)} pers.</span>
-        </div>
-        ${dish.source?.url&&dish.source.url!=='#'?`<div class="meal-src">↗ <a href="${dish.source.url}" target="_blank">${dish.source.name||dish.source.url}</a></div>`:''}
-        <div class="dish-actions">
-          <button class="btn btn-secondary" onclick="showRecipe(${dayIdx},${dishIdx})">📖 Opskrift</button>
-          <button class="btn btn-primary" onclick="openPickerModal(${dayIdx},${dishIdx})">✨ Erstat</button>
-          <button class="btn btn-secondary" onclick="removeDish(${dayIdx},${dishIdx})" title="Fjern ret" style="flex:none;padding:10px 12px;color:var(--c-fav);border-color:var(--c-fav-border)">✕</button>
+        <div class="dish-name" onclick="showRecipe(${dayIdx},${dishIdx})" style="cursor:pointer">${dish.name}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:5px">
+          ${[1,1.5,2,3,4].map(n=>`<button onclick="setDishScale(${dayIdx},${dishIdx},${n})" style="padding:2px 6px;border-radius:10px;border:1px solid ${scale===n?'var(--c-plan)':'var(--border)'};background:${scale===n?'var(--c-plan)':'var(--bg)'};color:${scale===n?'white':'var(--text)'};font-size:9px;font-weight:600;cursor:pointer;font-family:inherit">${n}×</button>`).join('')}
+          <button onclick="openPickerModal(${dayIdx},${dishIdx})" title="Erstat" style="margin-left:auto;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;font-family:inherit">✨</button>
+          <button onclick="removeDish(${dayIdx},${dishIdx})" title="Fjern" style="padding:2px 7px;border-radius:10px;border:1px solid var(--c-fav-border);background:var(--bg);color:var(--c-fav);font-size:10px;cursor:pointer;font-family:inherit">✕</button>
         </div>
       </div>`;
     }).join('');
 
-    const isCollapsed=(S.collapsedDays||[]).includes(dayIdx);
     return`<div class="day-block ${isCollapsed?'collapsed':''}">
-      <div class="day-block-header" onclick="toggleDayCollapse(${dayIdx})" style="cursor:pointer;user-select:none">
-        <span class="day-block-label">${day.day}</span>
-        <div style="display:flex;align-items:center;gap:10px">
-          ${totalKcal>0?`<span style="font-size:11px;color:var(--c-plan);font-weight:700">🔥 ${Math.round(totalKcal)} kcal i alt</span>`:''}
-          <span style="font-size:11px;color:var(--text-mute)">${dishes.length} ret${dishes.length!==1?'ter':''}</span>
-          <span style="font-size:12px;color:var(--text-mute);transition:transform .2s;display:inline-block;${isCollapsed?'':'transform:rotate(90deg)'}">▶</span>
-        </div>
-      </div>
+      ${header}
       ${isCollapsed?'':`${dishCards}
       <button class="btn-add-dish" onclick="openPickerModal(${dayIdx})">➕ Tilføj endnu en ret</button>`}
     </div>`;
@@ -2945,6 +2939,21 @@ function runAggregation(){
 }
 
 // ── RECIPE VIEW ──────────────────────────────────────────────────
+// Strip leading amounts/units that snuck into the ingredient name
+// "gr hakket svinekød" → "Hakket svinekød"
+// "200 g hakket svinekød" → "Hakket svinekød"
+const STRIP_LEADING_AMT_RE=/^[\d½¼¾⅓⅔,./\s]*\s*(?:g|gr|kg|dl|l|ml|stk|spsk|tsk|fed|bundt|håndfuld|pose|poser|dåse|dåser|pk\.?|cm|knsp)\s+/i;
+function cleanIngName(name){
+  if(!name)return '';
+  let n=name
+    .replace(STRIP_LEADING_AMT_RE,'')
+    .replace(/^[\d½¼¾⅓⊃⅔,./\s]+/,'')
+    .replace(/\s+/g,' ')
+    .trim();
+  if(!n)return name; // Fallback if everything got stripped
+  return n.charAt(0).toUpperCase()+n.slice(1);
+}
+
 function scaleAmount(amtStr, factor){
   if(!amtStr||factor===1) return amtStr;
   const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};
@@ -3117,7 +3126,7 @@ function renderRecipeContent(el, m, dayLabel){
     <div class="recipe-section-grid">
       ${(sec.ingredients||[]).length?`<div class="recipe-section-col">
         <div class="slabel">Ingredienser</div>
-        ${(sec.ingredients||[]).map(ing=>`<div class="ing-row-compact"><span class="ing-name">${ing.name}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
+        ${(sec.ingredients||[]).map(ing=>`<div class="ing-row-compact"><span class="ing-name">${cleanIngName(ing.name)}</span><span class="ing-qty">${scaleAmount(ing.amount,scale)}</span></div>`).join('')}
       </div>`:''}
       ${(sec.steps||[]).length?`<div class="recipe-section-col">
         <div class="slabel">Fremgangsmåde</div>
@@ -5695,7 +5704,7 @@ function printRecipe(){
       <div class="section-grid">
         <div class="section-ings">
           <h3>Ingredienser</h3>
-          <ul>${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+          <ul>${(sec.ingredients||[]).map(ing=>`<li><span>${cleanIngName(ing.name)}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
         </div>
         <div class="section-steps">
           <h3>Fremgangsmåde</h3>
@@ -5708,7 +5717,7 @@ function printRecipe(){
     sectionsHTML=`<div class="main-grid">
       <div class="ings-col">
         <h2 class="col-title">INGREDIENSER</h2>
-        <ul class="ings-list">${(sec.ingredients||[]).map(ing=>`<li><span>${ing.name}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
+        <ul class="ings-list">${(sec.ingredients||[]).map(ing=>`<li><span>${cleanIngName(ing.name)}</span><span class="amt">${scaleAmount(ing.amount,scale)}</span></li>`).join('')}</ul>
       </div>
       <div class="divider"></div>
       <div class="steps-col">
