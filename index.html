@@ -2804,17 +2804,21 @@ function renderMealCards(){
     const isCollapsed=(S.collapsedDays||[]).includes(dayIdx);
     const isEmpty=!dishes.length;
 
-    // Header — same for empty and filled days now
+    // Header — same for empty and filled days. Empty days get an inline "+" button
+    // in the header so adding a recipe doesn't require expanding first.
     const header=`<div class="day-block-header" onclick="toggleDayCollapse(${dayIdx})" style="cursor:pointer;user-select:none">
       <span class="day-block-label">${day.day}</span>
       <div style="display:flex;align-items:center;gap:8px">
         ${totalKcal>0?`<span style="font-size:10px;color:var(--c-plan);font-weight:700">🔥 ${Math.round(totalKcal)}</span>`:''}
         <span style="font-size:10px;color:var(--text-mute)">${isEmpty?'tom':dishes.length+' ret'+(dishes.length!==1?'ter':'')}</span>
+        ${isEmpty?`<button onclick="event.stopPropagation();openPickerModal(${dayIdx})" title="Tilføj ret" style="background:var(--c-plan);color:white;border:none;border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px">➕ Tilføj</button>`:''}
         <span style="font-size:11px;color:var(--text-mute);display:inline-block;${isCollapsed?'':'transform:rotate(90deg)'}">▶</span>
       </div>
     </div>`;
 
     if(isEmpty){
+      // When collapsed, header already has the "+ Tilføj" button — no need for big
+      // empty-state block. When expanded, show the full empty-state block for clarity.
       return`<div class="day-block empty ${isCollapsed?'collapsed':''}">
         ${header}
         ${isCollapsed?'':`<div class="day-block-empty">
@@ -3112,10 +3116,18 @@ function dismissItem(key){
 // ── AGGREGATION ──────────────────────────────────────────────────
 const DA_SINGULAR={'gulerødder':'gulerod','kartofler':'kartoffel','kartoffler':'kartoffel','tomater':'tomat','cherrytomater':'tomat','æbler':'æble','citroner':'citron','limeer':'lime','peberfrugter':'peberfrugt','radiser':'radise','champignoner':'champignon','svampe':'svamp','hvidløgsfed':'hvidløg','auberginer':'aubergine','courgetter':'courgette','porrer':'porre'};
 const BRAND_RE=/^(det\s+gode|remas?|rema\s*1000|arlas?|lurpak)\s+/i;
+// Unit words that may appear anywhere in the ingredient name (not just leading)
 const UNIT_RE=/\b(fed|bundt|håndfuld|stykke[r]?|skive[r]?|strimle[r]?|tern)\b/gi;
+// Leading measurement units that must be stripped so "spsk fishsauce" and "tsk fishsauce"
+// normalize to the same key. Digits are optional (handles both "2 spsk fishsauce" and
+// "spsk fishsauce" where the digit already got stripped elsewhere).
+const LEADING_UNIT_RE=/^\s*[\d½¼¾⅓⅔,./\s]*\s*(?:g|gr|kg|dl|l|ml|spsk|tsk|tskf|stk|pk\.?|pose[r]?|dåse[r]?|cm|knsp)\s+/i;
 function normalizeIng(raw){
   let s=raw.toLowerCase();
-  s=s.replace(/\(rema[^)]*\)/gi,'').replace(/[–-]\s*tilbud[^,)]*/gi,'').replace(/\([^)]{0,50}\)/g,'').replace(BRAND_RE,'').replace(/^[\d\s,./½¼¾⅓⅔]+/,'').replace(UNIT_RE,'').replace(/,.*$/,'');
+  s=s.replace(/\(rema[^)]*\)/gi,'').replace(/[–-]\s*tilbud[^,)]*/gi,'').replace(/\([^)]{0,50}\)/g,'').replace(BRAND_RE,'');
+  // Strip leading measurements REPEATEDLY in case of "2 spsk tsk fishsauce" weirdness
+  let prev;do{prev=s;s=s.replace(LEADING_UNIT_RE,'');}while(s!==prev);
+  s=s.replace(/^[\d\s,./½¼¾⅓⅔]+/,'').replace(UNIT_RE,'').replace(/,.*$/,'');
   s=s.replace(/\b(dansk[e]?|frisk[e]?|hakkede?|grofthakkede?|finthakkede?|pressede?|skåret|revet|fintrevet|fintstrimlet|halveret|varmrøget|røget|i\s+tern|i\s+skiver|uden\s+skind|udbenet)\b/g,'');
   s=s.replace(/\s+/g,' ').trim();
   return DA_SINGULAR[s]??s;
