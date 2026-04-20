@@ -2271,7 +2271,7 @@ body {
 //  for at indtaste dem. Findes i Supabase: Project Settings → API
 // ═══════════════════════════════════════════════════════════════════
 const SUPABASE_URL = "https://gcenfqabgjxehbsmeqrr.supabase.co";
-const SUPABASE_ANON_KEY = "...";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZW5mcWFiZ2p4ZWhic21lcXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTA4OTEsImV4cCI6MjA5MTA2Njg5MX0.Hiem3PyOaekpiYowCbujfP89OH8F0R_kwY9eGdzwk4g";
 // ═══════════════════════════════════════════════════════════════════
 
 // ── CONSTANTS ────────────────────────────────────────────────────
@@ -2289,6 +2289,16 @@ function slotInfo(k){return SLOTS.find(s=>s.k===k)||SLOTS[1];}
 function sortDishes(dishes){
   if(!Array.isArray(dishes))return [];
   return [...dishes].sort((a,b)=>(SLOT_ORDER[a.slot]||2)-(SLOT_ORDER[b.slot]||2));
+}
+// Leftover helpers — a dish marked with leftoverFrom={dayIdx,dishIdx} points to
+// another day's dish and should NOT duplicate ingredients on the shopping list.
+function isLeftover(dish){return !!(dish&&dish.leftoverFrom);}
+function resolveLeftover(dish){
+  if(!isLeftover(dish))return dish;
+  const ref=dish.leftoverFrom;
+  const day=S.meals?.[ref.dayIdx];
+  const src=day?.dishes?.[ref.dishIdx];
+  return src||dish; // Fallback: if source deleted, show the leftover shell
 }
 const CATS = [
   {k:"kød",label:"Kød & Fisk",icon:"🥩"},{k:"grøntsager",label:"Grøntsager",icon:"🥦"},
@@ -2829,10 +2839,33 @@ function renderMealCards(){
 
     const dishCards=dishes.map(dish=>{
       const dishIdx=day.dishes.indexOf(dish);
-      const cuisClass=`cu-${(dish.cuisine||'').toLowerCase()}`;
-      const cEmoji=CUISINE_LIST.find(c=>c.k===dish.cuisine)?.l.split(' ')[0]||'🍴';
+      const leftover=isLeftover(dish);
+      const source=leftover?resolveLeftover(dish):dish;
+      const cuisClass=`cu-${(source.cuisine||'').toLowerCase()}`;
+      const cEmoji=CUISINE_LIST.find(c=>c.k===source.cuisine)?.l.split(' ')[0]||'🍴';
       const slot=slotInfo(dish.slot);
       const scale=dish.scale||1;
+      const sourceDay=leftover?DAYS[dish.leftoverFrom.dayIdx]:null;
+      const sourceName=leftover?(source?.name||'(slettet)'):null;
+      const displayName=leftover?sourceName:source.name;
+      if(leftover){
+        // Compact "rester" card — grey, no scale/replace, just shows source and allows removal
+        return`<div class="dish-card ${cuisClass}" style="opacity:.75;background:var(--bg);border-style:dashed">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span class="dish-slot-label" onclick="toggleSlotMenu(${dayIdx},${dishIdx})" style="cursor:pointer" title="Skift type">${slot.icon} ${slot.l.toUpperCase()} ▼</span>
+            <span style="font-size:9px;color:var(--c-plan);font-weight:700;background:var(--c-plan-soft);border:1px solid var(--c-plan-border);padding:1px 6px;border-radius:6px">↻ Rester fra ${sourceDay}</span>
+            <span style="margin-left:auto;font-size:9px;color:var(--text-mute)">ingen indkøb</span>
+          </div>
+          <div id="slotMenu-${dayIdx}-${dishIdx}" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:6px;box-shadow:var(--shadow-md)">
+            ${SLOTS.map(s=>`<button onclick="changeDishSlot(${dayIdx},${dishIdx},'${s.k}')" style="display:block;width:100%;text-align:left;background:${s.k===dish.slot?'var(--c-plan-soft)':'none'};border:none;padding:5px 10px;font-size:11px;font-family:inherit;cursor:pointer;border-radius:5px;color:${s.k===dish.slot?'var(--c-plan)':'var(--text)'};font-weight:${s.k===dish.slot?'600':'400'}">${s.icon} ${s.l}</button>`).join('')}
+          </div>
+          <div class="dish-name" onclick="showRecipe(${dayIdx},${dishIdx})" style="cursor:pointer">${displayName}</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:5px">
+            <span style="font-size:10px;color:var(--text-mute);flex:1">Bruger mad fra ${sourceDay}</span>
+            <button onclick="removeDish(${dayIdx},${dishIdx})" title="Fjern" style="padding:2px 7px;border-radius:10px;border:1px solid var(--c-fav-border);background:var(--bg);color:var(--c-fav);font-size:10px;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>`;
+      }
       return`<div class="dish-card ${cuisClass}">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
           <span class="dish-slot-label" onclick="toggleSlotMenu(${dayIdx},${dishIdx})" style="cursor:pointer" title="Skift type">${slot.icon} ${slot.l.toUpperCase()} ▼</span>
@@ -2892,13 +2925,36 @@ function removeDish(dayIdx,dishIdx){
   const day=S.meals[dayIdx];
   if(!day||!day.dishes||!day.dishes[dishIdx])return;
   const removed=day.dishes[dishIdx];
+  const wasSource=!isLeftover(removed); // only non-leftover source dishes have dependents
+
+  // If we're removing a source dish, also drop any leftovers pointing to it,
+  // and adjust remaining leftover references whose dishIdx > dishIdx (shifted down by 1).
+  let orphansRemoved=0;
+  if(wasSource){
+    (S.meals||[]).forEach((otherDay,odIdx)=>{
+      if(!otherDay?.dishes)return;
+      otherDay.dishes=otherDay.dishes.filter(d=>{
+        if(isLeftover(d) && d.leftoverFrom.dayIdx===dayIdx && d.leftoverFrom.dishIdx===dishIdx){
+          orphansRemoved++;
+          return false;
+        }
+        // Shift references pointing at a later dish on the same day
+        if(isLeftover(d) && d.leftoverFrom.dayIdx===dayIdx && d.leftoverFrom.dishIdx>dishIdx){
+          d.leftoverFrom.dishIdx--;
+        }
+        return true;
+      });
+    });
+  }
+
   day.dishes.splice(dishIdx,1);
   // Clear shopping list checks for this dish
   Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-${dishIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
   // Clear selectedMeal if it was this dish
   if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx&&S.selectedMeal.dishIdx===dishIdx)S.selectedMeal=null;
   S.aggregated=null;save();renderAll();runAggregation();
-  toast(`${day.day}: "${removed.name}" fjernet`);
+  const extra=orphansRemoved>0?` (+${orphansRemoved} rester-ret${orphansRemoved>1?'ter':''})`:'';
+  toast(`${day.day}: "${removed.name}" fjernet${extra}`);
 }
 
 function toggleSlotMenu(dayIdx,dishIdx){
@@ -3161,6 +3217,8 @@ function runAggregation(){
     if(!day?.dishes)return;
     day.dishes.forEach(dish=>{
       if(!dish?.ingredients)return;
+      // Skip leftover dishes — they reuse ingredients already bought for the source day.
+      if(isLeftover(dish))return;
       // Skip dishes that were on the plan when the shopping list was cleared.
       // Dishes added (or re-assigned) after the clear get addedAt > clearedAt and flow through.
       if(clearedAt && (dish.addedAt||0) <= clearedAt) return;
@@ -3250,12 +3308,18 @@ function renderRecipe(){
     return;
   }
   const day=S.meals[sel.dayIdx];
-  const dish=day?.dishes?.[sel.dishIdx||0];
+  const rawDish=day?.dishes?.[sel.dishIdx||0];
+  // If this slot is a "rester" marker, show the source dish's recipe instead.
+  const dish=isLeftover(rawDish)?resolveLeftover(rawDish):rawDish;
   if(!dish?.name){
     el.innerHTML=`<div class="empty-state"><div class="eicon">📖</div><p>Vælg en ret fra <strong>Madplanen</strong></p></div>`;
     return;
   }
-  renderRecipeContent(el, dish, day.day);
+  // If leftover, label with both days for context
+  const label=isLeftover(rawDish)
+    ? `${day.day} (rester fra ${DAYS[rawDish.leftoverFrom.dayIdx]})`
+    : day.day;
+  renderRecipeContent(el, dish, label);
 }
 
 function setRecipeScale(n){
@@ -5352,9 +5416,41 @@ function renderPickerList(){
     const qOk=!q||r.name.toLowerCase().includes(q)||(r.cuisine||'').toLowerCase().includes(q)||(r.mainIngredients||[]).some(i=>i.toLowerCase().includes(q));
     return cOk&&iOk&&qOk;
   });
-  if(!S.cookbook.length){document.getElementById('pickerList').innerHTML=`<div style="text-align:center;padding:30px;color:var(--hint);font-size:.85rem">Kogebogen er tom — tilføj opskrifter først.</div>`;return;}
-  if(!pool.length){document.getElementById('pickerList').innerHTML=`<div style="text-align:center;padding:20px;color:var(--hint);font-size:.85rem">Ingen match</div>`;return;}
-  document.getElementById('pickerList').innerHTML=`<div class="picker-grid">${pool.map(r=>{
+
+  // Build "Rester fra..." section: all non-leftover dishes from OTHER days,
+  // matching the current search query (ignores cuisine/tag filters — rester is
+  // about availability, not filtering).
+  const leftoverCandidates=[];
+  (S.meals||[]).forEach((day,dIdx)=>{
+    if(dIdx===pickerMealIdx)return; // can't be leftovers from same day
+    (day.dishes||[]).forEach((dish,diIdx)=>{
+      if(isLeftover(dish))return; // don't offer leftovers of leftovers
+      if(!dish?.name)return;
+      if(q && !dish.name.toLowerCase().includes(q))return;
+      leftoverCandidates.push({dayIdx:dIdx,dishIdx:diIdx,dish,dayLabel:day.day});
+    });
+  });
+
+  const leftoverHtml=leftoverCandidates.length?`
+    <div style="margin-bottom:14px;padding:10px 12px;background:var(--c-plan-soft);border:1px solid var(--c-plan-border);border-radius:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--c-plan);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">↻ Rester fra en anden dag</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${leftoverCandidates.map(c=>{
+          const cEmoji=CUISINE_LIST.find(cu=>cu.k===c.dish.cuisine)?.l.split(' ')[0]||'🍴';
+          return`<button onclick="selectLeftoverFromPicker(${c.dayIdx},${c.dishIdx})" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:inherit;text-align:left;width:100%">
+            <span style="font-size:16px">${cEmoji}</span>
+            <span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${c.dish.name}</span>
+            <span style="font-size:10px;color:var(--text-mute);font-weight:600">${c.dayLabel}</span>
+            <span style="font-size:10px;color:var(--c-plan);font-weight:700">→ genbrug</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  const list=document.getElementById('pickerList');
+  if(!S.cookbook.length){list.innerHTML=leftoverHtml+`<div style="text-align:center;padding:30px;color:var(--hint);font-size:.85rem">Kogebogen er tom — tilføj opskrifter først.</div>`;return;}
+  if(!pool.length){list.innerHTML=leftoverHtml+`<div style="text-align:center;padding:20px;color:var(--hint);font-size:.85rem">Ingen match i kogebogen</div>`;return;}
+  list.innerHTML=leftoverHtml+`<div class="picker-grid">${pool.map(r=>{
     const cEmoji=CUISINE_LIST.find(c=>c.k===r.cuisine)?.l.split(' ')[0]||'🍴';
     const mainIngs=(r.mainIngredients||[]).slice(0,3);
     return`<div class="picker-card" onclick="selectFromPicker('${r.id}')">
@@ -5376,6 +5472,38 @@ function selectFromPicker(id){
   const recipe=S.cookbook.find(r=>r.id===id);if(!recipe)return;
   closeOverlay('pickerOverlay');
   applyRecipeToDay(recipe,pickerMealIdx,pickerSlot,pickerReplaceDishIdx);
+}
+// Add a "rester" marker pointing to an existing dish on another day.
+// srcDayIdx/srcDishIdx = source of the leftovers; pickerMealIdx = target day.
+function selectLeftoverFromPicker(srcDayIdx,srcDishIdx){
+  closeOverlay('pickerOverlay');
+  applyLeftoverToDay(srcDayIdx,srcDishIdx,pickerMealIdx,pickerSlot,pickerReplaceDishIdx);
+}
+function applyLeftoverToDay(srcDayIdx,srcDishIdx,dayIdx,slot,replaceDishIdx){
+  const srcDish=S.meals?.[srcDayIdx]?.dishes?.[srcDishIdx];
+  if(!srcDish){toast('Kilde-ret findes ikke');return;}
+  // Don't allow chaining leftovers-from-leftovers — always point at the real source
+  const realSrcRef=isLeftover(srcDish)?srcDish.leftoverFrom:{dayIdx:srcDayIdx,dishIdx:srcDishIdx};
+  if(realSrcRef.dayIdx===dayIdx){toast('Kan ikke være rester fra samme dag');return;}
+  if(!S.meals[dayIdx])S.meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
+  if(!Array.isArray(S.meals[dayIdx].dishes))S.meals[dayIdx].dishes=[];
+  const leftoverDish={
+    // Minimal shell — everything else is resolved via leftoverFrom at render time
+    name: '(rester)',
+    slot: slot||'hovedret',
+    leftoverFrom: realSrcRef,
+    addedAt: Date.now()
+  };
+  if(replaceDishIdx!=null&&S.meals[dayIdx].dishes[replaceDishIdx]){
+    S.meals[dayIdx].dishes[replaceDishIdx]=leftoverDish;
+  } else {
+    S.meals[dayIdx].dishes.push(leftoverDish);
+  }
+  Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
+  if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx)S.selectedMeal=null;
+  S.aggregated=null;save();renderAll();runAggregation();
+  const srcName=S.meals[realSrcRef.dayIdx]?.dishes?.[realSrcRef.dishIdx]?.name||'retten';
+  toast(`${DAYS[dayIdx]}: rester fra ${DAYS[realSrcRef.dayIdx]} (${srcName}) ✓`);
 }
 function applyRecipeToDay(recipe,dayIdx,slot,replaceDishIdx){
   if(!S.meals[dayIdx])S.meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
