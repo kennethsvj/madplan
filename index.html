@@ -912,6 +912,74 @@ body {
 }
 
 /* ── Recipe photo (hero above the recipe) ── */
+/* ── Dish navigation bar — shown above recipe when a day has ≥2 dishes ── */
+.dish-nav-bar {
+  background: var(--c-plan-soft);
+  border: 1px solid var(--c-plan-border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dish-nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-plan);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+.dish-nav-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.dish-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s;
+}
+.dish-nav-tab:hover {
+  background: var(--bg);
+  border-color: var(--c-plan-border);
+}
+.dish-nav-tab.active {
+  background: var(--c-plan);
+  border-color: var(--c-plan);
+  color: #fff;
+  font-weight: 600;
+}
+.dish-nav-tab.active .dish-nav-name {
+  color: #fff;
+}
+.dish-nav-icon {
+  font-size: 13px;
+}
+.dish-nav-name {
+  font-size: 12px;
+}
+@media (max-width: 560px) {
+  .dish-nav-bar { padding: 8px 10px; gap: 6px; }
+  .dish-nav-label { font-size: 10px; }
+  .dish-nav-tab { padding: 4px 9px; font-size: 11px; }
+  .dish-nav-name { font-size: 11px; }
+}
+
 .recipe-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -2985,15 +3053,27 @@ function setDishScale(dayIdx,dishIdx,scale){
 // Multiply an amount string by a scale factor (returns scaled string)
 function multiplyAmount(amtStr,factor){
   if(!amtStr||factor===1)return amtStr;
-  const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};
+  const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
   let s=amtStr.trim();let fv=0;
   for(const[f,v]of Object.entries(FRAC2)){if(s.includes(f)){fv=v;s=s.replace(f,'').trim();}}
   s=s.replace(',','.');
-  const m=s.match(/^([\d.]+)?\s*([a-zæøåA-ZÆØÅ]*.*)?$/);
-  if(!m)return amtStr;
-  const num=(parseFloat(m[1]||'0')||0)+fv;
+  // Match "1/2 spsk", "1 1/2 spsk", "1.5 spsk", "2 spsk", "spsk" (no num)
+  const fracMixed=s.match(/^(\d+)\s+(\d+)\/(\d+)\s*(.*)$/); // "1 1/2 spsk"
+  const fracOnly=s.match(/^(\d+)\/(\d+)\s*(.*)$/);           // "1/2 spsk"
+  const decimal=s.match(/^([\d.]+)?\s*(.*)$/);               // "1.5 spsk" or "spsk"
+  let num,unit;
+  if(fracMixed){
+    num=parseFloat(fracMixed[1])+parseFloat(fracMixed[2])/parseFloat(fracMixed[3]);
+    unit=(fracMixed[4]||'').trim();
+  } else if(fracOnly){
+    num=parseFloat(fracOnly[1])/parseFloat(fracOnly[2]);
+    unit=(fracOnly[3]||'').trim();
+  } else if(decimal){
+    num=parseFloat(decimal[1]||'0')||0;
+    unit=(decimal[2]||'').trim();
+  } else return amtStr;
+  num+=fv;
   if(!num)return amtStr;
-  const unit=(m[2]||'').trim();
   let scaled=num*factor;
   if(unit==='g'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} kg`;
   if(unit==='ml'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} l`;
@@ -3279,15 +3359,26 @@ function splitIngName(name){
 
 function scaleAmount(amtStr, factor){
   if(!amtStr||factor===1) return amtStr;
-  const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};
+  const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
   let s=amtStr.trim();let fv=0;
   for(const[f,v]of Object.entries(FRAC2)){if(s.includes(f)){fv=v;s=s.replace(f,'').trim();}}
   s=s.replace(',','.');
-  const m=s.match(/^([\d.]+)?\s*([a-zæøåA-ZÆØÅ]*.*)?$/);
-  if(!m) return amtStr;
-  const num=(parseFloat(m[1]||'0')||0)+fv;
+  const fracMixed=s.match(/^(\d+)\s+(\d+)\/(\d+)\s*(.*)$/);
+  const fracOnly=s.match(/^(\d+)\/(\d+)\s*(.*)$/);
+  const decimal=s.match(/^([\d.]+)?\s*(.*)$/);
+  let num,unit;
+  if(fracMixed){
+    num=parseFloat(fracMixed[1])+parseFloat(fracMixed[2])/parseFloat(fracMixed[3]);
+    unit=(fracMixed[4]||'').trim();
+  } else if(fracOnly){
+    num=parseFloat(fracOnly[1])/parseFloat(fracOnly[2]);
+    unit=(fracOnly[3]||'').trim();
+  } else if(decimal){
+    num=parseFloat(decimal[1]||'0')||0;
+    unit=(decimal[2]||'').trim();
+  } else return amtStr;
+  num+=fv;
   if(!num) return amtStr;
-  const unit=(m[2]||'').trim();
   let scaled=num*factor;
   if(unit==='g'&&scaled>=1000) return `${parseFloat((scaled/1000).toFixed(2))} kg`;
   if(unit==='ml'&&scaled>=1000) return `${parseFloat((scaled/1000).toFixed(2))} l`;
@@ -3319,7 +3410,31 @@ function renderRecipe(){
   const label=isLeftover(rawDish)
     ? `${day.day} (rester fra ${DAYS[rawDish.leftoverFrom.dayIdx]})`
     : day.day;
-  renderRecipeContent(el, dish, label);
+  // Build day-nav (tab strip) when ≥2 dishes on this day — lets user switch
+  // between forret/hovedret/tilbehør without going back to the meal plan.
+  const dayDishes=sortDishes(day.dishes||[]);
+  const activeDishIdx=sel.dishIdx||0;
+  let dayNav='';
+  if(dayDishes.length>=2){
+    dayNav=`<div class="dish-nav-bar">
+      <div class="dish-nav-label">${day.day}</div>
+      <div class="dish-nav-tabs">
+        ${dayDishes.map(d=>{
+          const di=day.dishes.indexOf(d);
+          const slot=slotInfo(d.slot);
+          const isActive=di===activeDishIdx;
+          const displayName=isLeftover(d)?(resolveLeftover(d)?.name||'(rester)'):d.name;
+          const shortName=displayName.length>22?displayName.slice(0,20)+'…':displayName;
+          const leftoverMark=isLeftover(d)?'<span style="font-size:9px;color:var(--c-plan);margin-left:3px">↻</span>':'';
+          return`<button class="dish-nav-tab ${isActive?'active':''}" onclick="showRecipe(${sel.dayIdx},${di})" title="${displayName}">
+            <span class="dish-nav-icon">${slot.icon}</span>
+            <span class="dish-nav-name">${shortName}</span>${leftoverMark}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+  renderRecipeContent(el, dish, label, dayNav);
 }
 
 function setRecipeScale(n){
@@ -3405,13 +3520,14 @@ function navigateToTab(id,skipPush){
   if(!skipPush)pushNavState({type:'tab',id});
 }
 
-function renderRecipeContent(el, m, dayLabel){
+function renderRecipeContent(el, m, dayLabel, dayNav){
   normalizeRecipe(m);
   const scale=recipeScale;
   const sections=m.sections||[];
   const hasMultipleSections=sections.length>1||(sections[0]?.title);
 
   el.innerHTML=`
+  ${dayNav||''}
   ${m.photo?`<img class="recipe-photo" src="${m.photo}" alt="">`:''}
   <div class="recipe-hero">
     <button onclick="printRecipe()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.6);border:1px solid #d8ceb8;color:#2e2a24;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1" title="Print opskrift">🖨️ Print</button>
