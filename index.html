@@ -484,6 +484,7 @@ body {
   color: var(--c-book);
   font-weight: 600;
 }
+.tab[onclick*="hjem"].active { background: var(--c-plan-soft); color: var(--c-plan); }
 .tab[onclick*="madplan"].active { background: var(--c-plan-soft); color: var(--c-plan); }
 .tab[onclick*="indkoeb"].active { background: var(--c-shop-soft); color: var(--c-shop); }
 .tab[onclick*="opskriftbog"].active { background: var(--c-book-soft); color: var(--c-book); }
@@ -1922,9 +1923,9 @@ body {
     transform: none;
     background: var(--bg);
     border-top: 1px solid var(--border);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    padding: 6px 2px calc(6px + env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 0;
     z-index: 101;
     box-shadow: 0 -2px 10px rgba(0,0,0,.04);
@@ -1933,14 +1934,15 @@ body {
   .tab {
     flex-direction: column;
     gap: 2px;
-    padding: 8px 2px;
-    border-radius: 10px;
-    font-size: 10px;
+    padding: 6px 1px;
+    border-radius: 8px;
+    font-size: 9px;
     font-weight: 600;
-    min-height: 52px;
+    min-height: 48px;
   }
-  .tab .ti { font-size: 20px; }
+  .tab .ti { font-size: 18px; }
   .tab.active { background: none; color: var(--c-book); }
+  .tab[onclick*="hjem"].active { background: none; color: var(--c-plan); }
   .tab[onclick*="madplan"].active { background: none; color: var(--c-plan); }
   .tab[onclick*="indkoeb"].active { background: none; color: var(--c-shop); }
   .tab[onclick*="bank"].active { background: none; color: var(--c-archive); }
@@ -2970,6 +2972,10 @@ async function load(){
   if(!d){try{d=await dbGet();}catch(e){}}
   if(!d){try{d=localStorage.getItem(DB_KEY);}catch(e){}}
   if(d){try{S={...S,...JSON.parse(d)};}catch(e){}}
+  // Always sync weekNum to the current calendar week at startup.
+  // Older saves may have a stale weekNum (e.g. "15" when it's now week 17) —
+  // the app treats S.meals as "the current week", so the label should match.
+  S.weekNum=getWeekNumber(new Date());
   // Detect old format (entries have .name property) or wrong length
   const needsMigration=!S.meals||S.meals.length!==7||(S.meals[0]&&!Array.isArray(S.meals[0].dishes));
   if(needsMigration)S.meals=migrateMealsToNested(S.meals);
@@ -2980,6 +2986,9 @@ async function load(){
   if(!Array.isArray(S.collapsedDays))S.collapsedDays=[];
   if(!S.frequentItems)S.frequentItems={};
   if(S.viewedWeekId===undefined)S.viewedWeekId=null;
+  // Always start on the live current week at load — if user was viewing a past/future
+  // bank entry last session, that's stale now (a new day may have rolled around)
+  S.viewedWeekId=null;
   if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
   if(!S.offCache){
     // Migrate from localStorage if it exists
@@ -3231,13 +3240,23 @@ function extractJSON(text){
 
 // ── RENDER MEALS ─────────────────────────────────────────────────
 function renderMealCards(){
-  const viewingPast=isViewingPast();
   const mealsData=getActiveMeals();
-  const banner=viewingPast?`<div style="background:var(--c-plan-soft);border:1px solid var(--c-plan-border);color:var(--c-plan);padding:10px 14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
-    <span style="font-size:16px">📅</span>
-    <span style="flex:1"><strong>Kigger på arkiv</strong> — skrivebeskyttet. Klik uge-nummer i toppen for at vende tilbage.</span>
-    <button onclick="useArchivedWeek()" style="background:var(--c-plan);color:white;border:none;border-radius:16px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">📋 Brug denne uge</button>
-  </div>`:'';
+  const viewing=S.viewedWeekId?S.weekBank.find(w=>w.id===S.viewedWeekId):null;
+  let banner='';
+  if(viewing){
+    if(isPastWeek(viewing)){
+      banner=`<div style="background:var(--bg-soft);border:1px solid var(--border);color:var(--text-soft);padding:10px 14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+        <span style="font-size:16px">🗄️</span>
+        <span style="flex:1"><strong>Arkiveret uge</strong> — skrivebeskyttet. Klik uge-nummer i toppen for at vende tilbage.</span>
+        <button onclick="useArchivedWeek()" style="background:var(--c-plan);color:white;border:none;border-radius:16px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">📋 Brug som nu</button>
+      </div>`;
+    } else if(isFutureWeek(viewing)){
+      banner=`<div style="background:var(--c-plan-soft);border:1px solid var(--c-plan-border);color:var(--c-plan);padding:10px 14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+        <span style="font-size:16px">📅</span>
+        <span style="flex:1"><strong>Planlægger uge ${viewing.weekNum}</strong> — tilføj retter som normalt. Indkøbslisten følger den aktuelle uge.</span>
+      </div>`;
+    }
+  }
   document.getElementById('mealCards').innerHTML=banner+(mealsData||[]).map((day,dayIdx)=>{
     const dishes=sortDishes(day.dishes||[]);
     const totalKcal=dishes.reduce((sum,d)=>sum+(d.nutrition?.kcal||0)*(d.scale||1),0);
@@ -3353,23 +3372,22 @@ function updateCollapseBtn(){
 
 function removeDish(dayIdx,dishIdx){
   if(isViewingPast()){toast('Skrivebeskyttet — brug denne uge først');return;}
-  const day=S.meals[dayIdx];
+  const ctx=getEditableWeek();
+  const meals=ctx.meals;
+  const day=meals[dayIdx];
   if(!day||!day.dishes||!day.dishes[dishIdx])return;
   const removed=day.dishes[dishIdx];
-  const wasSource=!isLeftover(removed); // only non-leftover source dishes have dependents
+  const wasSource=!isLeftover(removed);
 
-  // If we're removing a source dish, also drop any leftovers pointing to it,
-  // and adjust remaining leftover references whose dishIdx > dishIdx (shifted down by 1).
   let orphansRemoved=0;
   if(wasSource){
-    (S.meals||[]).forEach((otherDay,odIdx)=>{
+    meals.forEach((otherDay,odIdx)=>{
       if(!otherDay?.dishes)return;
       otherDay.dishes=otherDay.dishes.filter(d=>{
         if(isLeftover(d) && d.leftoverFrom.dayIdx===dayIdx && d.leftoverFrom.dishIdx===dishIdx){
           orphansRemoved++;
           return false;
         }
-        // Shift references pointing at a later dish on the same day
         if(isLeftover(d) && d.leftoverFrom.dayIdx===dayIdx && d.leftoverFrom.dishIdx>dishIdx){
           d.leftoverFrom.dishIdx--;
         }
@@ -3379,11 +3397,12 @@ function removeDish(dayIdx,dishIdx){
   }
 
   day.dishes.splice(dishIdx,1);
-  // Clear shopping list checks for this dish
-  Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-${dishIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
-  // Clear selectedMeal if it was this dish
-  if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx&&S.selectedMeal.dishIdx===dishIdx)S.selectedMeal=null;
-  S.aggregated=null;save();renderAll();runAggregation();
+  if(ctx.target==='live'){
+    Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-${dishIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
+    if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx&&S.selectedMeal.dishIdx===dishIdx)S.selectedMeal=null;
+    S.aggregated=null;
+  }
+  save();renderAll();if(ctx.target==='live')runAggregation();
   const extra=orphansRemoved>0?` (+${orphansRemoved} rester-ret${orphansRemoved>1?'ter':''})`:'';
   toast(`${day.day}: "${removed.name}" fjernet${extra}`);
 }
@@ -3398,7 +3417,8 @@ function toggleSlotMenu(dayIdx,dishIdx){
 
 function changeDishSlot(dayIdx,dishIdx,newSlot){
   if(isViewingPast()){toast('Skrivebeskyttet');return;}
-  const day=S.meals[dayIdx];
+  const ctx=getEditableWeek();
+  const day=ctx.meals[dayIdx];
   if(!day||!day.dishes||!day.dishes[dishIdx])return;
   day.dishes[dishIdx].slot=newSlot;
   save();renderAll();
@@ -3407,11 +3427,12 @@ function changeDishSlot(dayIdx,dishIdx,newSlot){
 
 function setDishScale(dayIdx,dishIdx,scale){
   if(isViewingPast()){toast('Skrivebeskyttet');return;}
-  const day=S.meals[dayIdx];
+  const ctx=getEditableWeek();
+  const day=ctx.meals[dayIdx];
   if(!day||!day.dishes||!day.dishes[dishIdx])return;
   day.dishes[dishIdx].scale=scale;
-  S.aggregated=null;
-  save();renderAll();runAggregation();
+  if(ctx.target==='live')S.aggregated=null;
+  save();renderAll();if(ctx.target==='live')runAggregation();
   toast(`${day.dishes[dishIdx].name}: ${scale}× portioner`);
 }
 
@@ -5839,7 +5860,7 @@ function openPickerModal(dayIdx, replaceDishIdx){
   pickerCuisFilter='alle';pickerIngFilter=new Set();pickerFromPicker=false;
   // If replacing, use the existing dish's slot. Otherwise default to hovedret.
   if(pickerReplaceDishIdx!=null){
-    const existing=S.meals[dayIdx]?.dishes?.[pickerReplaceDishIdx];
+    const existing=getActiveMeals()[dayIdx]?.dishes?.[pickerReplaceDishIdx];
     pickerSlot=existing?.slot||'hovedret';
   } else {
     pickerSlot='hovedret';
@@ -5963,45 +5984,52 @@ function selectLeftoverFromPicker(srcDayIdx,srcDishIdx){
   applyLeftoverToDay(srcDayIdx,srcDishIdx,pickerMealIdx,pickerSlot,pickerReplaceDishIdx);
 }
 function applyLeftoverToDay(srcDayIdx,srcDishIdx,dayIdx,slot,replaceDishIdx){
-  const srcDish=S.meals?.[srcDayIdx]?.dishes?.[srcDishIdx];
+  const ctx=getEditableWeek();
+  const meals=ctx.meals;
+  const srcDish=meals?.[srcDayIdx]?.dishes?.[srcDishIdx];
   if(!srcDish){toast('Kilde-ret findes ikke');return;}
-  // Don't allow chaining leftovers-from-leftovers — always point at the real source
   const realSrcRef=isLeftover(srcDish)?srcDish.leftoverFrom:{dayIdx:srcDayIdx,dishIdx:srcDishIdx};
   if(realSrcRef.dayIdx===dayIdx){toast('Kan ikke være rester fra samme dag');return;}
-  if(!S.meals[dayIdx])S.meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
-  if(!Array.isArray(S.meals[dayIdx].dishes))S.meals[dayIdx].dishes=[];
+  if(!meals[dayIdx])meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
+  if(!Array.isArray(meals[dayIdx].dishes))meals[dayIdx].dishes=[];
   const leftoverDish={
-    // Minimal shell — everything else is resolved via leftoverFrom at render time
     name: '(rester)',
     slot: slot||'hovedret',
     leftoverFrom: realSrcRef,
     addedAt: Date.now()
   };
-  if(replaceDishIdx!=null&&S.meals[dayIdx].dishes[replaceDishIdx]){
-    S.meals[dayIdx].dishes[replaceDishIdx]=leftoverDish;
+  if(replaceDishIdx!=null&&meals[dayIdx].dishes[replaceDishIdx]){
+    meals[dayIdx].dishes[replaceDishIdx]=leftoverDish;
   } else {
-    S.meals[dayIdx].dishes.push(leftoverDish);
+    meals[dayIdx].dishes.push(leftoverDish);
   }
-  Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
-  if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx)S.selectedMeal=null;
-  S.aggregated=null;save();renderAll();runAggregation();
-  const srcName=S.meals[realSrcRef.dayIdx]?.dishes?.[realSrcRef.dishIdx]?.name||'retten';
+  if(ctx.target==='live'){
+    Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
+    if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx)S.selectedMeal=null;
+    S.aggregated=null;
+  }
+  save();renderAll();if(ctx.target==='live')runAggregation();
+  const srcName=meals[realSrcRef.dayIdx]?.dishes?.[realSrcRef.dishIdx]?.name||'retten';
   toast(`${DAYS[dayIdx]}: rester fra ${DAYS[realSrcRef.dayIdx]} (${srcName}) ✓`);
 }
 function applyRecipeToDay(recipe,dayIdx,slot,replaceDishIdx){
-  if(!S.meals[dayIdx])S.meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
-  if(!Array.isArray(S.meals[dayIdx].dishes))S.meals[dayIdx].dishes=[];
-  // Strip the day field from recipe (it doesn't belong on a dish)
+  const ctx=getEditableWeek();
+  const meals=ctx.meals;
+  if(!meals[dayIdx])meals[dayIdx]={day:DAYS[dayIdx],dishes:[]};
+  if(!Array.isArray(meals[dayIdx].dishes))meals[dayIdx].dishes=[];
   const {day,...dishData}=recipe;
   const newDish={...dishData,slot:slot||'hovedret',addedAt:Date.now()};
-  if(replaceDishIdx!=null&&S.meals[dayIdx].dishes[replaceDishIdx]){
-    S.meals[dayIdx].dishes[replaceDishIdx]=newDish;
+  if(replaceDishIdx!=null&&meals[dayIdx].dishes[replaceDishIdx]){
+    meals[dayIdx].dishes[replaceDishIdx]=newDish;
   } else {
-    S.meals[dayIdx].dishes.push(newDish);
+    meals[dayIdx].dishes.push(newDish);
   }
-  Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
-  if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx)S.selectedMeal=null;
-  S.aggregated=null;save();renderAll();runAggregation();
+  if(ctx.target==='live'){
+    Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
+    if(S.selectedMeal&&S.selectedMeal.dayIdx===dayIdx)S.selectedMeal=null;
+    S.aggregated=null;
+  }
+  save();renderAll();if(ctx.target==='live')runAggregation();
   toast(`${DAYS[dayIdx]}: "${recipe.name}" ✓`);
 }
 // Backward-compatible alias
@@ -7222,6 +7250,32 @@ function renderAll(){
 // ── WEEK NAVIGATION ──────────────────────────────────────────────
 // S.viewedWeekId = null  → viewing current (live) week, editable
 // S.viewedWeekId = 'xxx' → viewing a bank entry, read-only
+// ── WEEK NAVIGATION ──────────────────────────────────────────────
+// Timeline model:
+//   - The current calendar week (S.weekNum) is ALWAYS the "live" week, stored in S.meals.
+//   - Past weeks (lower weekNum) are in weekBank — READ-ONLY archive.
+//   - Future weeks (higher weekNum) are ALSO stored in weekBank — EDITABLE for planning ahead.
+//   - S.viewedWeekId = null → viewing current live week
+//   - S.viewedWeekId = 'xxx' → viewing a bank entry (could be past or future)
+//
+// Helpers: compare weekNums accounting for year rollover — a week from 2025 w51 comes
+// before a 2026 w02 entry. Since we only have weekNum and savedAt, we approximate by
+// also using savedAt as tiebreaker.
+function _weekSortKey(entry){
+  // Use savedAt as primary timeline marker — robust across year boundaries
+  return entry.savedAt||0;
+}
+function isFutureWeek(entry){
+  if(!entry)return false;
+  const current=getWeekNumber(new Date());
+  return entry.weekNum>current;
+}
+function isPastWeek(entry){
+  if(!entry)return false;
+  const current=getWeekNumber(new Date());
+  return entry.weekNum<current;
+}
+
 function renderWeekNav(){
   const label=document.getElementById('weekLabel');
   const prev=document.getElementById('weekNavPrev');
@@ -7229,50 +7283,59 @@ function renderWeekNav(){
   const nav=document.getElementById('weekNav');
   if(!label||!prev||!next||!nav)return;
   const viewing=S.viewedWeekId?S.weekBank.find(w=>w.id===S.viewedWeekId):null;
+
   if(viewing){
     label.textContent=`Uge ${viewing.weekNum}`;
     label.title='Klik for at vende tilbage til denne uge';
-    nav.classList.add('viewing-past');
+    nav.classList.remove('viewing-past','viewing-future');
+    if(isPastWeek(viewing))nav.classList.add('viewing-past');
+    else if(isFutureWeek(viewing))nav.classList.add('viewing-future');
   } else {
     label.textContent=`Uge ${S.weekNum}`;
     label.title='Aktuel uge';
-    nav.classList.remove('viewing-past');
+    nav.classList.remove('viewing-past','viewing-future');
   }
-  // Timeline is: [oldest bank entry, ..., newest bank entry, CURRENT]
-  // Newest first in weekBank[] (unshift). So "prev" = older = further into array.
-  const sortedBank=[...S.weekBank].sort((a,b)=>b.savedAt-a.savedAt); // newest first
-  if(!viewing){
-    // Currently at live week — prev = newest bank entry
-    prev.disabled=sortedBank.length===0;
-    next.disabled=true;
-  } else {
-    const idx=sortedBank.findIndex(w=>w.id===viewing.id);
-    prev.disabled=idx>=sortedBank.length-1; // no older entry
-    next.disabled=false; // next always goes forward (toward current)
-  }
+  // Arrows are always enabled — even on live week, you can go forward to plan next week
+  prev.disabled=false;
+  next.disabled=false;
 }
+
 function navigateWeek(dir){
   autoArchiveIfNeeded();
-  const sortedBank=[...S.weekBank].sort((a,b)=>b.savedAt-a.savedAt); // newest first
-  const viewing=S.viewedWeekId?sortedBank.find(w=>w.id===S.viewedWeekId):null;
-  if(!viewing){
-    if(dir===-1 && sortedBank.length){
-      // Go to newest bank entry
-      S.viewedWeekId=sortedBank[0].id;
-    }
-  } else {
-    const idx=sortedBank.findIndex(w=>w.id===viewing.id);
-    if(dir===-1){
-      // Older
-      if(idx<sortedBank.length-1)S.viewedWeekId=sortedBank[idx+1].id;
-    } else {
-      // Newer — maybe back to live
-      if(idx===0)S.viewedWeekId=null;
-      else S.viewedWeekId=sortedBank[idx-1].id;
-    }
+  const viewing=S.viewedWeekId?S.weekBank.find(w=>w.id===S.viewedWeekId):null;
+  const curWeekNum=getWeekNumber(new Date());
+
+  // Determine the CURRENT weekNum we're viewing (live or bank entry)
+  const currentlyViewingNum=viewing?viewing.weekNum:curWeekNum;
+  const targetNum=currentlyViewingNum+dir;
+
+  // Live week case
+  if(targetNum===curWeekNum){
+    S.viewedWeekId=null;
+    save();renderAll();runAggregation();
+    return;
   }
+
+  // Look for an existing bank entry with that week number
+  let target=S.weekBank.find(w=>w.weekNum===targetNum);
+
+  // If not found, create an empty one (for forward planning) — allow both past (unusual) and future
+  if(!target){
+    target={
+      id:'week-'+Date.now(),
+      weekNum:targetNum,
+      savedAt:Date.now(),
+      label:`Uge ${targetNum}`,
+      autoArchived:false,
+      meals:DAYS.map(day=>({day,dishes:[]}))
+    };
+    S.weekBank.unshift(target);
+  }
+
+  S.viewedWeekId=target.id;
   save();renderAll();runAggregation();
 }
+
 function returnToCurrentWeek(){
   if(!S.viewedWeekId)return;
   S.viewedWeekId=null;
@@ -7285,10 +7348,8 @@ function useArchivedWeek(){
   uiConfirm('Brug denne uge som aktuel?',
     `Ugens nuværende madplan bliver auto-arkiveret, og "${viewing.label}" bliver aktiv.`,
     ()=>{
-      // Archive current live week first (if non-empty)
       S.viewedWeekId=null;
       autoArchiveIfNeeded();
-      // Now copy archived meals into live slot
       S.meals=JSON.parse(JSON.stringify(viewing.meals));
       S.aggregated=null;S.shopClearedAt=0;S.dismissed=[];
       save();renderAll();runAggregation();
@@ -7305,7 +7366,6 @@ function autoArchiveIfNeeded(){
   // Is the current meals already archived? Check: same weekNum + very recent snapshot
   const recent=S.weekBank.find(w=>w.weekNum===S.weekNum && (Date.now()-w.savedAt)<24*60*60*1000 && w.autoArchived);
   if(recent){
-    // Update existing auto-archive in place (avoid spam)
     recent.meals=JSON.parse(JSON.stringify(S.meals));
     recent.savedAt=Date.now();
     return;
@@ -7320,7 +7380,6 @@ function autoArchiveIfNeeded(){
   });
 }
 // Hook into meals rendering: when viewing a bank entry, render its meals instead.
-// Done by overriding a helper below.
 function getActiveMeals(){
   if(S.viewedWeekId){
     const entry=S.weekBank.find(w=>w.id===S.viewedWeekId);
@@ -7328,7 +7387,21 @@ function getActiveMeals(){
   }
   return S.meals;
 }
-function isViewingPast(){return !!S.viewedWeekId;}
+// True only for PAST weeks — future and live are editable
+function isViewingPast(){
+  if(!S.viewedWeekId)return false;
+  const entry=S.weekBank.find(w=>w.id===S.viewedWeekId);
+  return isPastWeek(entry);
+}
+// Any non-live week (past or future)
+function isViewingOtherWeek(){return !!S.viewedWeekId;}
+// Future weeks can be edited directly — we need to route writes to the bank entry
+function getEditableWeek(){
+  if(!S.viewedWeekId)return {meals:S.meals,target:'live'};
+  const entry=S.weekBank.find(w=>w.id===S.viewedWeekId);
+  if(entry)return {meals:entry.meals,target:'bank',entry};
+  return {meals:S.meals,target:'live'};
+}
 
 // ── OVERLAY CLOSE ────────────────────────────────────────────────
 // Modals can ONLY be closed via X button, Cancel, or Save buttons.
@@ -7523,44 +7596,19 @@ function jumpToShopping(){
     document.head.appendChild(link);
   } catch(e) { console.warn('Manifest setup failed:', e); }
 
-  // Register service worker for offline support — only works when served from
-  // http(s), not file://. Uses a blob URL so there's no separate SW file.
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    const swCode = `
-      const CACHE = 'madplan-v1';
-      self.addEventListener('install', e => {
-        e.waitUntil(caches.open(CACHE).then(c => c.add('./')).then(() => self.skipWaiting()));
-      });
-      self.addEventListener('activate', e => {
-        e.waitUntil(
-          caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-               .then(() => self.clients.claim())
-        );
-      });
-      self.addEventListener('fetch', e => {
-        const req = e.request;
-        if (req.method !== 'GET') return;
-        const url = new URL(req.url);
-        if (url.origin !== location.origin) return;
-        e.respondWith(
-          caches.match(req).then(cached => {
-            const network = fetch(req).then(resp => {
-              if (resp.ok) {
-                const copy = resp.clone();
-                caches.open(CACHE).then(c => c.put(req, copy));
-              }
-              return resp;
-            }).catch(() => cached);
-            return cached || network;
-          })
-        );
-      });
-    `;
-    try {
-      const swBlob = new Blob([swCode], { type: 'text/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-        .catch(e => console.warn('SW register failed:', e));
-    } catch(e) { console.warn('SW setup failed:', e); }
+  // Service worker disabled — it was caching too aggressively and could block
+  // Supabase authentication. Actively unregister any previously installed SW
+  // so users who got the old one aren't stuck with stale cached assets.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(r => r.unregister());
+    }).catch(()=>{});
+    // Also clear any caches the old SW created
+    if ('caches' in window) {
+      caches.keys().then(keys => {
+        keys.forEach(k => { if (k.startsWith('madplan-')) caches.delete(k); });
+      }).catch(()=>{});
+    }
   }
 })();
 
