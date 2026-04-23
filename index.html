@@ -2783,6 +2783,7 @@ let S = {
   offCache: {},
   collapsedDays: [],
   viewedWeekId: null,
+  shopFutureWeeks: [],
   updatedAt: 0
 };
 
@@ -2929,6 +2930,9 @@ function switchTab(id,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');btn.classList.add('active');
+  // Hide week-nav on Hjem — it always shows "today", week navigation makes no sense there
+  const weekNav=document.getElementById('weekNav');
+  if(weekNav)weekNav.style.display=(id==='hjem')?'none':'';
   if(id==='hjem')renderDashboard();
   if(id==='indkoeb'){if(!S.aggregated)runAggregation();renderQuickAdd();}
   if(id==='opskriftbog')renderBook();
@@ -2986,6 +2990,7 @@ async function load(){
   if(!Array.isArray(S.collapsedDays))S.collapsedDays=[];
   if(!S.frequentItems)S.frequentItems={};
   if(S.viewedWeekId===undefined)S.viewedWeekId=null;
+  if(!Array.isArray(S.shopFutureWeeks))S.shopFutureWeeks=[];
   // Always start on the live current week at load — if user was viewing a past/future
   // bank entry last session, that's stale now (a new day may have rolled around)
   S.viewedWeekId=null;
@@ -3029,6 +3034,9 @@ async function load(){
   updateApiKeyStatus();
   updateSyncDot();
   renderAll();
+  // Hjem is the default landing tab, so hide week-nav initially
+  const _weekNav=document.getElementById('weekNav');
+  if(_weekNav)_weekNav.style.display='none';
   if(!S.aggregated)runAggregation();
 
   // Try Supabase: init, check session, otherwise show login
@@ -3251,9 +3259,12 @@ function renderMealCards(){
         <button onclick="useArchivedWeek()" style="background:var(--c-plan);color:white;border:none;border-radius:16px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">📋 Brug som nu</button>
       </div>`;
     } else if(isFutureWeek(viewing)){
-      banner=`<div style="background:var(--c-plan-soft);border:1px solid var(--c-plan-border);color:var(--c-plan);padding:10px 14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px">
+      const inShopping=isFutureWeekInShopping(viewing.id);
+      const hasDishes=(viewing.meals||[]).some(d=>(d.dishes||[]).length>0);
+      banner=`<div style="background:var(--c-plan-soft);border:1px solid var(--c-plan-border);color:var(--c-plan);padding:10px 14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap">
         <span style="font-size:16px">📅</span>
-        <span style="flex:1"><strong>Planlægger uge ${viewing.weekNum}</strong> — tilføj retter som normalt. Indkøbslisten følger den aktuelle uge.</span>
+        <span style="flex:1;min-width:0"><strong>Planlægger uge ${viewing.weekNum}</strong> — tilføj retter som normalt.</span>
+        ${hasDishes?`<button onclick="toggleFutureWeekShopping('${viewing.id}')" style="background:${inShopping?'var(--c-shop)':'var(--c-plan)'};color:white;border:none;border-radius:16px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">${inShopping?'✓ På indkøbsliste':'🛒 Køb ind nu'}</button>`:''}
       </div>`;
     }
   }
@@ -3543,9 +3554,37 @@ function quickAdd(name,cat){
 
 function renderShopList(){
   const container=document.getElementById('shopList');
+  pruneShopFutureWeeks();
   const aggBar=!S.aggregated
     ?`<div class="shop-agg-bar"><span class="agg-spin"></span><span>Sammenlægger…</span></div>`
     :`<div class="shop-agg-bar">✓ Ingredienser lagt sammen<button class="btn-reagg" onclick="invalidateAndAggregate()">↻ Opdatér</button></div>`;
+
+  // Build banners:
+  // 1. If future weeks are currently being shopped for → show which ones
+  // 2. If it's Sunday and there's a non-shopped future week with dishes → nudge
+  const shoppedFutureEntries=(S.shopFutureWeeks||[])
+    .map(id=>S.weekBank.find(w=>w.id===id))
+    .filter(e=>e && isFutureWeek(e));
+  const futureBanner=shoppedFutureEntries.length?`<div style="background:var(--c-shop-soft);border:1px solid var(--c-shop-border);color:var(--c-shop);padding:10px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap">
+    <span style="font-size:16px">🛒</span>
+    <span style="flex:1;min-width:0"><strong>Inkluderer også:</strong> ${shoppedFutureEntries.map(e=>`uge ${e.weekNum}`).join(', ')}</span>
+    ${shoppedFutureEntries.map(e=>`<button onclick="toggleFutureWeekShopping('${e.id}')" style="background:transparent;color:var(--c-shop);border:1px solid var(--c-shop-border);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">✕ Fjern uge ${e.weekNum}</button>`).join('')}
+  </div>`:'';
+
+  // Sunday nudge: JS getDay: 0=Sun. Show only once per day — we don't persist
+  // "dismissed" state for this, it just naturally disappears when you tap it or
+  // it's no longer Sunday. Uses sessionStorage-like inline flag.
+  const isSunday=new Date().getDay()===0;
+  const nudgeFutureEntry=isSunday ? (S.weekBank||[]).find(e=>
+    isFutureWeek(e) &&
+    !isFutureWeekInShopping(e.id) &&
+    (e.meals||[]).some(d=>(d.dishes||[]).length>0)
+  ) : null;
+  const sundayNudge=nudgeFutureEntry?`<div style="background:linear-gradient(135deg, var(--c-plan-soft), var(--c-shop-soft));border:1px solid var(--c-plan-border);color:var(--c-plan);padding:12px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap">
+    <span style="font-size:18px">☀️</span>
+    <span style="flex:1;min-width:0"><strong>Det er søndag</strong> — skal næste uges varer (uge ${nudgeFutureEntry.weekNum}) også i kurven?</span>
+    <button onclick="toggleFutureWeekShopping('${nudgeFutureEntry.id}')" style="background:var(--c-plan);color:white;border:none;border-radius:14px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🛒 Ja tak</button>
+  </div>`:'';
 
   const overrides=S.amountOverrides||{};
   const byCat={};CATS.forEach(c=>{byCat[c.k]=[]});
@@ -3578,7 +3617,7 @@ function renderShopList(){
     </div>`;
   };
 
-  let html=aggBar, total=0, chk=0;
+  let html=sundayNudge+futureBanner+aggBar, total=0, chk=0;
   const doneRows=[];
 
   CATS.forEach(cat=>{
@@ -3679,35 +3718,49 @@ function runAggregation(){
   // Regex to strip leading numbers + unit (g, gr, kg, dl, l, ml, stk, spsk, tsk, fed, bundt, håndfuld, pose, dåse, pk)
   const STRIP_LEADING_AMT=/^[\d½¼¾⅓⅔,./\s]*\s*(?:g|gr|kg|dl|l|ml|stk|spsk|tsk|tskf|fed|bundt|håndfuld|pose|poser|dåse|dåser|pk\.?|cm|knsp)\s+/i;
   const clearedAt=S.shopClearedAt||0;
-  (S.meals||[]).forEach(day=>{
-    if(!day?.dishes)return;
-    day.dishes.forEach(dish=>{
-      if(!dish?.ingredients)return;
-      // Skip leftover dishes — they reuse ingredients already bought for the source day.
-      if(isLeftover(dish))return;
-      // Skip dishes that were on the plan when the shopping list was cleared.
-      // Dishes added (or re-assigned) after the clear get addedAt > clearedAt and flow through.
-      if(clearedAt && (dish.addedAt||0) <= clearedAt) return;
-      const scale=dish.scale||1;
-      dish.ingredients.forEach(ing=>{
-        const norm=normalizeIng(ing.name);if(!norm)return;
-        if(!groups.has(norm)){
-          let d=ing.name
-            .replace(BRAND_RE,'')
-            .replace(/\(REMA tilbud\)/gi,'')
-            .replace(/[–-]\s*tilbud[^,)]*/gi,'')
-            .replace(/\([^)]{0,40}\)/g,'')
-            .replace(/,.*$/,'')
-            .replace(STRIP_LEADING_AMT,'') // Strip leading amounts/units
-            .replace(/^[\d½¼¾⅓⅔,./\s]+/,'') // Strip remaining leading numbers
-            .replace(/\s+/g,' ')
-            .trim();
-          if(!d)d=norm; // Fallback if everything got stripped
-          groups.set(norm,{displayName:d.charAt(0).toUpperCase()+d.slice(1),amounts:[],category:ing.category||'andet',meals:new Set()});
-        }
-        const g=groups.get(norm);
-        g.amounts.push(multiplyAmount(ing.amount||'',scale));
-        g.meals.add(`${day.day} · ${dish.name}`);
+
+  // Build the list of "meal-sources" to aggregate: always include the live week.
+  // If S.shopFutureWeeks is a Set of bankEntry IDs, also include those (for
+  // shopping ahead on Sunday for next week).
+  const includedFutureIds=new Set(S.shopFutureWeeks||[]);
+  const sources=[{label:null, meals:S.meals||[]}];
+  (S.weekBank||[]).forEach(entry=>{
+    if(!includedFutureIds.has(entry.id))return;
+    if(!isFutureWeek(entry))return; // only include actual future weeks
+    sources.push({label:`uge ${entry.weekNum}`, meals:entry.meals||[]});
+  });
+
+  sources.forEach(src=>{
+    src.meals.forEach(day=>{
+      if(!day?.dishes)return;
+      day.dishes.forEach(dish=>{
+        if(!dish?.ingredients)return;
+        if(isLeftover(dish))return;
+        // shopClearedAt filtering only applies to live week — future weeks are
+        // freshly opted in by the user so clearedAt is irrelevant.
+        if(!src.label && clearedAt && (dish.addedAt||0) <= clearedAt) return;
+        const scale=dish.scale||1;
+        dish.ingredients.forEach(ing=>{
+          const norm=normalizeIng(ing.name);if(!norm)return;
+          if(!groups.has(norm)){
+            let d=ing.name
+              .replace(BRAND_RE,'')
+              .replace(/\(REMA tilbud\)/gi,'')
+              .replace(/[–-]\s*tilbud[^,)]*/gi,'')
+              .replace(/\([^)]{0,40}\)/g,'')
+              .replace(/,.*$/,'')
+              .replace(STRIP_LEADING_AMT,'')
+              .replace(/^[\d½¼¾⅓⅔,./\s]+/,'')
+              .replace(/\s+/g,' ')
+              .trim();
+            if(!d)d=norm;
+            groups.set(norm,{displayName:d.charAt(0).toUpperCase()+d.slice(1),amounts:[],category:ing.category||'andet',meals:new Set()});
+          }
+          const g=groups.get(norm);
+          g.amounts.push(multiplyAmount(ing.amount||'',scale));
+          const mealLabel=src.label?`${day.day} (${src.label}) · ${dish.name}`:`${day.day} · ${dish.name}`;
+          g.meals.add(mealLabel);
+        });
       });
     });
   });
@@ -7401,6 +7454,35 @@ function getEditableWeek(){
   const entry=S.weekBank.find(w=>w.id===S.viewedWeekId);
   if(entry)return {meals:entry.meals,target:'bank',entry};
   return {meals:S.meals,target:'live'};
+}
+// Add/remove a future week's dishes from the shopping list aggregation
+function isFutureWeekInShopping(entryId){
+  return (S.shopFutureWeeks||[]).includes(entryId);
+}
+function toggleFutureWeekShopping(entryId){
+  if(!Array.isArray(S.shopFutureWeeks))S.shopFutureWeeks=[];
+  const idx=S.shopFutureWeeks.indexOf(entryId);
+  const entry=S.weekBank.find(w=>w.id===entryId);
+  const label=entry?`uge ${entry.weekNum}`:'ugen';
+  if(idx>=0){
+    S.shopFutureWeeks.splice(idx,1);
+    toast(`${label} fjernet fra indkøbsliste`);
+  } else {
+    S.shopFutureWeeks.push(entryId);
+    toast(`${label} tilføjet til indkøbsliste ✓`);
+  }
+  S.aggregated=null;save();renderAll();runAggregation();
+}
+// Clean up shopFutureWeeks — remove any IDs that no longer point to future weeks
+// (e.g. after a week rolled past current, or entry was deleted)
+function pruneShopFutureWeeks(){
+  if(!Array.isArray(S.shopFutureWeeks))return;
+  const before=S.shopFutureWeeks.length;
+  S.shopFutureWeeks=S.shopFutureWeeks.filter(id=>{
+    const entry=S.weekBank.find(w=>w.id===id);
+    return entry && isFutureWeek(entry);
+  });
+  if(S.shopFutureWeeks.length!==before)save();
 }
 
 // ── OVERLAY CLOSE ────────────────────────────────────────────────
