@@ -2374,11 +2374,11 @@ body {
       </div>
       <div class="form-row">
         <label class="form-label">Ingredienser (ét per linje • brug <code>=== Sektionsnavn ===</code> til delretter)</label>
-        <textarea class="paste-area" id="arIngredients" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;400 g kyllingefilet&#10;2 spsk soja&#10;=== Syltede gulerødder ===&#10;4 gulerødder&#10;1 dl riseddike&#10;..."></textarea>
+        <textarea class="paste-area" id="arIngredients" style="min-height:280px;resize:vertical" placeholder="=== Vietnamesisk kylling ===&#10;400 g kyllingefilet&#10;2 spsk soja&#10;=== Syltede gulerødder ===&#10;4 gulerødder&#10;1 dl riseddike&#10;..."></textarea>
       </div>
       <div class="form-row">
         <label class="form-label">Fremgangsmåde (ét trin per linje • samme sektioner som ingredienser)</label>
-        <textarea class="paste-area" id="arSteps" style="min-height:120px" placeholder="=== Vietnamesisk kylling ===&#10;Rør marinaden sammen og vend kyllingen i den.&#10;Brun den på pande.&#10;=== Syltede gulerødder ===&#10;Kog vand, sukker og eddike op.&#10;..."></textarea>
+        <textarea class="paste-area" id="arSteps" style="min-height:280px;resize:vertical" placeholder="=== Vietnamesisk kylling ===&#10;Rør marinaden sammen og vend kyllingen i den.&#10;Brun den på pande.&#10;=== Syltede gulerødder ===&#10;Kog vand, sukker og eddike op.&#10;..."></textarea>
       </div>
     </div>
 
@@ -4064,8 +4064,9 @@ function renderRecipeContent(el, m, dayLabel, dayNav, isCookbookView){
   const sections=m.sections||[];
   const hasMultipleSections=sections.length>1||(sections[0]?.title);
 
-  // Notes panel — only shown when viewing from cookbook
-  const cookbookEntry=isCookbookView ? (S.cookbook||[]).find(r=>r.id===m.id) : null;
+  // Notes panel — shown for any recipe that exists in the cookbook (meal plan
+  // dishes are snapshots with the same id, so notes follow the recipe into the kitchen)
+  const cookbookEntry=m?.id ? (S.cookbook||[]).find(r=>r.id===m.id) : null;
   const notesCount=cookbookEntry?.notes?.length||0;
   const notesHtml=cookbookEntry ? `
     <div class="recipe-notes-wrap">
@@ -7411,36 +7412,53 @@ function renderDashboard(){
   </div>`;
 
   // Next 2-3 days preview
+  // When (todayIdx+i) >= 7, we've wrapped into next week — S.meals only holds the
+  // current week, so we need to look at a future-week bank entry (if one exists)
+  // or show the day as empty (so we don't mistakenly show last week's data).
+  const nextWeekEntry=(S.weekBank||[]).find(w=>isFutureWeek(w) && w.weekNum===S.weekNum+1);
   const upcoming=[];
   for(let i=1;i<=3;i++){
-    const idx=(todayIdx+i)%7;
-    const d=meals[idx];
+    const rawIdx=todayIdx+i;
+    const inNextWeek=rawIdx>=7;
+    const idx=rawIdx%7;
+    const sourceWeek=inNextWeek?(nextWeekEntry?.meals||null):meals;
+    const d=sourceWeek?.[idx];
+    const dayLabel=d?.day||DAYS[idx]||'?';
+    // Meal-plan jump target: only live week is clickable, future-week previews just show info
+    const canClick=!inNextWeek;
     const ds=sortDishes(d?.dishes||[]);
-    if(!ds.length){upcoming.push({day:d?.day||'?',empty:true,idx});continue;}
+    if(!ds.length){upcoming.push({day:dayLabel,empty:true,idx,inNextWeek});continue;}
     const main=ds.find(x=>x.slot==='hovedret')||ds[0];
     const resolved=isLeftover(main)?resolveLeftover(main):main;
     upcoming.push({
-      day:d.day,
+      day:dayLabel,
       name:resolved?.name||'(rester)',
       isLeftover:isLeftover(main),
       photo:resolved?.photo,
       dishIdx:d.dishes.indexOf(main),
-      idx
+      idx,
+      inNextWeek,
+      canClick
     });
   }
   const upcomingHtml=`<div class="dash-section">
     <div class="dash-section-title">Næste dage</div>
     <div class="dash-upcoming">
-      ${upcoming.map(u=>u.empty?`
-        <div class="dash-upcoming-card dash-upcoming-empty">
-          <div class="dash-upcoming-day">${u.day}</div>
-          <div class="dash-upcoming-name">—</div>
-        </div>`:`
-        <div class="dash-upcoming-card" onclick="showRecipe(${u.idx},${u.dishIdx})">
+      ${upcoming.map(u=>{
+        const weekTag=u.inNextWeek?`<span style="font-size:9px;color:var(--c-plan);background:var(--c-plan-soft);border:1px solid var(--c-plan-border);padding:1px 5px;border-radius:6px;font-weight:700;margin-left:4px">næste uge</span>`:'';
+        if(u.empty){
+          return`<div class="dash-upcoming-card dash-upcoming-empty">
+            <div class="dash-upcoming-day">${u.day}${weekTag}</div>
+            <div class="dash-upcoming-name">—</div>
+          </div>`;
+        }
+        const clickAttr=u.canClick?`onclick="showRecipe(${u.idx},${u.dishIdx})"`:'style="cursor:default"';
+        return`<div class="dash-upcoming-card" ${clickAttr}>
           ${u.photo?`<div class="dash-upcoming-img" style="background-image:url('${u.photo}')"></div>`:`<div class="dash-upcoming-img dash-upcoming-placeholder">🍽️</div>`}
-          <div class="dash-upcoming-day">${u.day}${u.isLeftover?' <span style="color:var(--c-plan)">↻</span>':''}</div>
+          <div class="dash-upcoming-day">${u.day}${u.isLeftover?' <span style="color:var(--c-plan)">↻</span>':''}${weekTag}</div>
           <div class="dash-upcoming-name">${u.name}</div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>
   </div>`;
 
