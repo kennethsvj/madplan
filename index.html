@@ -1297,6 +1297,104 @@ body {
   .dish-nav-name { font-size: 11px; }
 }
 
+/* ── Recipe notes (log per cookbook recipe) ───────────────────────── */
+.recipe-notes-wrap {
+  margin-bottom: 12px;
+}
+.recipe-notes-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s, border-color .12s;
+}
+.recipe-notes-toggle:hover {
+  background: var(--bg-soft);
+  border-color: var(--c-book-border);
+}
+.recipe-notes-toggle.open {
+  background: var(--c-book-soft);
+  border-color: var(--c-book-border);
+  color: var(--c-book);
+}
+.recipe-notes-badge {
+  background: var(--c-book);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.recipe-notes-chev {
+  font-size: 10px;
+  color: var(--text-mute);
+  margin-left: 2px;
+}
+.recipe-notes-panel {
+  margin-top: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+.recipe-notes-list {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+.recipe-note-item {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  margin-bottom: 6px;
+}
+.recipe-note-item:last-child { margin-bottom: 0; }
+.recipe-note-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.recipe-note-date {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-book);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.recipe-note-del {
+  background: none;
+  border: none;
+  color: var(--text-mute);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+.recipe-note-del:hover { background: var(--border-soft); color: var(--text); }
+.recipe-note-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.recipe-notes-add textarea {
+  font-family: inherit;
+  font-size: 13px;
+}
+
 .recipe-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -3829,7 +3927,7 @@ function renderRecipe(){
   const el=document.getElementById('recipeContent');
   // Prefer currentViewedRecipe if set (from cookbook), else fall back to meal plan
   if(currentViewedRecipe){
-    renderRecipeContent(el, currentViewedRecipe, currentViewedRecipe._dayLabel||'Kogebog');
+    renderRecipeContent(el, currentViewedRecipe, currentViewedRecipe._dayLabel||'Kogebog', null, true);
     return;
   }
   const sel=S.selectedMeal;
@@ -3960,14 +4058,38 @@ function navigateToTab(id,skipPush){
   if(!skipPush)pushNavState({type:'tab',id});
 }
 
-function renderRecipeContent(el, m, dayLabel, dayNav){
+function renderRecipeContent(el, m, dayLabel, dayNav, isCookbookView){
   normalizeRecipe(m);
   const scale=recipeScale;
   const sections=m.sections||[];
   const hasMultipleSections=sections.length>1||(sections[0]?.title);
 
+  // Notes panel — only shown when viewing from cookbook
+  const cookbookEntry=isCookbookView ? (S.cookbook||[]).find(r=>r.id===m.id) : null;
+  const notesCount=cookbookEntry?.notes?.length||0;
+  const notesHtml=cookbookEntry ? `
+    <div class="recipe-notes-wrap">
+      <button class="recipe-notes-toggle" onclick="toggleRecipeNotes()" id="recipeNotesToggle">
+        <span style="font-size:15px">📝</span>
+        <span>Noter</span>
+        ${notesCount?`<span class="recipe-notes-badge">${notesCount}</span>`:''}
+        <span class="recipe-notes-chev" id="recipeNotesChev">▾</span>
+      </button>
+      <div class="recipe-notes-panel" id="recipeNotesPanel" style="display:none">
+        <div class="recipe-notes-list" id="recipeNotesList">
+          ${renderNotesList(cookbookEntry)}
+        </div>
+        <div class="recipe-notes-add">
+          <textarea id="recipeNoteInput" class="form-input" rows="2" placeholder="Tilføj note — fx 'mere salt næste gang', 'tog 35 min, ikke 40'" style="resize:vertical;min-height:50px;width:100%"></textarea>
+          <button class="btn btn-primary" onclick="addRecipeNote('${m.id}')" style="margin-top:6px">Tilføj note</button>
+        </div>
+      </div>
+    </div>
+  ` : '';
+
   el.innerHTML=`
   ${dayNav||''}
+  ${notesHtml}
   ${m.photo?`<img class="recipe-photo" src="${m.photo}" alt="">`:''}
   <div class="recipe-hero">
     <button onclick="printRecipe()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.6);border:1px solid #d8ceb8;color:#2e2a24;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1" title="Print opskrift">🖨️ Print</button>
@@ -4189,13 +4311,101 @@ function viewBookRecipe(e,id){
   const r=S.cookbook.find(r=>r.id===id);if(!r)return;
   recipeScale=1;
   currentViewedRecipe={...r,_dayLabel:'Kogebog'};
-  renderRecipeContent(document.getElementById('recipeContent'),currentViewedRecipe,'Kogebog');
+  renderRecipeContent(document.getElementById('recipeContent'),currentViewedRecipe,'Kogebog',null,true);
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('opskrift').classList.add('active');
   document.querySelectorAll('.tab')[2].classList.add('active');
   requestWakeLock();
   pushNavState({type:'bookRecipe',id});
+}
+
+// ── RECIPE NOTES ─────────────────────────────────────────────────
+// Notes are per-cookbook-recipe and stored as a log. Only shown in cookbook view.
+function renderNotesList(recipe){
+  const notes=recipe?.notes||[];
+  if(!notes.length){
+    return `<div style="text-align:center;padding:14px;color:var(--text-mute);font-size:12.5px;font-style:italic">Ingen noter endnu. Tilføj den første nedenfor.</div>`;
+  }
+  const sorted=[...notes].sort((a,b)=>b.createdAt-a.createdAt);
+  return sorted.map(n=>{
+    const d=new Date(n.createdAt);
+    const dStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`;
+    return `<div class="recipe-note-item">
+      <div class="recipe-note-head">
+        <span class="recipe-note-date">${dStr}</span>
+        <button class="recipe-note-del" onclick="deleteRecipeNote('${recipe.id}','${n.id}')" title="Slet note">✕</button>
+      </div>
+      <div class="recipe-note-text">${escapeHtml(n.text)}</div>
+    </div>`;
+  }).join('');
+}
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toggleRecipeNotes(){
+  const panel=document.getElementById('recipeNotesPanel');
+  const chev=document.getElementById('recipeNotesChev');
+  const toggle=document.getElementById('recipeNotesToggle');
+  if(!panel)return;
+  const open=panel.style.display!=='none';
+  if(open){
+    panel.style.display='none';
+    chev.textContent='▾';
+    toggle.classList.remove('open');
+  } else {
+    panel.style.display='block';
+    chev.textContent='▴';
+    toggle.classList.add('open');
+    setTimeout(()=>document.getElementById('recipeNoteInput')?.focus(),50);
+  }
+}
+function addRecipeNote(recipeId){
+  const input=document.getElementById('recipeNoteInput');
+  const text=(input?.value||'').trim();
+  if(!text){toast('Skriv en note først');return;}
+  const recipe=(S.cookbook||[]).find(r=>r.id===recipeId);
+  if(!recipe){toast('Opskrift findes ikke');return;}
+  if(!Array.isArray(recipe.notes))recipe.notes=[];
+  recipe.notes.push({id:'note-'+Date.now(),text,createdAt:Date.now()});
+  // Also sync the viewed recipe object so the badge updates without full re-render
+  if(currentViewedRecipe?.id===recipeId)currentViewedRecipe.notes=recipe.notes;
+  input.value='';
+  save();
+  // Re-render the list in place
+  refreshNotesUI(recipe);
+  toast('Note tilføjet ✓');
+}
+function deleteRecipeNote(recipeId,noteId){
+  const recipe=(S.cookbook||[]).find(r=>r.id===recipeId);
+  if(!recipe||!Array.isArray(recipe.notes))return;
+  uiConfirm('Slet note?','Dette kan ikke fortrydes.',()=>{
+    recipe.notes=recipe.notes.filter(n=>n.id!==noteId);
+    if(currentViewedRecipe?.id===recipeId)currentViewedRecipe.notes=recipe.notes;
+    save();
+    refreshNotesUI(recipe);
+    toast('Note slettet');
+  },'🗑️ Slet');
+}
+function refreshNotesUI(recipe){
+  const list=document.getElementById('recipeNotesList');
+  if(list)list.innerHTML=renderNotesList(recipe);
+  const toggle=document.getElementById('recipeNotesToggle');
+  if(toggle){
+    const n=recipe.notes?.length||0;
+    const existingBadge=toggle.querySelector('.recipe-notes-badge');
+    if(n&&!existingBadge){
+      const chev=toggle.querySelector('.recipe-notes-chev');
+      const badge=document.createElement('span');
+      badge.className='recipe-notes-badge';
+      badge.textContent=n;
+      toggle.insertBefore(badge,chev);
+    } else if(n&&existingBadge){
+      existingBadge.textContent=n;
+    } else if(!n&&existingBadge){
+      existingBadge.remove();
+    }
+  }
 }
 
 function buildIngGroups(){
@@ -5862,6 +6072,8 @@ function saveRecipe(){
   const tagsInput=(document.getElementById('arMainIngs')?.value||'').trim();
   const userTags=tagsInput?tagsInput.split(',').map(s=>s.trim()).filter(Boolean):[];
   const mainIngredients=userTags.length?userTags:extractMainIngredients(allIng);
+  // If editing, preserve notes from the existing cookbook entry
+  const existingNotes=arState.editId?(S.cookbook.find(r=>r.id===arState.editId)?.notes||[]):[];
   const recipe={
     id:arState.editId||('book-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     name,
@@ -5872,7 +6084,8 @@ function saveRecipe(){
     sections,
     ingredients:allIng,
     steps:allSteps,
-    mainIngredients
+    mainIngredients,
+    notes:existingNotes
   };
   if(arState.editId){
     S.cookbook=S.cookbook.map(r=>r.id===arState.editId?recipe:r);
