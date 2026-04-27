@@ -2429,6 +2429,13 @@ body {
       <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none">🔍</span>
       <input class="form-input" id="pickerSearch" placeholder="Søg efter opskrift…" style="padding-left:40px" oninput="renderPickerList()">
     </div>
+    <!-- Quick add: bare et navn, ingen opskrift. Til "rester", standard-retter og familieklassikere -->
+    <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:18px">✏️</span>
+      <span style="font-size:12.5px;color:var(--text-soft);flex-shrink:0">Hurtig:</span>
+      <input class="form-input" id="quickAddInput" placeholder="fx 'Pasta med pesto' eller 'Rester fra i går'" style="flex:1;min-width:140px;padding:6px 10px;font-size:13px" onkeydown="if(event.key==='Enter')quickAddDish()">
+      <button class="btn btn-primary" onclick="quickAddDish()" style="padding:6px 14px;font-size:12px;flex-shrink:0">+ Tilføj</button>
+    </div>
     <div id="pickerSlotChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center"></div>
     <div id="pickerCuisChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>
     <div id="pickerIngChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
@@ -3037,6 +3044,9 @@ function switchTab(id,btn){
   if(id==='bank')renderBank();
   // Clear viewed recipe state when leaving opskrift tab
   if(id!=='opskrift')currentViewedRecipe=null;
+  // Wake lock: keep screen on while cooking (opskrift) or shopping (indkoeb)
+  if(id==='opskrift'||id==='indkoeb')requestWakeLock();
+  else releaseWakeLock();
   pushNavState({type:'tab',id});
 }
 
@@ -3088,6 +3098,15 @@ async function load(){
   if(!Array.isArray(S.collapsedDays))S.collapsedDays=[];
   if(!S.frequentItems)S.frequentItems={};
   if(S.viewedWeekId===undefined)S.viewedWeekId=null;
+  // One-time fix: re-categorize manual shopping items with the improved guessCat
+  // (older data may have wrong categories like "Sodavand" → kød due to substring bug)
+  if(!S.recategorizedV2){
+    (S.manual||[]).forEach(it=>{
+      const newCat=guessCat(it.name);
+      if(it.category!==newCat)it.category=newCat;
+    });
+    S.recategorizedV2=true;
+  }
   if(!Array.isArray(S.shopFutureWeeks))S.shopFutureWeeks=[];
   // Always start on the live current week at load — if user was viewing a past/future
   // bank entry last session, that's stale now (a new day may have rolled around)
@@ -4036,7 +4055,8 @@ async function releaseWakeLock(){
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'){
     const recipeActive=document.getElementById('opskrift')?.classList.contains('active');
-    if(recipeActive&&!_wakeLock)requestWakeLock();
+    const shopActive=document.getElementById('indkoeb')?.classList.contains('active');
+    if((recipeActive||shopActive)&&!_wakeLock)requestWakeLock();
   }
 });
 
@@ -4052,8 +4072,8 @@ function navigateToTab(id,skipPush){
   if(id==='indkoeb'){if(!S.aggregated)runAggregation();renderQuickAdd();}
   if(id==='opskriftbog')renderBook();
   if(id==='bank')renderBank();
-  // Wake lock — only on recipe tab
-  if(id==='opskrift')requestWakeLock();
+  // Wake lock — on recipe tab AND shopping tab (you're hands-busy in both)
+  if(id==='opskrift'||id==='indkoeb')requestWakeLock();
   else releaseWakeLock();
   if(!skipPush)pushNavState({type:'tab',id});
 }
@@ -4063,6 +4083,22 @@ function renderRecipeContent(el, m, dayLabel, dayNav, isCookbookView){
   const scale=recipeScale;
   const sections=m.sections||[];
   const hasMultipleSections=sections.length>1||(sections[0]?.title);
+
+  // Quick-add dish (no recipe) — show a friendly placeholder instead of empty render
+  const isQuickAdd=m.quickAdd || (!m.ingredients?.length && !m.steps?.length && !sections.length);
+  if(isQuickAdd && !isCookbookView){
+    el.innerHTML=`${dayNav||''}
+      <div style="text-align:center;padding:40px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:18px">
+        <div style="font-size:48px;margin-bottom:14px">✏️</div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:8px;line-height:1.2">${m.name}</h2>
+        <div style="font-size:13px;color:var(--text-mute);margin-bottom:20px">${dayLabel||''}</div>
+        <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13.5px;color:var(--text-soft);line-height:1.5;max-width:420px;margin:0 auto">
+          Dette er en hurtigt-tilføjet ret uden opskrift. Den kommer ikke på indkøbslisten.<br>
+          <span style="font-size:12px;color:var(--text-mute)">Vil du tilføje den til kogebogen som rigtig opskrift, kan du gøre det fra Kogebog-fanen.</span>
+        </div>
+      </div>`;
+    return;
+  }
 
   // Notes panel — shown for any recipe that exists in the cookbook (meal plan
   // dishes are snapshots with the same id, so notes follow the recipe into the kitchen)
@@ -6017,22 +6053,67 @@ function clearManualForm(){
 
 function guessCat(name){
   const n=name.toLowerCase().trim();
-  // Kød & Fisk
-  if(/kylling|kalkun|and(?!risk)|hane|okse|kalv|svin|gris|lam|hak|fars|mørbrad|culotte|filet|steg|ribbe|spareribs|skinke|bacon|pølse|medister|frikadelle|nakke|kotelet|pancetta|chorizo|salami|leverpostej|leverpostej|laks|torsk|rødspætte|rødfisk|sild|makrel|tun|sardin|ansjos|ørred|kuller|kulmule|hellefisk|mørksej|sej|brisling|rejer|kammusling|musling|krabbe|hummer|blæksprutte|ål|fisk|kød/.test(n))return'kød';
+  // Helper: build a "Danish-aware word match" — like \b but treats æøå as word chars.
+  // Word char in this app's vocab: a-z, æ, ø, å, 0-9, '.
+  // We pad input with spaces and use space/punctuation lookarounds.
+  const padded=' '+n.replace(/[^a-zæøå0-9'\s-]/g,' ')+' ';
+  const has=(words)=>{
+    for(const w of words){
+      const re=new RegExp('[\\s-]'+w.replace(/\s+/g,'\\s+')+'[\\s-]');
+      if(re.test(padded))return true;
+    }
+    return false;
+  };
+  const hasContains=(re)=>re.test(n); // for substring matches (compound words like "kyllingfilet")
+
+  // Explicit overrides for tricky cases first
+  if(has(['sodavand','sirup','saft','juice','cola','pepsi','fanta','sprite','øl','vin','spiritus','vand','mineralvand','kildevand','danskvand','kakaomælk','kaffe','the','tea','sportsdrik','energidrik']))return'andet';
+  if(has(['dressing','thousand islands','caesar','ranch dressing','vinaigrette','cocktailsauce','remoulade']))return'kolonial';
+  // Pulver-varianter af grøntsager hører under krydderier
+  if(/(løg|hvidløg|paprika|chili|ingefær|gurkemeje|karry)pulver|pulver$/.test(n))return'krydderier';
+  // Færdig-salater
+  if(/^blandet\s*salat|salatmix|salatblanding|babyspinat\s*pose|fede\s*salat/.test(n))return'grøntsager';
+
+  // Frysevarer first — "frosne ærter" should be frysevarer, not grøntsager
+  if(/^frosne|^frossen|^frost|frysepizza|^is\b|sorbet/.test(n))return'frysevarer';
+
+  // Canned/jarred tomato products are kolonial, not grøntsager
+  if(hasContains(/tomatpasta|tomatpuré|tomatpure|tomatpassata|hakkede\s+tomater|flåede\s+tomater|kokosmælk\s*dåse/))return'kolonial';
+
+  // Kød & Fisk — use compound-word matching (substring) for Danish-style compound nouns
+  // like "kyllingbryst", "oksefilet", "hakkebøf", but exact word matching for short
+  // tokens that could collide ("and", "ål", "tun", "sej").
+  if(hasContains(/kylling|kalkun|hakket\s+kød|hakket\s+okse|hakket\s+svin|oksekød|kalvekød|svinekød|griseaffald|lammekød|hakkebøf|fars\b|mørbrad|culotte|filet|sværsteg|bagside|forrad|spareribs|skinke|bacon|pølse|medister|frikadelle|nakkefilet|kotelet|pancetta|chorizo|salami|leverpostej|laks|torsk|rødspætte|rødfisk|makrel|sardin|ansjos|ørred|kuller|kulmule|hellefisk|mørksej|brisling|rejer|kammusling|musling|krabbe|hummer|blæksprutte/))return'kød';
+  if(has(['and','andebryst','andesteg','hane','okse','kalv','svin','gris','lam','hak','fars','filet','steg','kød','tun','sild','ål','sej','fisk']))return'kød';
+
   // Grøntsager
-  if(/kartoffel|løg|skalotte|hvidløg|porre|forårsløg|tomat|cherrytomat|gulerod|squash|courgette|broccoli|blomkål|hvidkål|spidskål|rødkål|grønkål|spinat|salat|rucola|iceberg|romaine|peberfrugt|paprika(?!\s*pulver)|svamp|champignon|portobello|selleri|knoldselleri|bladselleri|fennikel|asparges|ærter|sukkerært|bønne(?!\s*spire)|kikært|linser|majs|aubergine|agurk|radise|rødbede|persillerod|pastinak|jordskok|græskar|hokkaido|butternut|zucchini|artiskok|rosenkål|grønts|salat/.test(n))return'grøntsager';
+  if(hasContains(/kartoffel|skalotte|hvidløg|porre|forårsløg|tomat|cherrytomat|gulerod|squash|courgette|broccoli|blomkål|hvidkål|spidskål|rødkål|grønkål|spinat|rucola|iceberg|romaine|peberfrugt|paprika|svamp|champignon|portobello|selleri|knoldselleri|bladselleri|fennikel|asparges|sukkerært|kikært|linser|aubergine|agurk|radise|rødbede|persillerod|pastinak|jordskok|græskar|hokkaido|butternut|zucchini|artiskok|rosenkål|grøntsag/))return'grøntsager';
+  if(has(['løg','tomat','salat','bønne','bønner','majs','ærter','kål','grønts']))return'grøntsager';
+
   // Frugt & bær
-  if(/æble|pære|appelsin|citron|lime|mandarin|grape|banan|kiwi|mango|ananas|papaya|fersken|nektarin|blomme|abrikos|kirsebær|jordbær|hindbær|blåbær|brombær|stikkelsbær|ribs|melon|vandmelon|honningmelon|drue|granatæble|fig|dadel|frugt|bær/.test(n))return'frugt';
+  if(hasContains(/citron|appelsin|mandarin|grape|banan|kiwi|mango|ananas|papaya|fersken|nektarin|abrikos|kirsebær|jordbær|hindbær|blåbær|brombær|stikkelsbær|vandmelon|honningmelon|granatæble|dadel/))return'frugt';
+  if(has(['æble','pære','lime','blomme','ribs','melon','drue','fig','frugt','bær']))return'frugt';
+
   // Mejeri & Æg
-  if(/mælk|sødmælk|letmælk|minimælk|skummetmælk|fløde|piskefløde|madlavningsfløde|kærnemælk|tykmælk|a38|ymer|smør|margarine|kefir|yoghurt|skyr|creme\s*fraiche|crème\s*fraîche|hytteost|flødeost|ost|parmesan|mozzarella|cheddar|gouda|brie|camembert|feta|halloumi|ricotta|mascarpone|emmentaler|chèvre|blåskimmelost|gruyère|manchego|æg|cottage/.test(n))return'mejeri';
+  if(hasContains(/mælk|sødmælk|letmælk|minimælk|skummetmælk|fløde|piskefløde|madlavningsfløde|kærnemælk|tykmælk|a38|kefir|yoghurt|skyr|creme\s*fraiche|crème\s*fraîche|hytteost|flødeost|parmesan|mozzarella|cheddar|gouda|camembert|halloumi|ricotta|mascarpone|emmentaler|chèvre|blåskimmelost|gruyère|manchego|cottage/))return'mejeri';
+  if(has(['ymer','smør','margarine','ost','brie','feta','æg']))return'mejeri';
+
   // Brød & Bagværk
-  if(/^brød|rugbrød|franskbrød|toastbrød|sandwichbrød|grovbrød|fuldkornsbrød|bagel|tortilla|wrap|pita|naan|focaccia|ciabatta|bolle|burgerbolle|hotdogbolle|kage|tærte|croissant|krydderbolle|knækbrød|baguette/.test(n))return'brød';
+  if(hasContains(/rugbrød|franskbrød|toastbrød|sandwichbrød|grovbrød|fuldkornsbrød|tortilla|focaccia|ciabatta|burgerbolle|hotdogbolle|krydderbolle|knækbrød|baguette/))return'brød';
+  if(has(['brød','bagel','wrap','pita','naan','bolle','kage','tærte','croissant']))return'brød';
+
   // Krydderier
-  if(/^salt|peber|sort\s+peber|hvid\s+peber|krydderi|paprika|spidskommen|oregano|basilikum|timian|rosmarin|kanel|kardemomme|laurbær|chiliflager|chilipulver|gurkemeje|muskat|kommen|nelliker|stjerneanis|safran|estragon|merian|salvie|dild|koriander|garam\s+masala|currypulver|ras\s+el|sumac|za'?atar|sennep(?!s)|allehånde|bouillon\s*tern|fennikelfrø|sesamfrø/.test(n))return'krydderier';
+  if(hasContains(/spidskommen|oregano|basilikum|timian|rosmarin|kardemomme|laurbær|chiliflager|chilipulver|gurkemeje|nelliker|stjerneanis|estragon|merian|salvie|koriander|garam\s+masala|currypulver|allehånde|fennikelfrø|sesamfrø|sennepsfrø/))return'krydderier';
+  if(has(['salt','peber','sort peber','hvid peber','krydderi','kanel','muskat','kommen','safran','dild','sumac','sennep','bouillonterning']))return'krydderier';
+
   // Frysevarer
-  if(/^frosne|frossen|frost|is(?!\s*berg)|sorbet|frysepizza|spinatkugler|peruvianer/.test(n))return'frysevarer';
-  // Kolonial (default for tørvarer, dåser, sauce, olie etc.)
-  if(/mel|hvedemel|fuldkornsmel|rugmel|grahamsmel|durum|semulje|pasta|spaghetti|penne|fusilli|tagliatelle|lasagne|makaroni|farfalle|rigatoni|nudel|ramen|udon|^ris\b|basmati|jasmin|risotto|arborio|kornblanding|havregryn|havreflager|müsli|cornflakes|sukker|brun\s*sukker|rørsukker|honning|lønnesirup|ahornsirup|sirup|marmelade|syltet|olie|olivenolie|sesamolie|rapsolie|solsikkeolie|kokosolie|eddike|riseddike|balsamico|sojasauce|fishsauce|fiskesauce|worcestershire|ketchup|mayonnaise|remoulade|sennepsdressing|vinaigrette|kapers|oliven|tomatpuré|tomatpasta|tomatpassata|hakkede\s+tomater|flåede\s+tomater|kokosmælk|fond|bouillon|kraftbouillon|grøntsagsbouillon|hønsebouillon|oksebouillon|gær|bagepulver|natron|vaniljesukker|kakao|chokolade|nødder|mandler|valnødder|hasselnødder|cashew|peanut|jordnød|rosin|sesamfrø|chiafrø|hørfrø|gluten|tahini|miso|sake|mirin|wasabi|kimchi|sriracha|harissa/.test(n))return'kolonial';
+  if(hasContains(/frosne|frossen|frost|sorbet|frysepizza|spinatkugler/))return'frysevarer';
+  if(/^is\b/.test(n))return'frysevarer';
+
+  // Kolonial (tørvarer, dåser, sauce, olie etc.)
+  if(hasContains(/hvedemel|fuldkornsmel|rugmel|grahamsmel|durum|semulje|spaghetti|penne|fusilli|tagliatelle|lasagne|makaroni|farfalle|rigatoni|nudel|ramen|udon|basmati|jasmin|risotto|arborio|kornblanding|havregryn|havreflager|müsli|cornflakes|brun\s*sukker|rørsukker|honning|lønnesirup|ahornsirup|olivenolie|sesamolie|rapsolie|solsikkeolie|kokosolie|riseddike|balsamico|sojasauce|fishsauce|fiskesauce|worcestershire|ketchup|mayonnaise|sennepsdressing|tomatpuré|tomatpasta|tomatpassata|hakkede\s+tomater|flåede\s+tomater|kokosmælk|kraftbouillon|grøntsagsbouillon|hønsebouillon|oksebouillon|bagepulver|vaniljesukker|chokolade|valnødder|hasselnødder|sesamfrø|chiafrø|hørfrø|sriracha|harissa|hvidvinseddike/))return'kolonial';
+  if(has(['mel','pasta','ris','sukker','sirup','marmelade','syltet','olie','eddike','kapers','oliven','fond','bouillon','gær','natron','kakao','nødder','mandler','cashew','peanut','jordnød','rosin','gluten','tahini','miso','sake','mirin','wasabi','kimchi','dressing']))return'kolonial';
+
   return'andet';
 }
 
@@ -6138,6 +6219,8 @@ function openPickerModal(dayIdx, replaceDishIdx){
     titleEl.textContent=pickerReplaceDishIdx!=null?`${DAYS[dayIdx]} (erstat)`:DAYS[dayIdx];
   }
   document.getElementById('pickerSearch').value='';
+  const qaInput=document.getElementById('quickAddInput');
+  if(qaInput)qaInput.value='';
   buildPickerSlotChips();
   buildPickerChips();renderPickerList();
   document.getElementById('pickerOverlay').classList.add('open');
@@ -6279,6 +6362,27 @@ function applyLeftoverToDay(srcDayIdx,srcDishIdx,dayIdx,slot,replaceDishIdx){
   const srcName=meals[realSrcRef.dayIdx]?.dishes?.[realSrcRef.dishIdx]?.name||'retten';
   toast(`${DAYS[dayIdx]}: rester fra ${DAYS[realSrcRef.dayIdx]} (${srcName}) ✓`);
 }
+function quickAddDish(){
+  const input=document.getElementById('quickAddInput');
+  const name=(input?.value||'').trim();
+  if(!name){toast('Skriv et navn først');return;}
+  if(pickerMealIdx==null){toast('Ingen dag valgt');return;}
+  // Build a minimal "stub" dish — just a name, no ingredients/steps. It'll show
+  // up on the meal plan but won't contribute to the shopping list.
+  const stub={
+    id:'quick-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    name,
+    slot:pickerSlot||'hovedret',
+    ingredients:[],
+    steps:[],
+    sections:[],
+    quickAdd:true
+  };
+  applyRecipeToDay(stub,pickerMealIdx,pickerSlot||'hovedret',pickerReplaceDishIdx);
+  input.value='';
+  closeOverlay('pickerOverlay');
+}
+
 function applyRecipeToDay(recipe,dayIdx,slot,replaceDishIdx){
   const ctx=getEditableWeek();
   const meals=ctx.meals;
