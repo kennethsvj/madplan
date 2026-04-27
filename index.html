@@ -2413,6 +2413,30 @@ body {
   </div>
 </div>
 
+<!-- LINK QUICK-ADD TO COOKBOOK RECIPE -->
+<div class="overlay" id="linkRecipeOverlay">
+  <div class="modal" style="max-width:560px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--c-plan-soft);color:var(--c-plan);display:flex;align-items:center;justify-content:center;border:1px solid var(--c-plan-border);font-size:18px">🔗</div>
+        <div>
+          <div class="modal-title" style="margin-bottom:0">Link til opskrift</div>
+          <div class="modal-sub" style="margin-bottom:0">Vælg en opskrift fra kogebogen at erstatte med</div>
+        </div>
+      </div>
+      <button onclick="closeOverlay('linkRecipeOverlay')" style="background:none;border:none;font-size:1.1rem;color:var(--text-mute);cursor:pointer;padding:2px 4px">✕</button>
+    </div>
+    <div style="position:relative;margin-bottom:12px">
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none">🔍</span>
+      <input class="form-input" id="linkRecipeSearch" placeholder="Søg efter opskrift…" style="padding-left:40px" oninput="renderLinkRecipeList()" autocomplete="off">
+    </div>
+    <div id="linkRecipeList" style="max-height:50vh;overflow-y:auto;margin-bottom:8px"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeOverlay('linkRecipeOverlay')">Annuller</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="pickerOverlay">
   <div class="modal" style="max-width:680px">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
@@ -4098,10 +4122,11 @@ function renderRecipeContent(el, m, dayLabel, dayNav, isCookbookView){
         <div style="font-size:48px;margin-bottom:14px">✏️</div>
         <h2 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:8px;line-height:1.2">${m.name}</h2>
         <div style="font-size:13px;color:var(--text-mute);margin-bottom:20px">${dayLabel||''}</div>
-        <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13.5px;color:var(--text-soft);line-height:1.5;max-width:420px;margin:0 auto">
-          Dette er en hurtigt-tilføjet ret uden opskrift. Den kommer ikke på indkøbslisten.<br>
-          <span style="font-size:12px;color:var(--text-mute)">Vil du tilføje den til kogebogen som rigtig opskrift, kan du gøre det fra Kogebog-fanen.</span>
+        <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13.5px;color:var(--text-soft);line-height:1.5;max-width:420px;margin:0 auto 18px">
+          Dette er en hurtigt-tilføjet ret uden opskrift. Den kommer ikke på indkøbslisten.
         </div>
+        <button class="btn btn-primary" onclick="openLinkRecipeModal()" style="padding:9px 18px;font-size:13.5px">🔗 Link til opskrift fra kogebog</button>
+        <div style="font-size:11.5px;color:var(--text-mute);margin-top:10px">Hvis du finder en opskrift der passer, kan du linke den her — så kommer ingredienserne automatisk på indkøbslisten.</div>
       </div>`;
     return;
   }
@@ -6434,6 +6459,75 @@ function quickAddDish(){
   closeOverlay('pickerOverlay');
 }
 
+// ── LINK QUICK-ADD TO COOKBOOK RECIPE ────────────────────────────
+// Opens a search modal; selecting a recipe replaces the current quick-add dish
+// in place with the full cookbook recipe (so ingredients flow into the shopping list).
+function openLinkRecipeModal(){
+  if(!S.selectedMeal){toast('Ingen ret valgt');return;}
+  document.getElementById('linkRecipeSearch').value='';
+  renderLinkRecipeList();
+  document.getElementById('linkRecipeOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('linkRecipeSearch')?.focus(),50);
+}
+function renderLinkRecipeList(){
+  const q=(document.getElementById('linkRecipeSearch').value||'').trim().toLowerCase();
+  const el=document.getElementById('linkRecipeList');
+  const cookbook=S.cookbook||[];
+  if(!cookbook.length){
+    el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text-mute);font-size:13px">Kogebogen er tom — tilføj først nogle opskrifter.</div>`;
+    return;
+  }
+  const filtered=q ? cookbook.filter(r=>
+    (r.name||'').toLowerCase().includes(q) ||
+    (r.cuisine||'').toLowerCase().includes(q) ||
+    (r.mainIngredients||[]).some(i=>i.toLowerCase().includes(q))
+  ) : cookbook;
+  if(!filtered.length){
+    el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text-mute);font-size:13px">Ingen match for "${q}"</div>`;
+    return;
+  }
+  el.innerHTML=filtered.slice(0,30).map(r=>`
+    <div class="gs-item" onclick="confirmLinkRecipe('${r.id}')">
+      ${r.photo?`<div style="width:42px;height:42px;border-radius:8px;background-image:url('${r.photo}');background-size:cover;background-position:center;flex-shrink:0"></div>`:`<div class="gs-item-icon">🍴</div>`}
+      <div class="gs-item-body">
+        <div class="gs-item-name">${r.name}</div>
+        <div class="gs-item-meta">${r.cuisine||'–'}${r.cookTime?` · ⏱ ${r.cookTime}`:''}${(r.ingredients||[]).length?` · ${(r.ingredients||[]).length} ingredienser`:''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+function confirmLinkRecipe(recipeId){
+  const r=(S.cookbook||[]).find(r=>r.id===recipeId);
+  if(!r){toast('Opskrift ikke fundet');return;}
+  if(!S.selectedMeal){toast('Ingen ret valgt');return;}
+  uiConfirm('Link til "'+r.name+'"?',
+    'Den hurtige ret bliver erstattet med opskriften, og ingredienserne tilføjes indkøbslisten.',
+    ()=>{
+      const {dayIdx,dishIdx}=S.selectedMeal;
+      const ctx=getEditableWeek();
+      const day=ctx.meals[dayIdx];
+      if(!day||!day.dishes||!day.dishes[dishIdx]){toast('Retten findes ikke længere');return;}
+      const oldDish=day.dishes[dishIdx];
+      const slot=oldDish.slot||'hovedret';
+      // Build the new dish from the cookbook recipe (full data, not a stub)
+      const {day:_,...recipeData}=r;
+      day.dishes[dishIdx]={
+        ...recipeData,
+        slot,
+        addedAt:Date.now()
+      };
+      // Reset shopping for this day so the new ingredients flow through
+      if(ctx.target==='live'){
+        Object.keys(S.checked).forEach(k=>{if(k.startsWith(`m${dayIdx}-`)||k.startsWith('agg-'))delete S.checked[k];});
+        S.aggregated=null;
+      }
+      closeOverlay('linkRecipeOverlay');
+      save();renderAll();if(ctx.target==='live')runAggregation();
+      toast(`"${r.name}" linket — ingredienser på indkøbslisten ✓`);
+    },
+    '🔗 Link');
+}
+
 function applyRecipeToDay(recipe,dayIdx,slot,replaceDishIdx){
   const ctx=getEditableWeek();
   const meals=ctx.meals;
@@ -7039,6 +7133,12 @@ body {
       <div class="day-name">${d.day}</div>
       ${sortedDishes.map(dish=>{
         const slotLabel=slotInfo(dish.slot).l;
+        if(isLeftover(dish)){
+          const src=resolveLeftover(dish);
+          const srcName=src?.name||'(kilde slettet)';
+          const srcDay=DAYS[dish.leftoverFrom.dayIdx]||'';
+          return `<div class="dish-row"><span class="dish-slot">${slotLabel}</span><span class="dish-name">↻ Rester: <em>${srcName}</em>${srcDay?` <span style="color:#888;font-style:italic">(fra ${srcDay.toLowerCase()})</span>`:''}</span></div>`;
+        }
         return `<div class="dish-row"><span class="dish-slot">${slotLabel}</span><span class="dish-name">${dish.name}</span></div>`;
       }).join('')}
     </div>`;
