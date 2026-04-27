@@ -6762,10 +6762,14 @@ function deleteShoppingArchive(id){
 }
 
 function saveWeekToBank(){
-  const hasAny=(S.meals||[]).some(day=>day?.dishes?.length>0);
+  // What's being viewed determines what gets archived: live week → S.meals,
+  // or a bank entry (past/future) → that entry's meals.
+  const viewing=S.viewedWeekId?S.weekBank.find(w=>w.id===S.viewedWeekId):null;
+  const targetMeals=viewing?viewing.meals:S.meals;
+  const targetWeekNum=viewing?viewing.weekNum:S.weekNum;
+  const hasAny=(targetMeals||[]).some(day=>day?.dishes?.length>0);
   if(!hasAny){toast('Ingen retter at gemme');return;}
-  // Open inline modal instead of prompt() (blocked in sandboxed iframes)
-  document.getElementById('archiveNameInput').value=`Uge ${S.weekNum}`;
+  document.getElementById('archiveNameInput').value=`Uge ${targetWeekNum}`;
   document.getElementById('archiveOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('archiveNameInput').select(),100);
 }
@@ -6781,19 +6785,27 @@ function clearWeekPlan(){
   },'🗑️ Tøm');
 }
 function confirmSaveWeek(){
-  const label=document.getElementById('archiveNameInput').value.trim()||`Uge ${S.weekNum}`;
-  const entry={
-    id:'week-'+Date.now(),
-    weekNum:S.weekNum,
-    savedAt:Date.now(),
-    label,
-    archived:true, // explicitly marked as user-archived (not just navigation/planning state)
-    meals:JSON.parse(JSON.stringify(S.meals))
-  };
-  S.weekBank.unshift(entry);
+  const viewing=S.viewedWeekId?S.weekBank.find(w=>w.id===S.viewedWeekId):null;
+  const label=document.getElementById('archiveNameInput').value.trim()||(viewing?`Uge ${viewing.weekNum}`:`Uge ${S.weekNum}`);
+  if(viewing){
+    // Already a bank entry — promote it to archived in place rather than duplicating
+    viewing.archived=true;
+    viewing.label=label;
+    viewing.savedAt=Date.now();
+  } else {
+    // Live week — snapshot it
+    S.weekBank.unshift({
+      id:'week-'+Date.now(),
+      weekNum:S.weekNum,
+      savedAt:Date.now(),
+      label,
+      archived:true,
+      meals:JSON.parse(JSON.stringify(S.meals))
+    });
+  }
   save();renderBank();
   closeOverlay('archiveOverlay');
-  toast(`"${entry.label}" gemt i arkiv ✓`);
+  toast(`"${label}" gemt i arkiv ✓`);
 }
 function renderBank(){
   const c=document.getElementById('bankCount');
