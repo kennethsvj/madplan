@@ -2436,9 +2436,14 @@ body {
       <input class="form-input" id="quickAddInput" placeholder="fx 'Pasta med pesto' eller 'Rester fra i går'" style="flex:1;min-width:140px;padding:6px 10px;font-size:13px" onkeydown="if(event.key==='Enter')quickAddDish()">
       <button class="btn btn-primary" onclick="quickAddDish()" style="padding:6px 14px;font-size:12px;flex-shrink:0">+ Tilføj</button>
     </div>
-    <div id="pickerSlotChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center"></div>
-    <div id="pickerCuisChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>
-    <div id="pickerIngChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
+    <!-- Filter-toggle: chips er foldet sammen som standard for at spare plads.
+         Når sammenfoldet vises kun aktive filtre + en Filtrér-knap. -->
+    <div id="pickerFilterBar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap"></div>
+    <div id="pickerFilterPanel" style="display:none;background:var(--bg-soft);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:10px">
+      <div id="pickerSlotChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>
+      <div id="pickerCuisChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"></div>
+      <div id="pickerIngChips" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+    </div>
     <div id="pickerList" style="max-height:50vh;overflow-y:auto;margin-bottom:8px"></div>
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="closeOverlay('pickerOverlay')">Annuller</button>
@@ -3277,6 +3282,8 @@ async function loadFromSupabase(){
       if(remoteTime>localTime){
         _isApplyingRemote=true;
         S={...S,...data.data};
+        // Always sync weekNum to current calendar week — server data may be stale
+        S.weekNum=getWeekNumber(new Date());
         S.meals=migrateMealsToNested(S.meals);
         S.aggregated=null;
         await dbSet(JSON.stringify(S));
@@ -3324,6 +3331,8 @@ function subscribeRealtime(){
         if(remoteTime<=(S.updatedAt||0))return;
         _isApplyingRemote=true;
         S={...S,...newData.data};
+        // Always sync weekNum to current calendar week
+        S.weekNum=getWeekNumber(new Date());
         S.meals=migrateMealsToNested(S.meals);
         S.aggregated=null;
         dbSet(JSON.stringify(S));
@@ -3404,13 +3413,10 @@ function renderMealCards(){
     </div>`;
 
     if(isEmpty){
-      // When collapsed, header already has the "+ Tilføj" button — no need for big
-      // empty-state block. When expanded, show the full empty-state block for clarity.
+      // Empty days only show the compact "+ Tilføj" button in the header corner.
+      // The full empty-state block was redundant and made the day fill too much vertical space.
       return`<div class="day-block empty ${isCollapsed?'collapsed':''}">
         ${header}
-        ${isCollapsed?'':`<div class="day-block-empty">
-          <button class="btn btn-primary" onclick="event.stopPropagation();openPickerModal(${dayIdx})" style="padding:7px 14px;font-size:12px">➕ Tilføj ret</button>
-        </div>`}
       </div>`;
     }
 
@@ -6221,6 +6227,10 @@ function openPickerModal(dayIdx, replaceDishIdx){
   document.getElementById('pickerSearch').value='';
   const qaInput=document.getElementById('quickAddInput');
   if(qaInput)qaInput.value='';
+  // Always start with filter panel collapsed for a cleaner first impression
+  _pickerFilterPanelOpen=false;
+  const fpanel=document.getElementById('pickerFilterPanel');
+  if(fpanel)fpanel.style.display='none';
   buildPickerSlotChips();
   buildPickerChips();renderPickerList();
   document.getElementById('pickerOverlay').classList.add('open');
@@ -6231,8 +6241,48 @@ function buildPickerSlotChips(){
   if(!el)return;
   el.innerHTML=`<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Type:</span>`+
     SLOTS.map(s=>`<button class="chip ${s.k===pickerSlot?'active':''}" onclick="setPickerSlot('${s.k}')">${s.icon} ${s.l}</button>`).join('');
+  buildPickerFilterBar();
 }
 function setPickerSlot(s){pickerSlot=s;buildPickerSlotChips();}
+
+// Compact filter bar — shown above the recipe list. Shows a "Filtrér"-button
+// and any currently active filters as small pills, so the user can see what's
+// applied without expanding the full panel.
+let _pickerFilterPanelOpen=false;
+function buildPickerFilterBar(){
+  const bar=document.getElementById('pickerFilterBar');
+  if(!bar)return;
+  const slot=SLOTS.find(s=>s.k===pickerSlot);
+  const cuis=CUISINE_LIST.find(c=>c.k===pickerCuisFilter);
+  const cuisActive=pickerCuisFilter && pickerCuisFilter!=='alle';
+  const tagCount=pickerIngFilter.size;
+  // Count how many filters are "non-default"
+  const slotActive=pickerSlot && pickerSlot!=='hovedret';
+  const totalActive=(slotActive?1:0)+(cuisActive?1:0)+(tagCount>0?1:0);
+
+  const btnLabel=_pickerFilterPanelOpen?'▴ Skjul filtre':(totalActive?`▾ Filtrér (${totalActive})`:'▾ Filtrér');
+  let html=`<button onclick="togglePickerFilters()" style="background:${totalActive?'var(--c-plan-soft)':'var(--bg-card)'};border:1px solid ${totalActive?'var(--c-plan-border)':'var(--border)'};color:${totalActive?'var(--c-plan)':'var(--text)'};padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${btnLabel}</button>`;
+
+  // Active-filter pills (only when panel is closed)
+  if(!_pickerFilterPanelOpen){
+    if(slot && slotActive){
+      html+=`<span style="background:var(--c-plan-soft);color:var(--c-plan);border:1px solid var(--c-plan-border);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600">${slot.icon} ${slot.l}</span>`;
+    }
+    if(cuis && cuisActive){
+      html+=`<span style="background:var(--c-plan-soft);color:var(--c-plan);border:1px solid var(--c-plan-border);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600">${cuis.l}</span>`;
+    }
+    if(tagCount>0){
+      html+=`<span style="background:var(--c-plan-soft);color:var(--c-plan);border:1px solid var(--c-plan-border);padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600">🏷️ ${tagCount} tag${tagCount>1?'s':''}</span>`;
+    }
+  }
+  bar.innerHTML=html;
+}
+function togglePickerFilters(){
+  _pickerFilterPanelOpen=!_pickerFilterPanelOpen;
+  const panel=document.getElementById('pickerFilterPanel');
+  if(panel)panel.style.display=_pickerFilterPanelOpen?'block':'none';
+  buildPickerFilterBar();
+}
 
 function buildPickerChips(){
   const usedCuisines=new Set(S.cookbook.map(r=>r.cuisine).filter(Boolean));
@@ -6241,13 +6291,14 @@ function buildPickerChips(){
     `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Køkken:</span>`+
     cuisChips.map(c=>`<button class="chip ${c.k===pickerCuisFilter?'active':''}" onclick="setPickerCuis('${c.k}')">${c.l}</button>`).join('');
   const ING_GROUPS=buildIngGroups();
-  if(!ING_GROUPS.length){document.getElementById('pickerIngChips').innerHTML='';return;}
+  if(!ING_GROUPS.length){document.getElementById('pickerIngChips').innerHTML='';buildPickerFilterBar();return;}
   const allActive=pickerIngFilter.size===0;
   document.getElementById('pickerIngChips').innerHTML=
     `<span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-right:4px">Tags:</span>`+
     `<button class="chip ${allActive?'active':''}" onclick="clearPickerTags()">🥘 Alle</button>`+
     ING_GROUPS.map(g=>`<button class="chip ${pickerIngFilter.has(g.k)?'active':''}" onclick="togglePickerTag('${g.k.replace(/'/g,"\\'")}')">${g.l}</button>`).join('')+
     (pickerIngFilter.size>1?`<span style="font-size:10px;color:var(--text-mute);margin-left:4px">${pickerIngFilter.size} valgt — opskrifter med <strong>alle</strong></span>`:'');
+  buildPickerFilterBar();
 }
 function setPickerCuis(c){pickerCuisFilter=c;buildPickerChips();renderPickerList();}
 function togglePickerTag(k){
