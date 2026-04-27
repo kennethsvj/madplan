@@ -2824,7 +2824,7 @@ body {
 //  for at indtaste dem. Findes i Supabase: Project Settings → API
 // ═══════════════════════════════════════════════════════════════════
 const SUPABASE_URL = "https://gcenfqabgjxehbsmeqrr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZW5mcWFiZ2p4ZWhic21lcXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTA4OTEsImV4cCI6MjA5MTA2Njg5MX0.Hiem3PyOaekpiYowCbujfP89OH8F0R_kwY9eGdzwk4g";
+const SUPABASE_ANON_KEY = "...";
 // ═══════════════════════════════════════════════════════════════════
 
 // ── CONSTANTS ────────────────────────────────────────────────────
@@ -3137,8 +3137,15 @@ async function load(){
     S.recategorizedV2=true;
   }
   if(!Array.isArray(S.shopFutureWeeks))S.shopFutureWeeks=[];
-  // Always start on the live current week at load — if user was viewing a past/future
-  // bank entry last session, that's stale now (a new day may have rolled around)
+  // One-time cleanup: remove all auto-archived entries (created by old behavior).
+  // From now on, only manually-archived weeks live in the Arkiv tab.
+  if(!S.cleanedAutoArchivedV1){
+    const before=(S.weekBank||[]).length;
+    S.weekBank=(S.weekBank||[]).filter(w=>!w.autoArchived);
+    if(before!==S.weekBank.length)console.log('Ryddede '+(before-S.weekBank.length)+' auto-arkiverede uger op');
+    S.cleanedAutoArchivedV1=true;
+  }
+  // Always start on the live current week at load
   S.viewedWeekId=null;
   if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
   if(!S.offCache){
@@ -6780,6 +6787,7 @@ function confirmSaveWeek(){
     weekNum:S.weekNum,
     savedAt:Date.now(),
     label,
+    archived:true, // explicitly marked as user-archived (not just navigation/planning state)
     meals:JSON.parse(JSON.stringify(S.meals))
   };
   S.weekBank.unshift(entry);
@@ -6818,13 +6826,18 @@ function renderBank(){
     return;
   }
 
-  // Weeks tab
-  if(c)c.textContent=`${S.weekBank.length} gemt`;
-  if(!S.weekBank.length){
+  // Weeks tab — only show explicitly archived entries (not navigation-created
+  // future-week planning slots, and not any old auto-archived entries).
+  // Migration: any entry without explicit archived/autoArchived flags is treated
+  // as user-created legacy archive (visible). Entries with autoArchived:true
+  // from before this change are now hidden too.
+  const archivedWeeks=S.weekBank.filter(w=>w.archived===true || (!w.autoArchived && w.archived===undefined && (w.meals||[]).some(d=>(d.dishes||[]).length>0) && w.weekNum<=S.weekNum));
+  if(c)c.textContent=`${archivedWeeks.length} gemt`;
+  if(!archivedWeeks.length){
     el.innerHTML=`<div class="book-empty"><div class="be-icon">🗄️</div><h3>Intet gemt endnu</h3><p>Tryk <strong>💾 Arkivér</strong> på Madplanen for at gemme den aktuelle uge som inspiration til senere.</p></div>`;
     return;
   }
-  el.innerHTML=S.weekBank.map(w=>{
+  el.innerHTML=archivedWeeks.map(w=>{
     const d=new Date(w.savedAt);
     const dStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     // Handle both old format ({day, name}) and new format ({day, dishes:[]})
@@ -7763,7 +7776,7 @@ function renderDashboard(){
     </div>
     <div class="dash-card" onclick="switchTab('bank',document.querySelectorAll('.tab')[5])">
       <div class="dash-card-icon">🗄️</div>
-      <div class="dash-card-value">${(S.weekBank||[]).length}</div>
+      <div class="dash-card-value">${(S.weekBank||[]).filter(w=>w.archived===true || (!w.autoArchived && w.archived===undefined && (w.meals||[]).some(d=>(d.dishes||[]).length>0) && w.weekNum<=S.weekNum)).length}</div>
       <div class="dash-card-label">uger i arkiv</div>
     </div>
   </div>`;
@@ -7926,24 +7939,10 @@ function useArchivedWeek(){
 // When leaving the live week with non-trivial content, snapshot it into the
 // bank so it can be browsed again later. "Non-trivial" = has at least one dish.
 function autoArchiveIfNeeded(){
-  if(S.viewedWeekId)return; // only archive when leaving live week
-  const filled=(S.meals||[]).some(d=>(d.dishes||[]).length>0);
-  if(!filled)return;
-  // Is the current meals already archived? Check: same weekNum + very recent snapshot
-  const recent=S.weekBank.find(w=>w.weekNum===S.weekNum && (Date.now()-w.savedAt)<24*60*60*1000 && w.autoArchived);
-  if(recent){
-    recent.meals=JSON.parse(JSON.stringify(S.meals));
-    recent.savedAt=Date.now();
-    return;
-  }
-  S.weekBank.unshift({
-    id:'week-'+Date.now(),
-    weekNum:S.weekNum,
-    savedAt:Date.now(),
-    label:`Uge ${S.weekNum}`,
-    autoArchived:true,
-    meals:JSON.parse(JSON.stringify(S.meals))
-  });
+  // Disabled by design: archiving should only happen when user explicitly
+  // presses "💾 Arkivér" on the meal plan. Navigating between weeks no longer
+  // creates archive entries.
+  return;
 }
 // Hook into meals rendering: when viewing a bank entry, render its meals instead.
 function getActiveMeals(){
