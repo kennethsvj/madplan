@@ -2314,7 +2314,13 @@ body {
     </div>
 
     <div class="link-panel" id="arPanelBridge">
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Gratis alternativ: brug din Claude.ai Pro til at læse opskriften. Kopier prompten, indsæt i Claude.ai sammen med billede/tekst, copy-paste JSON'en tilbage her.</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5">Indsæt et link til opskriften, eller hav et billede klar. Kopier prompten, brug den i Claude.ai, og indsæt JSON-svaret tilbage her.</p>
+
+      <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
+        <label class="form-label" style="margin-bottom:6px;display:block;font-size:.72rem">🔗 Link til opskrift (valgfri)</label>
+        <input class="form-input" id="arBridgeUrl" placeholder="https://valdemarsro.dk/butter-chicken/" oninput="updateBridgePrompt()" style="font-size:.82rem">
+        <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Hvis du indsætter en URL, beder prompten Claude om at læse opskriften fra siden. Lader du feltet være tomt, fungerer prompten som før (du sender billede sammen med den).</div>
+      </div>
 
       <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -2324,7 +2330,7 @@ body {
         <div id="bridgePromptText" style="font-size:.74rem;color:var(--text);background:white;padding:8px 10px;border-radius:6px;font-family:monospace;line-height:1.5;max-height:100px;overflow-y:auto;white-space:pre-wrap"></div>
       </div>
 
-      <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5"><strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.</p>
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5" id="arBridgeStep2"><strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.</p>
 
       <label class="form-label">Trin 3: Indsæt svaret fra Claude (parses automatisk)</label>
       <textarea class="paste-area" id="arBridgeJson" placeholder='{"name":"...","cuisine":"...","ingredients":[...],"steps":[...]}' style="min-height:140px;font-family:monospace;font-size:.78rem" oninput="autoParseBridge()"></textarea>
@@ -3145,6 +3151,26 @@ async function load(){
     if(before!==S.weekBank.length)console.log('Ryddede '+(before-S.weekBank.length)+' auto-arkiverede uger op');
     S.cleanedAutoArchivedV1=true;
   }
+  // Migration: strip stray leading minus signs from ingredient amounts in cookbook
+  // (these are import errors where Claude misread a list bullet as part of a number)
+  if(!S.cleanedNegAmountsV1){
+    const cleanIng=(ing)=>{
+      if(ing && ing.amount && /^[\s–—−-]+\d/.test(ing.amount)){
+        ing.amount=ing.amount.replace(/^[\s–—−-]+/,'').trim();
+      }
+    };
+    (S.cookbook||[]).forEach(r=>{
+      (r.ingredients||[]).forEach(cleanIng);
+      (r.sections||[]).forEach(sec=>(sec.ingredients||[]).forEach(cleanIng));
+    });
+    // Also live meals
+    (S.meals||[]).forEach(d=>(d.dishes||[]).forEach(dish=>{
+      (dish.ingredients||[]).forEach(cleanIng);
+      (dish.sections||[]).forEach(sec=>(sec.ingredients||[]).forEach(cleanIng));
+    }));
+    S.cleanedNegAmountsV1=true;
+    S.aggregated=null; // force re-aggregation
+  }
   // Always start on the live current week at load
   S.viewedWeekId=null;
   if(!S.customCommonItems)S.customCommonItems=DEFAULT_COMMON_ITEMS.map(i=>({...i}));
@@ -3849,12 +3875,16 @@ function normalizeIng(raw){
 }
 const FRAC={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667};
 function parseAmt(str){
-  if(!str)return null;const s=str.trim();
+  if(!str)return null;let s=str.trim();
   if(/^efter\s+smag$/i.test(s))return{value:null,unit:'efter smag'};
+  // Strip leading minus/dash characters — these are almost always import errors
+  // (em-dash, hyphen-minus, minus sign mistaken for a list bullet).
+  s=s.replace(/^[\s–—−-]+/,'');
+  if(!s)return null;
   let ns=s,fv=0;for(const[f,v]of Object.entries(FRAC)){if(ns.includes(f)){fv=v;ns=ns.replace(f,'').trim();}}
   ns=ns.replace(',','.');
   const m=ns.match(/^([\d.]+)?\s*([a-zæøåA-ZÆØÅ]+[\w]*)?/);if(!m)return null;
-  const num=(parseFloat(m[1]||'0')||0)+fv;const unit=(m[2]||'').toLowerCase().trim();
+  const num=Math.abs((parseFloat(m[1]||'0')||0))+fv;const unit=(m[2]||'').toLowerCase().trim();
   if(num===0&&!fv)return null;return{value:num,unit};
 }
 function fmtAmt(v,u){const r=v%1===0?v:parseFloat(v.toFixed(2));if(u==='g'&&r>=1000)return`${parseFloat((r/1000).toFixed(2))} kg`;if(u==='ml'&&r>=1000)return`${parseFloat((r/1000).toFixed(2))} l`;return`${r} ${u}`.trim();}
@@ -3894,7 +3924,34 @@ function runAggregation(){
         // freshly opted in by the user so clearedAt is irrelevant.
         if(!src.label && clearedAt && (dish.addedAt||0) <= clearedAt) return;
         const scale=dish.scale||1;
+        // Pre-process ingredients: handle two common import problems
+        // 1) "salt og peber" / "salt og friskkværnet peber" → split into two entries
+        // 2) "Efter smag X" → move "efter smag" into amount, clean name
+        const expanded=[];
         dish.ingredients.forEach(ing=>{
+          let rawName=(ing.name||'').trim();
+          let rawAmt=(ing.amount||'').trim();
+          // Move "efter smag" / "evt." prefixes into the amount field
+          const efterSmag=/^(efter\s+smag|evt\.?|eventuelt)\s+/i.exec(rawName);
+          if(efterSmag){
+            rawName=rawName.slice(efterSmag[0].length).trim();
+            if(!rawAmt)rawAmt='efter smag';
+          }
+          // Split combined salt/peber lines into separate entries
+          const saltPeberMatch=/^salt\s+og\s+(?:friskkværnet\s+|frisk\s+|sort\s+|hvid\s+)?peber$/i.test(rawName)
+                              ||/^salt\s+og\s+evt\.?\s+(?:friskkværnet\s+|frisk\s+)?peber$/i.test(rawName)
+                              ||/^salt\s*,\s*peber$/i.test(rawName);
+          if(saltPeberMatch){
+            expanded.push({...ing,name:'Salt',amount:rawAmt||'efter smag',category:'krydderier'});
+            expanded.push({...ing,name:'Peber',amount:rawAmt||'efter smag',category:'krydderier'});
+            return;
+          }
+          // Normalize standalone variants for joining
+          if(/^(friskkværnet|frisk|sort|hvid)\s+peber$/i.test(rawName))rawName='Peber';
+          else if(/^salt$/i.test(rawName))rawName='Salt';
+          expanded.push({...ing,name:rawName,amount:rawAmt});
+        });
+        expanded.forEach(ing=>{
           const norm=normalizeIng(ing.name);if(!norm)return;
           if(!groups.has(norm)){
             let d=ing.name
@@ -4531,6 +4588,8 @@ function openAddRecipeModal(existingRecipe=null){
   document.getElementById('addRecipeTitle').textContent=existingRecipe?'Rediger opskrift':'Tilføj opskrift';
   setStatus('arStatus','','');
   document.getElementById('arBridgeJson').value='';
+  const arUrl=document.getElementById('arBridgeUrl');
+  if(arUrl)arUrl.value='';
   // Reset photo zone UI
   document.getElementById('arPhotoPreview').style.display='none';
   document.getElementById('arPhotoContent').style.display='block';
@@ -4565,14 +4624,38 @@ function switchArTab(tab){
       </div>`;
     } else {w.innerHTML='';}
   } else if(tab==='bridge'){
-    document.getElementById('bridgePromptText').textContent=getBridgePrompt();
+    updateBridgePrompt();
   }
 }
 
 function getBridgePrompt(){
-  return `Udtræk opskriften fra det vedhæftede billede (eller tekst) ORDRET. Tilpas kun mængder til 4 portioner hvis nødvendigt. Hvis opskriften indeholder FLERE DELRETTER (fx hovedret + tilbehør + sauce), STRUKTURÉR dem som separate sections med titler. Returner KUN dette JSON — ingen forklaring, ingen markdown:
+  const url=(document.getElementById('arBridgeUrl')?.value||'').trim();
+  const schema=`{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"fx 30 min","sections":[{"title":"fx Vietnamesisk kylling (eller tom streng hvis ingen sektioner)","ingredients":[{"name":"string","amount":"fx 500 g","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["trin 1","trin 2"]}]}`;
+  const rules=`VIGTIGE REGLER (følg dem nøjagtigt):
+- Kopier ingredienser ORDRET fra originalen. Ændr ALDRIG mængder.
+- Udelad INGEN ingredienser, heller ikke salt, peber, olie, vand. Hvis originalen siger "salt og friskkværnet peber" som én linje, så lav to separate ingredienser: salt og peber.
+- "Efter smag" / "evt." / "valgfri" → brug "efter smag" som amount, og inkluder altid ingrediensen.
+- Brug ALTID positive tal i amount. Skriv aldrig "-2" eller "−2".
+- Hvis opskriften har FLERE DELRETTER (fx hovedret + tilbehør + sauce), opdel som separate sections med titler.
+- Returner KUN dette JSON — ingen forklaring, ingen markdown:`;
+  if(url){
+    return `Hent opskriften fra dette link: ${url}\n\n${rules}\n\n${schema}`;
+  }
+  return `Udtræk opskriften fra det vedhæftede billede (eller tekst).\n\n${rules}\n\n${schema}`;
+}
 
-{"name":"string","cuisine":"dansk|italiensk|mexicansk|asiatisk|indisk|græsk|mellemøstlig|amerikansk|fransk|spansk|japansk|thai|marokkansk|andet","cookTime":"fx 30 min","sections":[{"title":"fx Vietnamesisk kylling (eller tom streng hvis ingen sektioner)","ingredients":[{"name":"string","amount":"fx 500 g","category":"kød|grøntsager|frugt|mejeri|kolonial|brød|frysevarer|krydderier|andet"}],"steps":["trin 1","trin 2"]}]}`;
+function updateBridgePrompt(){
+  const el=document.getElementById('bridgePromptText');
+  const step2=document.getElementById('arBridgeStep2');
+  if(el)el.textContent=getBridgePrompt();
+  if(step2){
+    const url=(document.getElementById('arBridgeUrl')?.value||'').trim();
+    if(url){
+      step2.innerHTML=`<strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, indsæt prompten (den indeholder allerede dit link), send. Claude læser siden og returnerer JSON.`;
+    } else {
+      step2.innerHTML=`<strong>Trin 2:</strong> Åbn <a href="https://claude.ai/new" target="_blank" style="color:var(--rema)">claude.ai/new</a>, træk dit opskrifts-billede ind, indsæt prompten, send.`;
+    }
+  }
 }
 
 function copyBridgePrompt(){
@@ -4596,6 +4679,16 @@ function parseBridgeJson(){
   try{
     const parsed=JSON.parse(extractJSON(raw));
     if(!parsed.name){throw new Error('Mangler felt: name');}
+    // Inject the URL the user pasted (if any) so the source field auto-fills
+    const url=(document.getElementById('arBridgeUrl')?.value||'').trim();
+    if(url && !parsed.source){
+      try{
+        const u=new URL(url);
+        parsed.source={url, name:u.hostname.replace(/^www\./,'')};
+      }catch(e){
+        parsed.source={url, name:''};
+      }
+    }
     fillManualForm(parsed);
     switchArTab('manual');
     setStatus('arStatus','ok','✓ Indlæst — tjek og gem');
@@ -5876,6 +5969,17 @@ async function fetchFromImage(){
 }
 
 function fillManualForm(r){
+  // Defensive cleanup of amounts: strip leading minus signs and em-dashes which
+  // sometimes come from imports where Claude misread a list bullet as part of the number
+  const cleanAmt=(amt)=>{
+    if(!amt)return amt||'';
+    return String(amt).replace(/^[\s–—−-]+/,'').trim();
+  };
+  if(r.ingredients)r.ingredients.forEach(i=>{if(i.amount)i.amount=cleanAmt(i.amount);});
+  if(r.sections)r.sections.forEach(sec=>{
+    (sec.ingredients||[]).forEach(i=>{if(i.amount)i.amount=cleanAmt(i.amount);});
+  });
+
   document.getElementById('arName').value=r.name||'';
   document.getElementById('arCuisine').value=r.cuisine||'dansk';
   document.getElementById('arCookTime').value=r.cookTime||'';
