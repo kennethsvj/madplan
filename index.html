@@ -3151,25 +3151,30 @@ async function load(){
     if(before!==S.weekBank.length)console.log('Ryddede '+(before-S.weekBank.length)+' auto-arkiverede uger op');
     S.cleanedAutoArchivedV1=true;
   }
-  // Migration: strip stray leading minus signs from ingredient amounts in cookbook
-  // (these are import errors where Claude misread a list bullet as part of a number)
-  if(!S.cleanedNegAmountsV1){
+  // Migration: fix broken range amounts in cookbook (e.g. "-2 stk" → "1-2 stk")
+  // and strip stray leading minus signs from ingredient amounts.
+  if(!S.cleanedNegAmountsV1 || !S.cleanedRangeAmountsV2){
     const cleanIng=(ing)=>{
-      if(ing && ing.amount && /^[\s–—−-]+\d/.test(ing.amount)){
-        ing.amount=ing.amount.replace(/^[\s–—−-]+/,'').trim();
+      if(!ing || !ing.amount)return;
+      const s=String(ing.amount).trim();
+      const brokenRange=/^[\s–—−-]+(\d+(?:[.,]\d+)?)(\s+.*)?$/.exec(s);
+      if(brokenRange){
+        ing.amount=`1-${brokenRange[1]}${brokenRange[2]||''}`.trim();
+      } else if(/^[\s–—−-]+\d/.test(s)){
+        ing.amount=s.replace(/^[\s–—−-]+/,'').trim();
       }
     };
     (S.cookbook||[]).forEach(r=>{
       (r.ingredients||[]).forEach(cleanIng);
       (r.sections||[]).forEach(sec=>(sec.ingredients||[]).forEach(cleanIng));
     });
-    // Also live meals
     (S.meals||[]).forEach(d=>(d.dishes||[]).forEach(dish=>{
       (dish.ingredients||[]).forEach(cleanIng);
       (dish.sections||[]).forEach(sec=>(sec.ingredients||[]).forEach(cleanIng));
     }));
     S.cleanedNegAmountsV1=true;
-    S.aggregated=null; // force re-aggregation
+    S.cleanedRangeAmountsV2=true;
+    S.aggregated=null;
   }
   // Always start on the live current week at load
   S.viewedWeekId=null;
@@ -3631,13 +3636,28 @@ function setDishScale(dayIdx,dishIdx,scale){
 function multiplyAmount(amtStr,factor){
   if(!amtStr||factor===1)return amtStr;
   const FRAC2={'½':0.5,'¼':0.25,'¾':0.75,'⅓':0.333,'⅔':0.667,'⅛':0.125,'⅜':0.375,'⅝':0.625,'⅞':0.875};
-  let s=amtStr.trim();let fv=0;
+  // Strip leading minus/dash artifacts
+  let s=amtStr.trim().replace(/^[\s–—−-]+(?=\d)/,'');
+  // Range amounts ("1-2 limes") — scale the upper value, keep it a single number
+  const range=/^(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(.*)$/.exec(s);
+  if(range){
+    const upper=parseFloat(range[2].replace(',','.'))||0;
+    if(upper>0){
+      const unit=(range[3]||'').trim();
+      const scaled=upper*factor;
+      if(unit==='g'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} kg`;
+      if(unit==='ml'&&scaled>=1000)return `${parseFloat((scaled/1000).toFixed(2))} l`;
+      const pretty=scaled%1===0?scaled:parseFloat(scaled.toFixed(2));
+      return `${pretty}${unit?' '+unit:''}`.trim();
+    }
+  }
+  let fv=0;
   for(const[f,v]of Object.entries(FRAC2)){if(s.includes(f)){fv=v;s=s.replace(f,'').trim();}}
   s=s.replace(',','.');
   // Match "1/2 spsk", "1 1/2 spsk", "1.5 spsk", "2 spsk", "spsk" (no num)
-  const fracMixed=s.match(/^(\d+)\s+(\d+)\/(\d+)\s*(.*)$/); // "1 1/2 spsk"
-  const fracOnly=s.match(/^(\d+)\/(\d+)\s*(.*)$/);           // "1/2 spsk"
-  const decimal=s.match(/^([\d.]+)?\s*(.*)$/);               // "1.5 spsk" or "spsk"
+  const fracMixed=s.match(/^(\d+)\s+(\d+)\/(\d+)\s*(.*)$/);
+  const fracOnly=s.match(/^(\d+)\/(\d+)\s*(.*)$/);
+  const decimal=s.match(/^([\d.]+)?\s*(.*)$/);
   let num,unit;
   if(fracMixed){
     num=parseFloat(fracMixed[1])+parseFloat(fracMixed[2])/parseFloat(fracMixed[3]);
@@ -3878,9 +3898,16 @@ function parseAmt(str){
   if(!str)return null;let s=str.trim();
   if(/^efter\s+smag$/i.test(s))return{value:null,unit:'efter smag'};
   // Strip leading minus/dash characters — these are almost always import errors
-  // (em-dash, hyphen-minus, minus sign mistaken for a list bullet).
   s=s.replace(/^[\s–—−-]+/,'');
   if(!s)return null;
+  // Range amounts like "1-2 limes" or "2-3 spsk" → use the upper value for shopping
+  // (better to buy slightly too much than too little)
+  const range=/^(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(.*)$/.exec(s);
+  if(range){
+    const upper=parseFloat(range[2].replace(',','.'))||0;
+    const unit=(range[3]||'').toLowerCase().trim();
+    if(upper>0)return{value:upper,unit};
+  }
   let ns=s,fv=0;for(const[f,v]of Object.entries(FRAC)){if(ns.includes(f)){fv=v;ns=ns.replace(f,'').trim();}}
   ns=ns.replace(',','.');
   const m=ns.match(/^([\d.]+)?\s*([a-zæøåA-ZÆØÅ]+[\w]*)?/);if(!m)return null;
@@ -4636,6 +4663,8 @@ function getBridgePrompt(){
 - Udelad INGEN ingredienser, heller ikke salt, peber, olie, vand. Hvis originalen siger "salt og friskkværnet peber" som én linje, så lav to separate ingredienser: salt og peber.
 - "Efter smag" / "evt." / "valgfri" → brug "efter smag" som amount, og inkluder altid ingrediensen.
 - Brug ALTID positive tal i amount. Skriv aldrig "-2" eller "−2".
+- Range-mængder ("1-2 limes", "2-3 spsk") skal SKRIVES ORDRET som "1-2 stk" eller "2-3 spsk" — ALDRIG som "-2".
+- Hvis flere ingredienser deler én mængde (fx "1 knivspids cayennepeber og spidskommen" eller "1 knsp paprika og chili"), opdel det i SEPARATE ingredienser med samme mængde hver: én linje for cayennepeber med amount "1 knivspids", én for spidskommen med amount "1 knivspids".
 - Hvis opskriften har FLERE DELRETTER (fx hovedret + tilbehør + sauce), opdel som separate sections med titler.
 - Returner KUN dette JSON — ingen forklaring, ingen markdown:`;
   if(url){
@@ -5969,11 +5998,21 @@ async function fetchFromImage(){
 }
 
 function fillManualForm(r){
-  // Defensive cleanup of amounts: strip leading minus signs and em-dashes which
-  // sometimes come from imports where Claude misread a list bullet as part of the number
+  // Defensive cleanup of amounts. Handles common Claude import issues:
+  // 1) Leading minus/em-dash → "-2 stk" was likely "1-2 stk" with the 1 lost.
+  //    Reconstruct as "1-X" so we don't lose the range information entirely.
+  // 2) Strip pure leading dashes that aren't part of a range
   const cleanAmt=(amt)=>{
     if(!amt)return amt||'';
-    return String(amt).replace(/^[\s–—−-]+/,'').trim();
+    const s=String(amt).trim();
+    // Pattern: "-N rest" or "−N rest" where N is a number → assume "1-N rest"
+    const brokenRange=/^[\s–—−-]+(\d+(?:[.,]\d+)?)(\s+.*)?$/.exec(s);
+    if(brokenRange){
+      const num=brokenRange[1];
+      const rest=brokenRange[2]||'';
+      return `1-${num}${rest}`.trim();
+    }
+    return s.replace(/^[\s–—−-]+/,'').trim();
   };
   if(r.ingredients)r.ingredients.forEach(i=>{if(i.amount)i.amount=cleanAmt(i.amount);});
   if(r.sections)r.sections.forEach(sec=>{
